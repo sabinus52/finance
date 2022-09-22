@@ -30,5 +30,8 @@ yarn-error.log
 /.php-cs-fixer.cache
 ###< php-cs-fixer ###
 
+###> My configuration ###
 /DEVELOP*.md
-*.code-workspace
+/*.code-workspace
+/*.conf
+###< My configuration ###
