@@ -33,6 +33,11 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'manage_account__index',
             'icon' => 'fas fa-piggy-bank',
         ]));
+        $manage->addChild(new MenuItemModel('manage_recipient', [
+            'label' => 'Bénéficiaires',
+            'route' => 'manage_recipient__index',
+            'icon' => 'fas fa-users',
+        ]));
         $manage->addChild(new MenuItemModel('manage_category', [
             'label' => 'Catégories',
             'route' => 'manage_category__index',
