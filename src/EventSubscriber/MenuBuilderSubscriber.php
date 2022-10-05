@@ -33,6 +33,11 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'manage_account__index',
             'icon' => 'fas fa-piggy-bank',
         ]));
+        $manage->addChild(new MenuItemModel('manage_category', [
+            'label' => 'Catégories',
+            'route' => 'manage_category__index',
+            'icon' => 'fas fa-layer-group',
+        ]));
 
         $event
             ->addItem($manage)
