@@ -117,4 +117,33 @@ class Institution
         return $this;
     }
 
+    /**
+     * @return Collection<int, Account>
+     */
+    public function getAccounts(): Collection
+    {
+        return $this->accounts;
+    }
+
+    public function addAccount(Account $account): self
+    {
+        if (!$this->accounts->contains($account)) {
+            $this->accounts[] = $account;
+            $account->setInstitution($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAccount(Account $account): self
+    {
+        if ($this->accounts->removeElement($account)) {
+            // set the owning side to null (unless already changed)
+            if ($account->getInstitution() === $this) {
+                $account->setInstitution(null);
+            }
+        }
+
+        return $this;
+    }
 }

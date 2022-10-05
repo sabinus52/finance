@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ parent() }} - Gérer les comptes et contrats{% endblock %}
+
+{% block content_title %}<i class="fas fa-piggy-bank"></i> Gérer les comptes{% endblock %}
+{% block content_subtitle %}(Contrat, épargne, capitalisation, ...){% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-12">
+
+                <div class="card card-success card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Liste des comptes et contrats</h3>
+                        <div class="card-tools"><a href="{{ path('manage_account__create') }}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un compte</span></a></div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">Organisme</th>
+                                    <th>Nom</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in accounts %}
+                                <tr>
+                                    <td class="text-center"><img src="{{ item.institution.logo }}" height="48"></td>
+                                    <td class="align-middle"><b>{{ item.institution.name }}<b></td>
+                                    <td class="align-middle"><b>{{ item.name }}<b></td>
+                                    <td class="align-middle"><b>{{ item.statusBadge|raw }}<b></td>
+                                    <td class="text-right align-middle">
+                                        <a href="{{ path('manage_account__edit', {'id': item.id}) }}" class="btn btn-sm btn-info"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="3">Aucun éléments dans la table</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}

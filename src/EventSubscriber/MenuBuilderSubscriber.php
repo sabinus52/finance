@@ -28,6 +28,11 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'manage_institution__index',
             'icon' => 'far fa-building',
         ]));
+        $manage->addChild(new MenuItemModel('manage_account', [
+            'label' => 'Comptes / Contrats',
+            'route' => 'manage_account__index',
+            'icon' => 'fas fa-piggy-bank',
+        ]));
 
         $event
             ->addItem($manage)
