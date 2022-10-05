@@ -1,0 +1,8 @@
+{% form_theme form '@OlixBackOffice/Twig/form-theme-layout.html.twig' %}
+{{ form_start(form) }}
+    {% include '@OlixBackOffice/Include/modal-form-header.html.twig' with { title: "Créer une nouvelle institution"} %}
+    <div class="modal-body">
+        {{ form_rest(form) }}
+    </div>
+    {% include '@OlixBackOffice/Include/modal-form-footer-create.html.twig' %}
+{{ form_end(form) }}

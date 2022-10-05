@@ -13,10 +13,24 @@ namespace App\EventSubscriber;
 
 use Olix\BackOfficeBundle\Event\SidebarMenuEvent;
 use Olix\BackOfficeBundle\EventSubscriber\MenuFactorySubscriber;
+use Olix\BackOfficeBundle\Model\MenuItemModel;
 
 class MenuBuilderSubscriber extends MenuFactorySubscriber
 {
     public function build(SidebarMenuEvent $event): void
     {
+        $manage = new MenuItemModel('manage', [
+            'label' => 'Gerer ses finances',
+            'icon' => 'fas fa-cogs',
+        ]);
+        $manage->addChild(new MenuItemModel('manage_org', [
+            'label' => 'Organismes',
+            'route' => 'manage_institution__index',
+            'icon' => 'far fa-building',
+        ]));
+
+        $event
+            ->addItem($manage)
+        ;
     }
 }
