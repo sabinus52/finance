@@ -38,13 +38,15 @@ class AccountType extends AbstractType
     {
         $builder
             ->add('institution', EntityType::class, [
-                'label' => 'Catégories',
+                'label' => 'Organisme',
                 'class' => Institution::class,
                 'choice_label' => 'name',
             ])
             ->add('type', ChoiceType::class, [
                 'label' => 'Type de compte',
                 'choices' => ValuesAccountType::getChoices(),
+                'choice_label' => 'label',
+                'choice_value' => 'value',
             ])
             ->add('name', TextType::class, [
                 'label' => 'Nom du compte',

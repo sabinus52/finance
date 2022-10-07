@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\AccountRepository;
+use App\Values\AccountType;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -35,9 +36,9 @@ class Account
     /**
      * Type du compte.
      *
-     * @var int
+     * @var AccountType
      *
-     * @ORM\Column(type="smallint")
+     * @ORM\Column(type="account_type")
      */
     private $type;
 
@@ -132,12 +133,12 @@ class Account
         return $this->id;
     }
 
-    public function getType(): ?int
+    public function getType(): ?AccountType
     {
         return $this->type;
     }
 
-    public function setType(int $type): self
+    public function setType(AccountType $type): self
     {
         $this->type = $type;
 
@@ -247,7 +248,7 @@ class Account
      */
     public function isClosed(): bool
     {
-        return null === $this->closedAt;
+        return null !== $this->closedAt;
     }
 
     /**

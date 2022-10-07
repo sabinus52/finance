@@ -107,6 +107,11 @@ class AccountType
         return $this->getLabel();
     }
 
+    public function setValue(int $value): void
+    {
+        $this->value = $value;
+    }
+
     /**
      * Retourne la valeur.
      */
@@ -121,6 +126,14 @@ class AccountType
     public function getLabel(): string
     {
         return self::$values[$this->value];
+    }
+
+    /**
+     * Retourne le type principal.
+     */
+    public function getType(): string
+    {
+        return self::$valuesGroupBy[floor($this->value / 10)]['label'];
     }
 
     /**
@@ -143,7 +156,7 @@ class AccountType
         $result = [];
         foreach (self::$valuesGroupBy as $group) {
             foreach ($group['values'] as $key) {
-                $result[$group['label']][self::$values[$key]] = $key;
+                $result[$group['label']][] = new self($key);
             }
         }
 
