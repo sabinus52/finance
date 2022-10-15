@@ -29,4 +29,25 @@ class AccountRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Account::class);
     }
+
+    /**
+     * Retoune un tableau associatif des noms des comptes [CA Compte courant] => 1.
+     *
+     * @return Account[]
+     */
+    public function get4Import(): array
+    {
+        $query = $this->createQueryBuilder('acc')
+            ->innerJoin('acc.institution', 'int')
+            ->getQuery()
+        ;
+        $result = [];
+
+        /** @var Account $account */
+        foreach ($query->getResult() as $account) {
+            $result[$account->getFullName()] = $account;
+        }
+
+        return $result;
+    }
 }

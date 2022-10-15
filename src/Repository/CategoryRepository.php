@@ -46,4 +46,47 @@ class CategoryRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+
+    /**
+     * Retoune un tableau associatif des catégories de niveau 1 [+/-Level 1] => Category.
+     *
+     * @return Category[]
+     */
+    public function get4ImportLevel1(): array
+    {
+        $query = $this->createQueryBuilder('cat')
+            ->andWhere('cat.level = 1')
+            ->getQuery()
+        ;
+        $result = [];
+
+        /** @var Category $category */
+        foreach ($query->getResult() as $category) {
+            $result[$category->getTypeSymbol().$category->getFullName()] = $category;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Retoune un tableau associatif des catégories de niveau 2 [+/-Level1:Level2] => Category.
+     *
+     * @return Category[]
+     */
+    public function get4ImportLevel2(): array
+    {
+        $query = $this->createQueryBuilder('cat')
+            ->innerJoin('cat.parent', 'par')
+            ->andWhere('cat.level = 2')
+            ->getQuery()
+        ;
+        $result = [];
+
+        /** @var Category $category */
+        foreach ($query->getResult() as $category) {
+            $result[$category->getTypeSymbol().$category->getFullName()] = $category;
+        }
+
+        return $result;
+    }
 }

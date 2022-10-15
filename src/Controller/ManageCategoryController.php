@@ -96,6 +96,13 @@ class ManageCategoryController extends AbstractController
      */
     public function update(Request $request, Category $category, EntityManagerInterface $entityManager): Response
     {
+        // Catégorie réservée pour les virements internes
+        if (Category::VIREMENT === $category->getCode()) {
+            return $this->renderForm('@OlixBackOffice/Include/modal-alert.html.twig', [
+                'message' => 'Cette catégorie <strong>'.$category->getFullName().'</strong> ne peut pas être modifiée.',
+            ]);
+        }
+
         $form = $this->createForm(CategoryType::class, $category, [
             'action' => $this->generateUrl('manage_category__edit', ['id' => $category->getId()]),
         ]);

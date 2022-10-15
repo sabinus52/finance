@@ -29,6 +29,13 @@ class Category
 {
     public const RECETTES = true;
     public const DEPENSES = false;
+    public const VIREMENT = 'VIR';
+
+    /**
+     * Nom des categories pour les virements internes.
+     */
+    public const VIRT_RECETTES = 'Finance:Virement reçu';
+    public const VIRT_DEPENSES = 'Finance:Virement émis';
 
     /**
      * @ORM\Id
@@ -36,6 +43,15 @@ class Category
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
+
+    /**
+     * Code de la catégorie pour reconnaitre les virements internes ou la catégorie essence.
+     *
+     * @var string
+     *
+     * @ORM\Column(type="string", length=3, nullable=true)
+     */
+    private $code;
 
     /**
      * Nom de la catégorie.
@@ -86,15 +102,35 @@ class Category
      */
     private $children;
 
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="category")
+     */
+    private $transactions;
+
     public function __construct()
     {
         $this->type = self::DEPENSES;
         $this->children = new ArrayCollection();
+        $this->transactions = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getCode(): ?string
+    {
+        return $this->code;
+    }
+
+    public function setCode(?string $code): self
+    {
+        $this->code = $code;
+
+        return $this;
     }
 
     public function getName(): ?string
@@ -175,9 +211,61 @@ class Category
         return $this;
     }
 
+    /**
+     * @return Collection<int, Transaction>
+     */
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
+    }
+
+    public function addTransaction(Transaction $transaction): self
+    {
+        if (!$this->transactions->contains($transaction)) {
+            $this->transactions[] = $transaction;
+            $transaction->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransaction(Transaction $transaction): self
+    {
+        if ($this->transactions->removeElement($transaction)) {
+            // set the owning side to null (unless already changed)
+            if ($transaction->getCategory() === $this) {
+                $transaction->setCategory(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Retounr le nom complet pour le niveau 2.
+     *
+     * @return string
+     */
+    public function getFullName(): string
+    {
+        switch ($this->getLevel()) {
+            case 1:
+                return $this->getName();
+            case 2:
+                return $this->getParent()->getName().':'.$this->getName();
+            default:
+                return $this->getName();
+        }
+    }
+
     public function getTypeBadge(): string
     {
         return ($this->type) ? '<span class="badge bg-success text-uppercase">revenus</span>' : '<span class="badge bg-danger text-uppercase">dépenses</span>';
+    }
+
+    public function getTypeSymbol(): string
+    {
+        return ($this->type) ? '+' : '-';
     }
 
     /**

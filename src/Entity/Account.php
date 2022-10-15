@@ -13,7 +13,9 @@ namespace App\Entity;
 
 use App\Repository\AccountRepository;
 use App\Values\AccountType;
-use DateTimeInterface;
+use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -57,7 +59,7 @@ class Account
      *
      * @var string
      *
-     * @ORM\Column(type="string", length=30)
+     * @ORM\Column(type="string", length=50)
      * @Assert\NotBlank
      * @Assert\Length(max=30)
      */
@@ -86,7 +88,7 @@ class Account
     /**
      * Date d'ouverture du compte.
      *
-     * @var DateTimeInterface
+     * @var DateTime
      *
      * @ORM\Column(type="date")
      * @Assert\NotBlank
@@ -96,7 +98,7 @@ class Account
     /**
      * Date de fermeture ou null si en cours.
      *
-     * @var DateTimeInterface
+     * @var DateTime
      *
      * @ORM\Column(type="date", nullable=true)
      */
@@ -121,11 +123,19 @@ class Account
      */
     private $institution;
 
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="account")
+     */
+    private $transactions;
+
     public function __construct()
     {
         $this->balance = 0;
         $this->currency = 'EUR';
         $this->overdraft = 0;
+        $this->transactions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -193,24 +203,24 @@ class Account
         return $this;
     }
 
-    public function getOpenedAt(): ?DateTimeInterface
+    public function getOpenedAt(): ?DateTime
     {
         return $this->openedAt;
     }
 
-    public function setOpenedAt(?DateTimeInterface $openedAt): self
+    public function setOpenedAt(?DateTime $openedAt): self
     {
         $this->openedAt = $openedAt;
 
         return $this;
     }
 
-    public function getClosedAt(): ?DateTimeInterface
+    public function getClosedAt(): ?DateTime
     {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?DateTimeInterface $closedAt): self
+    public function setClosedAt(?DateTime $closedAt): self
     {
         $this->closedAt = $closedAt;
 
@@ -239,6 +249,46 @@ class Account
         $this->institution = $institution;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Transaction>
+     */
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
+    }
+
+    public function addTransaction(Transaction $transaction): self
+    {
+        if (!$this->transactions->contains($transaction)) {
+            $this->transactions[] = $transaction;
+            $transaction->setAccount($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransaction(Transaction $transaction): self
+    {
+        if ($this->transactions->removeElement($transaction)) {
+            // set the owning side to null (unless already changed)
+            if ($transaction->getAccount() === $this) {
+                $transaction->setAccount(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Retourne le nom complet organisme + nom du compte.
+     *
+     * @return string
+     */
+    public function getFullName(): string
+    {
+        return $this->getInstitution()->getName().' '.$this->getName();
     }
 
     /**

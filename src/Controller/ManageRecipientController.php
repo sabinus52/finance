@@ -80,6 +80,13 @@ class ManageRecipientController extends AbstractController
      */
     public function update(Request $request, Recipient $recipient, EntityManagerInterface $entityManager): Response
     {
+        // Bénéficiaire réservé pour les virements internes
+        if (1 === $recipient->getId()) {
+            return $this->renderForm('@OlixBackOffice/Include/modal-alert.html.twig', [
+                'message' => 'Ce bénéficiaire <strong>'.$recipient->getName().'</strong> ne peut pas être modifié.',
+            ]);
+        }
+
         $form = $this->createForm(RecipientType::class, $recipient, [
             'action' => $this->generateUrl('manage_recipient__edit', ['id' => $recipient->getId()]),
         ]);

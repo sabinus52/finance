@@ -29,4 +29,21 @@ class RecipientRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Recipient::class);
     }
+
+    /**
+     * Retoune un tableau associatif des bénéficiares [Carrefour] => Recipient.
+     *
+     * @return Recipient[]
+     */
+    public function get4Import(): array
+    {
+        $result = [];
+
+        /** @var Recipient $recipient */
+        foreach ($this->findAll() as $recipient) {
+            $result[$recipient->getName()] = $recipient;
+        }
+
+        return $result;
+    }
 }

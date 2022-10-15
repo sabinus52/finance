@@ -29,4 +29,21 @@ class InstitutionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Institution::class);
     }
+
+    /**
+     * Retoune un tableau associatif des organismes [CA] => Institution.
+     *
+     * @return Institution[]
+     */
+    public function get4Import(): array
+    {
+        $result = [];
+
+        /** @var Institution $institution */
+        foreach ($this->findAll() as $institution) {
+            $result[$institution->getName()] = $institution;
+        }
+
+        return $result;
+    }
 }
