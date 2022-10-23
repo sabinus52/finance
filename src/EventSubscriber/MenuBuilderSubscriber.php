@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace App\EventSubscriber;
 
+use App\Entity\Account;
+use App\Repository\AccountRepository;
 use Olix\BackOfficeBundle\Event\SidebarMenuEvent;
 use Olix\BackOfficeBundle\EventSubscriber\MenuFactorySubscriber;
 use Olix\BackOfficeBundle\Model\MenuItemModel;
@@ -19,6 +21,28 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
 {
     public function build(SidebarMenuEvent $event): void
     {
+        /** @var AccountRepository $repository */
+        $repository = $this->entityManager->getRepository(Account::class);
+        $accountsByType = $repository->findGroupByTypeOpened();
+        $idx = 0;
+        foreach ($accountsByType as $key => $accounts) {
+            /** @var Account[] $accounts */
+            $menu = new MenuItemModel('type_'.$idx++, [
+                'label' => $key,
+                'icon' => ' ',
+            ]);
+            foreach ($accounts as $account) {
+                /** @var Account $account */
+                $menu->addChild(new MenuItemModel('account'.$account->getId(), [
+                    'label' => $account->getInstitution()->getName().' '.$account->getName(),
+                    'route' => 'account__index',
+                    'routeArgs' => ['id' => $account->getId()],
+                    'icon' => ' ',
+                ]));
+            }
+            $event->addItem($menu);
+        }
+
         $manage = new MenuItemModel('manage', [
             'label' => 'Gerer ses finances',
             'icon' => 'fas fa-cogs',

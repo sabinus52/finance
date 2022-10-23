@@ -31,6 +31,32 @@ class AccountRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les comptes ouverts regroupé par type principal pour le menu de la sidebar.
+     *
+     * @return array<string,Account[]>
+     */
+    public function findGroupByTypeOpened(): array
+    {
+        $query = $this->createQueryBuilder('acc')
+            ->addSelect('int')
+            ->innerJoin('acc.institution', 'int')
+            ->andWhere('acc.closedAt IS NULL')
+            ->addOrderBy('acc.institution', 'ASC')
+            ->addOrderBy('acc.name', 'ASC')
+            ->getQuery()
+        ;
+
+        $result = [];
+
+        /** @var Account $account */
+        foreach ($query->getResult() as $account) {
+            $result[$account->getType()->getType()][] = $account;
+        }
+
+        return $result;
+    }
+
+    /**
      * Retoune un tableau associatif des noms des comptes [CA Compte courant] => 1.
      *
      * @return Account[]

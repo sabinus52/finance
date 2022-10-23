@@ -48,6 +48,27 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne la catégorie "VIREMENT" en fonction du crédit/débit.
+     *
+     * @param bool $type (RECETTES|DEPENSES)
+     *
+     * @return Category|null
+     */
+    public function findTransfer(bool $type): ?Category
+    {
+        return $this->createQueryBuilder('cat')
+            ->andWhere('cat.type = :val')
+            ->setParameter('val', $type)
+            ->andWhere('cat.code = :code')
+            ->setParameter('code', Category::VIREMENT)
+            ->andWhere('cat.level = 2')
+            ->addOrderBy('cat.name', 'ASC')
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
+    /**
      * Retoune un tableau associatif des catégories de niveau 1 [+/-Level 1] => Category.
      *
      * @return Category[]

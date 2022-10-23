@@ -62,6 +62,9 @@ class Payment
         $result = [];
 
         foreach (array_keys(self::$payments) as $payment) {
+            if (self::INTERNAL === $payment) {
+                continue;
+            }
             $result[] = new self($payment);
         }
 

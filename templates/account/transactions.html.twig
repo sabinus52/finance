@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% form_theme filter '@OlixBackOffice/Twig/form-theme-horizontal-layout.html.twig' %}
+
+{% block title %}{{ parent() }} - Gérer les comptes et contrats{% endblock %}
+
+{% block content_title %}<i class="fas fa-piggy-bank"></i> Gérer les comptes{% endblock %}
+{% block content_subtitle %}(Contrat, épargne, capitalisation, ...){% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style type="text/css">
+.my-custom-scrollbar {
+    position: relative;
+    height: 500px;
+    overflow: auto;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset('transaction.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-12">
+
+                <div class="card card-success card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ account.fullName }}</h3>
+                        <div class="card-tools">
+                            <a data-remote="{{ path('transaction__create', { 'id': account.id }) }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter une opération</span></a>
+                            <a data-remote="{{ path('transfer__create', { 'id': account.id }) }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un virement</span></a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                    {{ form_start(filter, { 'action': path('account__ajax', { 'id': account.id }), 'attr': { 'id': 'formFilter' }}) }}
+                        <div class="row">
+                            <div class="col-md-6">{{ form_row(filter.range) }}</div>
+                            <div class="col-md-6">{{ form_row(filter.state) }}</div>
+                        </div>
+                    {{ form_end(filter) }}
+                    </div>
+                </div>
+
+                <div class="card card-outline" style="">
+                    <div class="card-body table-responsive p-0">
+                        <div id="tableTransactions" class="my-custom-scrollbar">
+                            <table class="table table-sm table-hover text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Mode</th>
+                                        <th>Bénéficiaire</th>
+                                        <th>Catégories</th>
+                                        <th>Etat</th>
+                                        <th>Débit</th>
+                                        <th>Crédit</th>
+                                        <th>Solde</th>
+                                        <th>Mémo</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="9"><p class="text-center"><img alt="" src="/bundles/olixbackoffice/images/spinner-rectangle.gif"></p></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    {% include '@OlixBackOffice/Include/modal-delete.html.twig' with {'form': delete, 'element': 'cette opération'} %}
+
+    {% include '@OlixBackOffice/Include/modal-form.html.twig' %}
+
+{% endblock %}

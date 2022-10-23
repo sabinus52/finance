@@ -15,6 +15,7 @@ use App\Repository\TransactionRepository;
 use App\Values\Payment;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=TransactionRepository::class)
@@ -34,6 +35,7 @@ class Transaction
      * @var DateTime
      *
      * @ORM\Column(type="date")
+     * @Assert\NotBlank
      */
     private $date;
 
@@ -43,6 +45,7 @@ class Transaction
      * @var float
      *
      * @ORM\Column(type="float")
+     * @Assert\NotBlank
      */
     private $amount;
 
@@ -53,6 +56,7 @@ class Transaction
      *
      * @ORM\ManyToOne(targetEntity=Account::class, inversedBy="transactions")
      * @ORM\JoinColumn(nullable=false)
+     * @Assert\NotBlank
      */
     private $account;
 
@@ -62,6 +66,7 @@ class Transaction
      * @var Payment
      *
      * @ORM\Column(type="payment")
+     * @Assert\NotBlank
      */
     private $payment;
 
@@ -71,6 +76,7 @@ class Transaction
      * @var Recipient
      *
      * @ORM\ManyToOne(targetEntity=Recipient::class, inversedBy="transactions")
+     * @Assert\NotBlank
      */
     private $recipient;
 
@@ -81,6 +87,7 @@ class Transaction
      *
      * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="transactions")
      * @ORM\JoinColumn(nullable=false)
+     * @Assert\NotBlank
      */
     private $category;
 
@@ -111,6 +118,12 @@ class Transaction
      */
     private $transfer;
 
+    public function __construct()
+    {
+        $this->state = 0;
+        $this->date = new DateTime();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -121,7 +134,7 @@ class Transaction
         return $this->date;
     }
 
-    public function setDate(DateTime $date): self
+    public function setDate(?DateTime $date): self
     {
         $this->date = $date;
 
@@ -133,7 +146,7 @@ class Transaction
         return $this->amount;
     }
 
-    public function setAmount(float $amount): self
+    public function setAmount(?float $amount): self
     {
         $this->amount = $amount;
 
