@@ -13,13 +13,13 @@ namespace App\Controller;
 
 use App\Entity\Account;
 use App\Entity\Category;
-use App\Entity\Recipient;
 use App\Entity\Transaction;
 use App\Form\TransactionType;
 use App\Form\TransferType;
 use App\Helper\DateRange;
+use App\Helper\Transfer;
 use App\Repository\TransactionRepository;
-use App\Values\Payment;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormError;
@@ -138,7 +138,7 @@ class TransactionController extends AbstractController
     /**
      * @Route("/account/{id}/transactions/create", name="transaction__create", methods={"GET", "POST"})
      */
-    public function createTransaction(Request $request, Account $account, TransactionRepository $repository): Response
+    public function createTransaction(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
         $transaction = new Transaction();
         $transaction->setAccount($account);
@@ -152,7 +152,9 @@ class TransactionController extends AbstractController
                 $form->get('category')->addError(new FormError(''));
                 $form->get('amount')->addError(new FormError(''));
             } else {
-                $repository->add($transaction, true);
+                $entityManager->persist($transaction);
+                $entityManager->flush();
+
                 $this->addFlash('success', 'La création de la transaction a bien été prise en compte');
 
                 return new Response('OK');
@@ -167,13 +169,12 @@ class TransactionController extends AbstractController
     /**
      * @Route("/account/{id}/transfer/create", name="transfer__create", methods={"GET", "POST"})
      */
-    public function createTransfer(Request $request, Account $account, TransactionRepository $repository): Response
+    public function createTransfer(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
         $transaction = new Transaction();
         $transaction->setAccount($account);
-        $transaction->setPayment(new Payment(Payment::INTERNAL));
-        $transaction->setRecipient(new Recipient());
-        $transaction->setCategory(new Category());
+        $transfer = new Transfer($entityManager, $transaction);
+
         $form = $this->createForm(TransferType::class, $transaction, [
             'action' => $this->generateUrl('transfer__create', ['id' => $account->getId()]),
         ]);
@@ -181,7 +182,9 @@ class TransactionController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $repository->addTransfer($transaction, $form->get('source')->getData(), $form->get('target')->getData(), true);
+            $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
+            $transfer->add();
+
             $this->addFlash('success', 'La création du virement a bien été prise en compte');
 
             return new Response('OK');
@@ -195,16 +198,16 @@ class TransactionController extends AbstractController
     /**
      * @Route("/account/transactions/edit/{id}", name="transaction__edit", methods={"GET", "POST"})
      */
-    public function update(Request $request, Transaction $transaction, TransactionRepository $repository): Response
+    public function update(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         if (null !== $transaction->getTransfer()) {
-            return $this->updateTransfer($request, $transaction, $repository);
+            return $this->updateTransfer($request, $transaction, $entityManager);
         }
 
-        return $this->updateTransaction($request, $transaction, $repository);
+        return $this->updateTransaction($request, $transaction, $entityManager);
     }
 
-    private function updateTransaction(Request $request, Transaction $transaction, TransactionRepository $repository): Response
+    private function updateTransaction(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(TransactionType::class, $transaction, [
             'action' => $this->generateUrl('transaction__edit', ['id' => $transaction->getId()]),
@@ -216,7 +219,7 @@ class TransactionController extends AbstractController
                 $form->get('category')->addError(new FormError(''));
                 $form->get('amount')->addError(new FormError(''));
             } else {
-                $repository->update(true);
+                $entityManager->flush();
                 $this->addFlash('success', 'La modification de l\'opération a bien été prise en compte');
 
                 return new Response('OK');
@@ -228,22 +231,21 @@ class TransactionController extends AbstractController
         ]);
     }
 
-    private function updateTransfer(Request $request, Transaction $transaction, TransactionRepository $repository): Response
+    private function updateTransfer(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
-        // Si le montant est négatif, on doit prendre en source le compte créditeur
-        if ($transaction->getAmount() < 0) {
-            $transaction = $transaction->getTransfer();
-        }
+        $transfer = new Transfer($entityManager, $transaction);
+        $transaction = $transfer->getCredit();
 
         $form = $this->createForm(TransferType::class, $transaction, [
             'action' => $this->generateUrl('transaction__edit', ['id' => $transaction->getId()]),
         ]);
-        $form->get('source')->setData($transaction->getTransfer()->getAccount()); // Compte débiteur
-        $form->get('target')->setData($transaction->getAccount()); // Compte créditeur
+        $form->get('source')->setData($transfer->getDebit()->getAccount()); // Compte débiteur
+        $form->get('target')->setData($transfer->getCredit()->getAccount()); // Compte créditeur
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $repository->updateTransfer($transaction, $form->get('source')->getData(), $form->get('target')->getData(), true);
+            $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
+            $transfer->update();
 
             $this->addFlash('success', 'La modification du virement a bien été prise en compte');
 
@@ -270,15 +272,21 @@ class TransactionController extends AbstractController
     /**
      * @Route("/account/transactions/remove/{id}", name="transaction__remove", methods={"POST"})
      */
-    public function remove(Request $request, Transaction $transaction, TransactionRepository $repository): Response
+    public function remove(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createFormBuilder()->getForm();
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $repository->remove($transaction);
-
-            $this->addFlash('success', 'La suppression a bien été prise en compte');
+            if (null === $transaction->getTransfer()) {
+                $entityManager->remove($transaction);
+                $entityManager->flush();
+                $this->addFlash('success', 'La suppression de l\'opération a bien été prise en compte');
+            } else {
+                $transfer = new Transfer($entityManager, $transaction);
+                $transfer->remove();
+                $this->addFlash('success', 'La suppression du virement a bien été prise en compte');
+            }
 
             return new Response('OK');
         }
