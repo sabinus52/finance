@@ -50,6 +50,15 @@ class Transaction
     private $amount;
 
     /**
+     * Solde du compte.
+     *
+     * @var float
+     *
+     * @ORM\Column(type="float", options={"default": 0})
+     */
+    private $balance;
+
+    /**
      * Compte bancaire associé.
      *
      * @var Account
@@ -120,6 +129,7 @@ class Transaction
 
     public function __construct()
     {
+        $this->balance = 0;
         $this->state = 0;
         $this->date = new DateTime();
     }
@@ -149,6 +159,18 @@ class Transaction
     public function setAmount(?float $amount): self
     {
         $this->amount = $amount;
+
+        return $this;
+    }
+
+    public function getBalance(): ?float
+    {
+        return $this->balance;
+    }
+
+    public function setBalance(float $balance): self
+    {
+        $this->balance = $balance;
 
         return $this;
     }

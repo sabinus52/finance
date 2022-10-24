@@ -70,7 +70,16 @@ class Account
      *
      * @var float
      *
-     * @ORM\Column(type="float")
+     * @ORM\Column(type="float", options={"default": 0})
+     */
+    private $initial;
+
+    /**
+     * Solde courant du compte.
+     *
+     * @var float
+     *
+     * @ORM\Column(type="float", options={"default": 0})
      * @Assert\NotBlank
      */
     private $balance;
@@ -132,6 +141,7 @@ class Account
 
     public function __construct()
     {
+        $this->initial = 0;
         $this->balance = 0;
         $this->currency = 'EUR';
         $this->overdraft = 0;
@@ -175,6 +185,18 @@ class Account
     public function setName(string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getInitial(): ?float
+    {
+        return $this->initial;
+    }
+
+    public function setInitial(float $initial): self
+    {
+        $this->initial = $initial;
 
         return $this;
     }

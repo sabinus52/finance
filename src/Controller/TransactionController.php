@@ -16,6 +16,7 @@ use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Form\TransactionType;
 use App\Form\TransferType;
+use App\Helper\Balance;
 use App\Helper\DateRange;
 use App\Helper\Transfer;
 use App\Repository\TransactionRepository;
@@ -154,6 +155,8 @@ class TransactionController extends AbstractController
             } else {
                 $entityManager->persist($transaction);
                 $entityManager->flush();
+                $helper = new Balance($entityManager);
+                $helper->updateBalanceAfter($transaction);
 
                 $this->addFlash('success', 'La création de la transaction a bien été prise en compte');
 
@@ -184,6 +187,9 @@ class TransactionController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
             $transfer->add();
+            $helper = new Balance($entityManager);
+            $helper->updateBalanceAfter($transfer->getDebit());
+            $helper->updateBalanceAfter($transfer->getCredit());
 
             $this->addFlash('success', 'La création du virement a bien été prise en compte');
 
@@ -220,6 +226,8 @@ class TransactionController extends AbstractController
                 $form->get('amount')->addError(new FormError(''));
             } else {
                 $entityManager->flush();
+                $helper = new Balance($entityManager);
+                $helper->updateBalanceAfter($transaction);
                 $this->addFlash('success', 'La modification de l\'opération a bien été prise en compte');
 
                 return new Response('OK');
@@ -246,6 +254,9 @@ class TransactionController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
             $transfer->update();
+            $helper = new Balance($entityManager);
+            $helper->updateBalanceAfter($transfer->getDebit());
+            $helper->updateBalanceAfter($transfer->getCredit());
 
             $this->addFlash('success', 'La modification du virement a bien été prise en compte');
 
@@ -278,13 +289,18 @@ class TransactionController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            $helper = new Balance($entityManager);
+
             if (null === $transaction->getTransfer()) {
                 $entityManager->remove($transaction);
                 $entityManager->flush();
+                $helper->updateBalanceAfter($transaction);
                 $this->addFlash('success', 'La suppression de l\'opération a bien été prise en compte');
             } else {
                 $transfer = new Transfer($entityManager, $transaction);
                 $transfer->remove();
+                $helper->updateBalanceAfter($transfer->getDebit());
+                $helper->updateBalanceAfter($transfer->getCredit());
                 $this->addFlash('success', 'La suppression du virement a bien été prise en compte');
             }
 

@@ -60,7 +60,7 @@ class AccountType extends AbstractType
                 'label' => 'Devise du compte',
                 'required' => false,
             ])
-            ->add('balance', MoneyType::class, [
+            ->add('initial', MoneyType::class, [
                 'label' => 'Solde initial',
                 'required' => false,
             ])
