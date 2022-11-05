@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Helper;
 
 use App\Entity\Account;
+use App\Entity\Category;
 use App\Entity\Transaction;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -69,14 +70,19 @@ class Balance
     public function updateBalanceAll(Account $account): int
     {
         $balance = $account->getInitial();
+        $invested = $account->getInitial();
 
         $results = $this->findAll($account);
         foreach ($results as $item) {
             $balance += $item->getAmount();
             $item->setBalance($balance);
+            if (Category::VERSEMENT === $item->getCategory()->getCode()) {
+                $invested += $item->getAmount();
+            }
         }
 
         $account->setBalance($balance);
+        $account->setInvested($invested);
         $this->entityManager->flush();
 
         return count($results);
@@ -140,7 +146,9 @@ class Balance
     {
         return $this->entityManager->createQueryBuilder()
             ->select('trt')
+            ->addSelect('cat')
             ->from(Transaction::class, 'trt')
+            ->innerJoin('trt.category', 'cat')
             ->andWhere('trt.account = :account')
             ->setParameter('account', $account)
             ->addOrderBy('trt.date', 'ASC')

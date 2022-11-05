@@ -132,6 +132,7 @@ class ImportCommand extends Command
 
         // Fait les associations entre les transactions des virements internes
         $parser->setAssocTransfer();
+        $parser->setAssocInvestment();
         $this->entityManager->flush();
 
         // Affiche les rapports

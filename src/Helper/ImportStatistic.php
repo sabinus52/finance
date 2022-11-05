@@ -85,7 +85,11 @@ class ImportStatistic
         $this->setAccountData($transaction->getAccount());
         ++$this->accounts[$accountName]['transactions'];
         if (Payment::INTERNAL === $transaction->getPayment()->getValue()) {
-            ++$this->accounts[$accountName]['transfers'];
+            if (Category::VIREMENT === $transaction->getCategory()->getCode()) {
+                ++$this->accounts[$accountName]['transfers'];
+            } else {
+                ++$this->accounts[$accountName]['investments'];
+            }
         }
 
         // Incrémente les transactions des catégories
@@ -102,7 +106,7 @@ class ImportStatistic
     public function reportAccounts(): void
     {
         $this->accounts->ksort();
-        $this->inOut->table(['Compte', 'Type', 'Date', 'Nbr transaction', 'Nbr virement'], (array) $this->accounts);
+        $this->inOut->table(['Compte', 'Type', 'Date', 'Nbr transaction', 'Nbr virement', 'Nbr placement'], (array) $this->accounts);
     }
 
     /**
@@ -128,6 +132,7 @@ class ImportStatistic
             'opened' => $account->getOpenedAt()->format('d/m/Y'),
             'transactions' => 0,
             'transfers' => 0,
+            'investments' => 0,
         ];
     }
 

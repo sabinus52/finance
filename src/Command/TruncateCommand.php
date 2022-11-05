@@ -118,13 +118,12 @@ class TruncateCommand extends Command
         $helper->createRecipient(Recipient::VIRT_NAME);
         $rows[] = ['Création du bénéficiaire de virement interne', '<info>OK</info>'];
 
-        $category = $helper->createCategory('+'.Category::VIRT_RECETTES);
-        $category->setCode(Category::VIREMENT);
-        $rows[] = ['Création de la categorie recette', '<info>OK</info>'];
-
-        $category = $helper->createCategory('-'.Category::VIRT_DEPENSES);
-        $category->setCode(Category::VIREMENT);
-        $rows[] = ['Création de la categorie dépense', '<info>OK</info>'];
+        foreach (Category::$baseCategories as $cat) {
+            $type = ($cat['type']) ? '+' : '-';
+            $category = $helper->createCategory($type.$cat['label']);
+            $category->setCode($cat['code']);
+            $rows[] = [sprintf('Création de la categorie %s', $cat['label']), '<info>OK</info>'];
+        }
 
         $this->entityManager->flush();
 

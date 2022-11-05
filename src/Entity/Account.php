@@ -71,6 +71,7 @@ class Account
      * @var float
      *
      * @ORM\Column(type="float", options={"default": 0})
+     * @Assert\NotBlank
      */
     private $initial;
 
@@ -80,7 +81,6 @@ class Account
      * @var float
      *
      * @ORM\Column(type="float", options={"default": 0})
-     * @Assert\NotBlank
      */
     private $balance;
 
@@ -124,6 +124,15 @@ class Account
     private $overdraft;
 
     /**
+     * Montant investi dans les placements.
+     *
+     * @var float
+     *
+     * @ORM\Column(type="float", options={"default": 0})
+     */
+    private $invested;
+
+    /**
      * @var Institution
      *
      * @ORM\ManyToOne(targetEntity=Institution::class, inversedBy="accounts")
@@ -145,6 +154,7 @@ class Account
         $this->balance = 0;
         $this->currency = 'EUR';
         $this->overdraft = 0;
+        $this->invested = 0;
         $this->transactions = new ArrayCollection();
     }
 
@@ -257,6 +267,18 @@ class Account
     public function setOverdraft(?float $overdraft): self
     {
         $this->overdraft = $overdraft;
+
+        return $this;
+    }
+
+    public function getInvested(): ?float
+    {
+        return $this->invested;
+    }
+
+    public function setInvested(?float $invested): self
+    {
+        $this->invested = $invested;
 
         return $this;
     }

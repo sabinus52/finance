@@ -25,6 +25,7 @@ use SplFileObject;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  *
+ * @SuppressWarnings(PHPMD.StaticAccess)
  * @SuppressWarnings(PHPMD.CyclomaticComplexity)
  */
 class QifParser
@@ -67,6 +68,13 @@ class QifParser
     private $transfers;
 
     /**
+     * Liste des inverstissement à créer et à affecter sur une assurance vie.
+     *
+     * @var ArrayObject
+     */
+    private $investments;
+
+    /**
      * Compte en cours d'importation.
      *
      * @var ArrayObject
@@ -85,6 +93,7 @@ class QifParser
         $this->helper = $helper;
         $this->account = new ArrayObject();
         $this->transfers = new ArrayObject();
+        $this->investments = new ArrayObject();
     }
 
     /**
@@ -247,7 +256,7 @@ class QifParser
                 $date,
                 $amount,
                 Recipient::VIRT_NAME,
-                ($amount > 0) ? Category::VIRT_RECETTES : Category::VIRT_DEPENSES,
+                ($amount > 0) ? Category::getBaseCategoryLabel('VIRT+') : Category::getBaseCategoryLabel('VIRT-'),
                 $memo,
                 $state,
                 new Payment(Payment::INTERNAL)
@@ -257,13 +266,47 @@ class QifParser
                 $date,
                 $amount * -1,
                 Recipient::VIRT_NAME,
-                ($amount * -1 > 0) ? Category::VIRT_RECETTES : Category::VIRT_DEPENSES,
+                ($amount * -1 > 0) ? Category::getBaseCategoryLabel('VIRT+') : Category::getBaseCategoryLabel('VIRT-'),
                 $memo,
                 $state,
                 new Payment(Payment::INTERNAL)
             );
             // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions
             $this->transfers[] = [
+                'source' => $transactionSource,
+                'target' => $transactionTarget,
+            ];
+        } elseif ('Versement:' === substr($memo, 0, 10)) {
+            /**
+             * Détection d'un investissement.
+             */
+            $placement = substr($memo, 11, -1);
+            // Toujours compte débiteur
+            $transactionSource = $this->helper->createTransaction(
+                $this->account['name'],
+                $date,
+                $amount,
+                Recipient::VIRT_NAME,
+                Category::getBaseCategoryLabel('INVS-'),
+                '',
+                $state,
+                new Payment(Payment::INTERNAL)
+            );
+            // Toujours versement sur le placement
+            $transactionTarget = $this->helper->createTransaction(
+                $placement,
+                $date,
+                $amount * -1,
+                Recipient::VIRT_NAME,
+                Category::getBaseCategoryLabel('VERS+'),
+                '',
+                0,
+                new Payment(Payment::INTERNAL)
+            );
+            $accPlacement = $this->helper->getAccount($placement);
+            $accPlacement->setType(new AccountType(51));
+            // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions
+            $this->investments[] = [
                 'source' => $transactionSource,
                 'target' => $transactionTarget,
             ];
@@ -286,6 +329,22 @@ class QifParser
             $transactionSource = $transfer['source'];
             /** @var Transaction $transactionTarget */
             $transactionTarget = $transfer['target'];
+
+            $transactionSource->setTransfer($transactionTarget);
+            $transactionTarget->setTransfer($transactionSource);
+        }
+    }
+
+    /**
+     * Affecte les associations des transactions pour les placements.
+     */
+    public function setAssocInvestment(): void
+    {
+        foreach ($this->investments as $investment) {
+            /** @var Transaction $transactionSource */
+            $transactionSource = $investment['source'];
+            /** @var Transaction $transactionTarget */
+            $transactionTarget = $investment['target'];
 
             $transactionSource->setTransfer($transactionTarget);
             $transactionTarget->setTransfer($transactionSource);

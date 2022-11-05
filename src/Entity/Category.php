@@ -15,6 +15,7 @@ use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Exception;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -29,13 +30,24 @@ class Category
 {
     public const RECETTES = true;
     public const DEPENSES = false;
-    public const VIREMENT = 'VIR';
+    public const VIREMENT = 'VIRT';
+    public const VERSEMENT = 'VERS';
+    public const INVESTMENT = 'INVS';
+    public const REVALUATION = 'EVAL';
 
     /**
-     * Nom des categories pour les virements internes.
+     * Listes des catégories à créer.
+     *
+     * @var array<mixed>
      */
-    public const VIRT_RECETTES = 'Finance:Virement reçu';
-    public const VIRT_DEPENSES = 'Finance:Virement émis';
+    public static $baseCategories = [
+        'VIRT+' => ['type' => self::RECETTES, 'code' => self::VIREMENT, 'label' => 'Finance:Virement reçu'],
+        'VIRT-' => ['type' => self::DEPENSES, 'code' => self::VIREMENT, 'label' => 'Finance:Virement émis'],
+        'VERS+' => ['type' => self::RECETTES, 'code' => self::VERSEMENT, 'label' => 'Finance:Investissement'],
+        'INVS-' => ['type' => self::DEPENSES, 'code' => self::INVESTMENT, 'label' => 'Finance:Versement'],
+        'EVAL+' => ['type' => self::RECETTES, 'code' => self::REVALUATION, 'label' => 'Finance:Révaluation bénéficiaire'],
+        'EVAL-' => ['type' => self::DEPENSES, 'code' => self::REVALUATION, 'label' => 'Finance:Révaluation déficitaire'],
+    ];
 
     /**
      * @ORM\Id
@@ -49,7 +61,7 @@ class Category
      *
      * @var string
      *
-     * @ORM\Column(type="string", length=3, nullable=true)
+     * @ORM\Column(type="string", length=4, nullable=true)
      */
     private $code;
 
@@ -266,6 +278,27 @@ class Category
     public function getTypeSymbol(): string
     {
         return ($this->type) ? '+' : '-';
+    }
+
+    /**
+     * @return array<string>
+     */
+    public static function getBaseCategory(string $key): array
+    {
+        if (!array_key_exists($key, self::$baseCategories)) {
+            throw new Exception('La clé "%s" n\'existe pas dans la table Category::$baseCategories');
+        }
+
+        return self::$baseCategories[$key];
+    }
+
+    public static function getBaseCategoryLabel(string $key): string
+    {
+        if (!array_key_exists($key, self::$baseCategories)) {
+            throw new Exception('La clé "%s" n\'existe pas dans la table Category::$baseCategories');
+        }
+
+        return self::$baseCategories[$key]['label'];
     }
 
     /**
