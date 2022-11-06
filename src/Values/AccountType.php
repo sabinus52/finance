@@ -60,25 +60,35 @@ class AccountType
     /**
      * @var array<mixed>
      */
-    private static $valuesGroupBy = [
+    public static $valuesGroupBy = [
         self::COURANT => [
-            'label' => 'Courant',
+            'menu' => 'Compte courant',
+            'label' => 'Compte courant',
+            'icon' => 'fas fa-credit-card',
             'values' => [11, 12],
         ],
         self::EPARGNE_LIQUIDE => [
+            'menu' => 'Epargne liquide',
             'label' => 'Epargne liquide',
+            'icon' => 'fas fa-piggy-bank',
             'values' => [21, 22, 23, 24, 25, 26],
         ],
         self::EPARGNE_A_TERME => [
+            'menu' => 'Epargne à terme',
             'label' => 'Epargne à terme',
+            'icon' => 'fas fa-coins',
             'values' => [31, 32],
         ],
         self::EPARGNE_FINANCIERE => [
+            'menu' => 'Epargne financière',
             'label' => 'Epargne financière',
+            'icon' => 'fas fa-landmark',
             'values' => [41, 42, 43, 44],
         ],
         self::EPARGNE_ASSURANCE_VIE => [
-            'label' => 'Aussurance vie et capitalisation',
+            'menu' => 'Capitalisation',
+            'label' => 'Assurance vie et capitalisation',
+            'icon' => 'fas fa-wallet',
             'values' => [51, 52, 53, 54, 55, 59],
         ],
     ];
@@ -129,11 +139,27 @@ class AccountType
     }
 
     /**
-     * Retourne le type principal.
+     * Retourne le code du type principal.
      */
-    public function getType(): string
+    public function getTypeCode(): int
     {
-        return self::$valuesGroupBy[floor($this->value / 10)]['label'];
+        return (int) (floor($this->value / 10));
+    }
+
+    /**
+     * Retourne le nom du type principal.
+     */
+    public function getTypeLabel(): string
+    {
+        return self::$valuesGroupBy[$this->getTypeCode()]['label'];
+    }
+
+    /**
+     * Retourne l'iconedu type principal.
+     */
+    public function getTypeIcon(): string
+    {
+        return self::$valuesGroupBy[$this->getTypeCode()]['icon'];
     }
 
     /**

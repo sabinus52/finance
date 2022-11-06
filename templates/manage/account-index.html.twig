@@ -1,10 +1,11 @@
 {% extends 'base.html.twig' %}
 
+{% import 'macro.html.twig' as mymacro %}
+
 {% block title %}{{ parent() }} - Gérer les comptes et contrats{% endblock %}
 
 {% block content_title %}<i class="fas fa-piggy-bank"></i> Gérer les comptes{% endblock %}
 {% block content_subtitle %}(Contrat, épargne, capitalisation, ...){% endblock %}
-
 
 {% block content %}
 
@@ -13,41 +14,47 @@
         <div class="row">
             <div class="col-md-12">
 
-                <div class="card card-success card-outline">
-                    <div class="card-header">
-                        <h3 class="card-title">Liste des comptes et contrats</h3>
-                        <div class="card-tools"><a href="{{ path('manage_account__create') }}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un compte</span></a></div>
-                    </div>
-                    <div class="card-body table-responsive p-0">
-                        <table class="table table-hover text-nowrap">
-                            <thead>
+            {% for byType in accounts %}
+                {% if byType.accounts is not empty %}
+                    <div class="card card-success card-outline">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="{{ byType.icon }}"></i> &nbsp; Liste des comptes {{ byType.label }}</h3>
+                            <div class="card-tools"><a href="{{ path('manage_account__create') }}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un compte</span></a></div>
+                        </div>
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-sm table-hover text-nowrap">
                                 <tr>
                                     <th colspan="2">Organisme</th>
                                     <th>Nom</th>
-                                    <th>Status</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-right">Rapprochement</th>
+                                    <th class="text-right">Solde</th>
+                                    <th class="text-right">Montant investi</th>
                                     <th></th>
                                 </tr>
-                            </thead>
-                            <tbody>
-                            {% for item in accounts %}
-                                <tr>
-                                    <td class="text-center"><img src="{{ item.institution.logo }}" height="48"></td>
-                                    <td class="align-middle"><b>{{ item.institution.name }}<b></td>
-                                    <td class="align-middle"><b>{{ item.name }}<b></td>
-                                    <td class="align-middle"><b>{{ item.statusBadge|raw }}<b></td>
-                                    <td class="text-right align-middle">
-                                        <a href="{{ path('manage_account__edit', {'id': item.id}) }}" class="btn btn-sm btn-info"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
-                                    </td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="3">Aucun éléments dans la table</td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
+                                <tbody>
+                                {% for item in byType.accounts %}
+                                    <tr>
+                                        <td class="text-center"><img src="{{ item.institution.logo }}" height="48"></td>
+                                        <td class="align-middle">{{ item.institution.name }}</td>
+                                        <td class="align-middle">{{ item.name }}</td>
+                                        <td class="align-middle text-center">{{ item.statusBadge|raw }}</td>
+                                        <td class="align-middle text-right">{% if item.reconBalance %}<i>{{ mymacro.money(item.reconBalance, item.currency, false) }}</i>{% endif %}</td>
+                                        <td class="align-middle text-right"><b>{{ mymacro.money(item.balance, item.currency) }}</b></td>
+                                        <td class="align-middle text-right">{% if item.invested != 0 %}{{ mymacro.money(item.invested, item.currency, false) }}{% endif %}</td>
+                                        <td class="text-right align-middle">
+                                            <a href="{{ path('account__index', {'id': item.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i><span class="d-none d-md-inline">&nbsp;Voir<span></a>
+                                            <a href="{{ path('manage_account__edit', {'id': item.id}) }}" class="btn btn-sm btn-info"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                            <a href="{{ path('manage_account__balance', {'id': item.id}) }}" class="btn btn-sm btn-secondary"><i class="fas fa-sync"></i><span class="d-none d-md-inline">&nbsp;Recalcul<span></a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                {% endif %}
+            {% endfor %}
 
             </div>
         </div>

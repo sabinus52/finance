@@ -13,7 +13,9 @@ namespace App\Controller;
 
 use App\Entity\Account;
 use App\Form\AccountType;
+use App\Helper\Balance;
 use App\Repository\AccountRepository;
+use App\Values\AccountType as ValuesAccountType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,8 +34,23 @@ class ManageAccountController extends AbstractController
      */
     public function index(AccountRepository $repository): Response
     {
+        $accounts = [];
+        /** @var Account[] $accounts */
+        $accounts = $repository->findBy([], ['institution' => 'ASC', 'name' => 'ASC']);
+
+        $result = [];
+        // Initialise les données de types de comptes pour le regroupement
+        foreach (ValuesAccountType::$valuesGroupBy as $key => $value) {
+            $result[$key] = $value;
+            $result[$key]['accounts'] = [];
+        }
+
+        foreach ($accounts as $account) {
+            $result[$account->getType()->getTypeCode()]['accounts'][] = $account;
+        }
+
         return $this->render('manage/account-index.html.twig', [
-            'accounts' => $repository->findBy([], ['institution' => 'ASC', 'name' => 'ASC']),
+            'accounts' => $result,
         ]);
     }
 
@@ -80,5 +97,18 @@ class ManageAccountController extends AbstractController
             'action' => 'update',
             'form' => $form,
         ]);
+    }
+
+    /**
+     * @Route("/manage/account/balance/{id}", name="manage_account__balance", methods={"GET", "POST"})
+     */
+    public function calculateBalance(Account $account, EntityManagerInterface $entityManager): Response
+    {
+        $helper = new Balance($entityManager);
+        $result = $helper->updateBalanceAll($account);
+
+        $this->addFlash('success', sprintf('Le solde a été recalculé pour le compte <strong>%s</strong> sur <strong>%s</strong> opérations.', $account->getFullName(), $result));
+
+        return $this->redirectToRoute('manage_account__index');
     }
 }

@@ -24,14 +24,15 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
         /** @var AccountRepository $repository */
         $repository = $this->entityManager->getRepository(Account::class);
         $accountsByType = $repository->findGroupByTypeOpened();
-        $idx = 0;
-        foreach ($accountsByType as $key => $accounts) {
-            /** @var Account[] $accounts */
-            $menu = new MenuItemModel('type_'.$idx++, [
-                'label' => $key,
-                'icon' => ' ',
+        foreach ($accountsByType as $key => $type) {
+            if (0 === count($type['accounts'])) {
+                continue;
+            }
+            $menu = new MenuItemModel('type_'.$key, [
+                'label' => $type['menu'],
+                'icon' => $type['icon'],
             ]);
-            foreach ($accounts as $account) {
+            foreach ($type['accounts'] as $account) {
                 /** @var Account $account */
                 $menu->addChild(new MenuItemModel('account'.$account->getId(), [
                     'label' => $account->getInstitution()->getName().' '.$account->getName(),

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Account;
+use App\Values\AccountType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -33,7 +34,7 @@ class AccountRepository extends ServiceEntityRepository
     /**
      * Retourne les comptes ouverts regroupé par type principal pour le menu de la sidebar.
      *
-     * @return array<string,Account[]>
+     * @return array<mixed>
      */
     public function findGroupByTypeOpened(): array
     {
@@ -47,10 +48,15 @@ class AccountRepository extends ServiceEntityRepository
         ;
 
         $result = [];
+        // Initialise les données de types de comptes pour le regroupement
+        foreach (AccountType::$valuesGroupBy as $key => $value) {
+            $result[$key] = $value;
+            $result[$key]['accounts'] = [];
+        }
 
         /** @var Account $account */
         foreach ($query->getResult() as $account) {
-            $result[$account->getType()->getType()][] = $account;
+            $result[$account->getType()->getTypeCode()]['accounts'][] = $account;
         }
 
         return $result;

@@ -1,0 +1,7 @@
+{% macro money(amount, currency, style = true) %}
+    {% if style %}
+        <span class="text-{% if amount > 0 %}green{% else %}red{% endif %}">{{ amount|format_currency(currency, locale='fr') }}</span>
+    {% else %}
+        {{ amount|format_currency(currency, locale='fr') }}
+    {% endif %}
+{% endmacro %}

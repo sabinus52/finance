@@ -85,6 +85,24 @@ class Account
     private $balance;
 
     /**
+     * Solde rapproché.
+     *
+     * @var float
+     *
+     * @ORM\Column(type="float", options={"default": 0})
+     */
+    private $reconBalance;
+
+    /**
+     * Rapprochement en cours à solder.
+     *
+     * @var float
+     *
+     * @ORM\Column(type="float", options={"default": 0})
+     */
+    private $reconCurrent;
+
+    /**
      * Devise du compte.
      *
      * @var string
@@ -152,6 +170,8 @@ class Account
     {
         $this->initial = 0;
         $this->balance = 0;
+        $this->reconBalance = 0;
+        $this->reconCurrent = 0;
         $this->currency = 'EUR';
         $this->overdraft = 0;
         $this->invested = 0;
@@ -219,6 +239,30 @@ class Account
     public function setBalance(?float $balance): self
     {
         $this->balance = $balance;
+
+        return $this;
+    }
+
+    public function getReconBalance(): ?float
+    {
+        return $this->reconBalance;
+    }
+
+    public function setReconBalance(float $reconBalance): self
+    {
+        $this->reconBalance = $reconBalance;
+
+        return $this;
+    }
+
+    public function getReconCurrent(): ?float
+    {
+        return $this->reconCurrent;
+    }
+
+    public function setReconCurrent(float $reconCurrent): self
+    {
+        $this->reconCurrent = $reconCurrent;
 
         return $this;
     }
