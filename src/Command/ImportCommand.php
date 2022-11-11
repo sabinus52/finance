@@ -20,6 +20,7 @@ use SplFileObject;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -75,6 +76,8 @@ class ImportCommand extends Command
     {
         $this
             ->addArgument('qif', InputArgument::REQUIRED, 'Fichier QIF à importer')
+            ->addOption('parse-memo', null, InputOption::VALUE_NONE, 'Parse les données du champs mémo')
+            ->addOption('pea', null, InputOption::VALUE_REQUIRED, 'Indique le compte caisse du PEA')
             ->setHelp('')
         ;
     }
@@ -118,7 +121,11 @@ class ImportCommand extends Command
         }
 
         $file = new SplFileObject($this->fileQIF);
-        $parser = new QifParser($file, $this->helper);
+        $options = [
+            'parse-memo' => $input->getOption('parse-memo'),
+            'pea' => $input->getOption('pea'),
+        ];
+        $parser = new QifParser($file, $this->helper, $options);
 
         if ($this->isImported($file)) {
             $this->inOut->warning(sprintf('Ce fichier %s a été déjà importé', $this->fileQIF));
@@ -132,10 +139,10 @@ class ImportCommand extends Command
 
         // Fait les associations entre les transactions des virements internes
         $parser->setAssocTransfer();
-        $parser->setAssocInvestment();
         $this->entityManager->flush();
 
         // Affiche les rapports
+        $this->helper->statistic->reportAlerts();
         $this->helper->statistic->reportAccounts();
         $this->helper->statistic->reportCategories();
 

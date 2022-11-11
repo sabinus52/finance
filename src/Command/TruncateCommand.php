@@ -38,6 +38,7 @@ class TruncateCommand extends Command
      * @var array<string>
      */
     protected static $tables = [
+        'stock_portfolio',
         'transaction',
         'recipient',
         'category',

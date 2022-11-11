@@ -54,6 +54,16 @@ class QifParser
     private $helper;
 
     /**
+     * @var MemoParser
+     */
+    private $memoParser;
+
+    /**
+     * @var array<mixed>
+     */
+    private $options;
+
+    /**
      * Mode du type de section à ajouter (ACCOUNT, TRANST_BANK, ...).
      *
      * @var string
@@ -68,13 +78,6 @@ class QifParser
     private $transfers;
 
     /**
-     * Liste des inverstissement à créer et à affecter sur une assurance vie.
-     *
-     * @var ArrayObject
-     */
-    private $investments;
-
-    /**
      * Compte en cours d'importation.
      *
      * @var ArrayObject
@@ -86,14 +89,16 @@ class QifParser
      *
      * @param SplFileObject $file
      * @param ImportHelper  $helper
+     * @param array<mixed>  $options
      */
-    public function __construct(SplFileObject $file, ImportHelper $helper)
+    public function __construct(SplFileObject $file, ImportHelper $helper, array $options)
     {
         $this->file = $file;
         $this->helper = $helper;
+        $this->options = $options;
+        $this->memoParser = new MemoParser($helper, $options);
         $this->account = new ArrayObject();
         $this->transfers = new ArrayObject();
-        $this->investments = new ArrayObject();
     }
 
     /**
@@ -247,6 +252,7 @@ class QifParser
             }
         }
 
+        $isTransactionStandard = true;
         if ('' !== $category && '[' === $category[0] && ']' === $category[strlen($category) - 1]) {
             /**
              * Détection d'un virement.
@@ -276,41 +282,18 @@ class QifParser
                 'source' => $transactionSource,
                 'target' => $transactionTarget,
             ];
-        } elseif ('Versement:' === substr($memo, 0, 10)) {
+            $isTransactionStandard = false;
+        } elseif (false !== $this->options['parse-memo'] && '' !== $memo) {
             /**
-             * Détection d'un investissement.
+             * Parse le champs mémp pour les comptes de capitalisation et boursier.
              */
-            $placement = substr($memo, 11, -1);
-            // Toujours compte débiteur
-            $transactionSource = $this->helper->createTransaction(
-                $this->account['name'],
-                $date,
-                $amount,
-                Recipient::VIRT_NAME,
-                Category::getBaseCategoryLabel('INVS-'),
-                '',
-                $state,
-                new Payment(Payment::INTERNAL)
-            );
-            // Toujours versement sur le placement
-            $transactionTarget = $this->helper->createTransaction(
-                $placement,
-                $date,
-                $amount * -1,
-                Recipient::VIRT_NAME,
-                Category::getBaseCategoryLabel('VERS+'),
-                '',
-                0,
-                new Payment(Payment::INTERNAL)
-            );
-            $accPlacement = $this->helper->getAccount($placement);
-            $accPlacement->setType(new AccountType(51));
-            // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions
-            $this->investments[] = [
-                'source' => $transactionSource,
-                'target' => $transactionTarget,
-            ];
-        } else {
+            try {
+                $isTransactionStandard = $this->memoParser->parse($memo, $this->account['name'], $date, $amount, $recipient, $category, $state);
+            } catch (\Throwable $th) {
+                $this->helper->statistic->addAlert($this->helper->getDateTime($date, self::DATE_FORMAT), $this->helper->getAccount($this->account['name']), $amount, $memo, $th->getMessage());
+            }
+        }
+        if ($isTransactionStandard) {
             /**
              * Transaction standard.
              */
@@ -333,21 +316,9 @@ class QifParser
             $transactionSource->setTransfer($transactionTarget);
             $transactionTarget->setTransfer($transactionSource);
         }
-    }
 
-    /**
-     * Affecte les associations des transactions pour les placements.
-     */
-    public function setAssocInvestment(): void
-    {
-        foreach ($this->investments as $investment) {
-            /** @var Transaction $transactionSource */
-            $transactionSource = $investment['source'];
-            /** @var Transaction $transactionTarget */
-            $transactionTarget = $investment['target'];
-
-            $transactionSource->setTransfer($transactionTarget);
-            $transactionTarget->setTransfer($transactionSource);
+        if (false !== $this->options['parse-memo']) {
+            $this->memoParser->setAssocInvestment();
         }
     }
 }

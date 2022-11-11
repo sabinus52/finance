@@ -34,6 +34,8 @@ class Category
     public const VERSEMENT = 'VERS';
     public const INVESTMENT = 'INVS';
     public const REVALUATION = 'EVAL';
+    public const STOCKOPERT = 'OPST';
+    public const DIVIDENDES = 'DIVD';
 
     /**
      * Listes des catégories à créer.
@@ -47,6 +49,9 @@ class Category
         'INVS-' => ['type' => self::DEPENSES, 'code' => self::INVESTMENT, 'label' => 'Finance:Versement'],
         'EVAL+' => ['type' => self::RECETTES, 'code' => self::REVALUATION, 'label' => 'Finance:Révaluation bénéficiaire'],
         'EVAL-' => ['type' => self::DEPENSES, 'code' => self::REVALUATION, 'label' => 'Finance:Révaluation déficitaire'],
+        'OPST+' => ['type' => self::RECETTES, 'code' => self::STOCKOPERT, 'label' => 'Finance:Achat titres'],
+        'OPST-' => ['type' => self::DEPENSES, 'code' => self::STOCKOPERT, 'label' => 'Finance:Vente titres'],
+        'DIVD+' => ['type' => self::RECETTES, 'code' => self::DIVIDENDES, 'label' => 'Finance:Dividendes'],
     ];
 
     /**

@@ -15,13 +15,17 @@ use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Institution;
 use App\Entity\Recipient;
+use App\Entity\Stock;
+use App\Entity\StockPortfolio;
 use App\Entity\Transaction;
 use App\Repository\AccountRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\InstitutionRepository;
 use App\Repository\RecipientRepository;
+use App\Repository\StockRepository;
 use App\Values\AccountType;
 use App\Values\Payment;
+use App\Values\StockPosition;
 use ArrayObject;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -82,6 +86,13 @@ class ImportHelper
     protected $catLevel2;
 
     /**
+     * Liste des titres (actions).
+     *
+     * @var ArrayObject
+     */
+    private $stocks;
+
+    /**
      * Constructeur.
      *
      * @param EntityManagerInterface $manager
@@ -95,6 +106,7 @@ class ImportHelper
         $this->recipients = new ArrayObject();
         $this->catLevel1 = new ArrayObject();
         $this->catLevel2 = new ArrayObject();
+        $this->stocks = new ArrayObject();
     }
 
     /**
@@ -118,6 +130,10 @@ class ImportHelper
         $repositoryCategory = $this->entityManager->getRepository(Category::class);
         $this->catLevel1 = new ArrayObject($repositoryCategory->get4ImportLevel1());
         $this->catLevel2 = new ArrayObject($repositoryCategory->get4ImportLevel2());
+
+        /** @var StockRepository $repositoryStock */
+        $repositoryStock = $this->entityManager->getRepository(Stock::class);
+        $this->stocks = new ArrayObject($repositoryStock->get4Import());
     }
 
     /**
@@ -171,6 +187,51 @@ class ImportHelper
         $this->entityManager->persist($transaction);
 
         return $transaction;
+    }
+
+    /**
+     * Création d'une ligne d'opération boursière.
+     *
+     * @param Account|string  $account
+     * @param DateTime|string $date
+     * @param float|string    $amount
+     * @param Stock|string    $stock
+     * @param StockPosition   $operation
+     * @param float|null      $volume
+     * @param float|null      $price
+     *
+     * @return StockPortfolio
+     */
+    public function createStockPortfolio($account, $date, $amount, $stock, StockPosition $operation, ?float $volume, ?float $price): StockPortfolio
+    {
+        if (!$date instanceof DateTime) {
+            $date = $this->getDateTime($date, QifParser::DATE_FORMAT);
+        }
+        if (!$account instanceof Account) {
+            $account = $this->getAccount($account, $date);
+        }
+        if (!is_float($amount)) {
+            $amount = $this->getAmount($amount);
+        }
+        if (!$stock instanceof Stock) {
+            $stock = $this->getStock($stock);
+        }
+        // Calcul de la commission
+        $fee = (null === $volume || null === $price) ? null : abs($amount) - ($volume * $price);
+        // Création de l'opération boursière
+        $portfolio = new StockPortfolio();
+        $portfolio->setDate($date);
+        $portfolio->setPosition($operation);
+        $portfolio->setVolume($volume);
+        $portfolio->setPrice($price);
+        $portfolio->setFee($fee);
+        $portfolio->setTotal($amount);
+        $portfolio->setStock($stock);
+        $portfolio->setAccount($account);
+
+        $this->entityManager->persist($portfolio);
+
+        return $portfolio;
     }
 
     /**
@@ -413,6 +474,44 @@ class ImportHelper
     }
 
     /**
+     * Retourne le titre boursier à chercher sinon le crée.
+     *
+     * @param string $searchStock
+     *
+     * @return Stock
+     */
+    public function getStock(string $searchStock): Stock
+    {
+        if ($this->stocks->offsetExists($searchStock)) {
+            return $this->stocks->offsetGet($searchStock);
+        }
+
+        // Non trouvé alors on le crée
+        $stock = $this->createStock($searchStock);
+        $this->stocks->offsetSet($searchStock, $stock);
+
+        return $stock;
+    }
+
+    /**
+     * Créer un nouveau titre boursier.
+     *
+     * @param string $strStock
+     *
+     * @return Stock
+     */
+    public function createStock(string $strStock): Stock
+    {
+        $stock = new Stock();
+        $stock->setName($strStock);
+        $stock->setSymbol($this->generateRandomString(10, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'));
+        $stock->setCodeISIN('FR'.$this->generateRandomString(10, '0123456789'));
+        $this->entityManager->persist($stock);
+
+        return $stock;
+    }
+
+    /**
      * Retourne le mémo.
      *
      * @param string $memo
@@ -461,5 +560,28 @@ class ImportHelper
         $last = substr((string) strstr($string, $needle), 1);
 
         return [$first, $last];
+    }
+
+    /**
+     * Retourne une chaine au hasard.
+     *
+     * @param int    $length
+     * @param string $characters
+     *
+     * @return string
+     */
+    private function generateRandomString(int $length = 10, string $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'): string
+    {
+        if ('' === $characters) {
+            $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        }
+        $charactersLength = strlen($characters);
+
+        $randomString = '';
+        for ($i = 0; $i < $length; ++$i) {
+            $randomString .= $characters[random_int(0, $charactersLength - 1)];
+        }
+
+        return $randomString;
     }
 }

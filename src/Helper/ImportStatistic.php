@@ -16,6 +16,7 @@ use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Values\Payment;
 use ArrayObject;
+use DateTime;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
@@ -29,6 +30,13 @@ class ImportStatistic
      * @var SymfonyStyle
      */
     private $inOut;
+
+    /**
+     * Liste des alertes trouvées.
+     *
+     * @var ArrayObject
+     */
+    private $alerts;
 
     /**
      * Liste des comptes trouvés.
@@ -54,6 +62,7 @@ class ImportStatistic
         if (null !== $style) {
             $this->inOut = $style;
         }
+        $this->alerts = new ArrayObject();
         $this->accounts = new ArrayObject();
         $this->categories = new ArrayObject();
     }
@@ -98,6 +107,30 @@ class ImportStatistic
             $this->addCategory($transaction->getCategory());
         }
         ++$this->categories[$categoryName]['transactions'];
+    }
+
+    /**
+     * Ajoute un message d'alerte.
+     *
+     * @param string $message
+     */
+    public function addAlert(DateTime $date, Account $account, float $amount, string $memo, string $message): void
+    {
+        $this->alerts->append([
+            'date' => $date->format('d/m/Y'),
+            'account' => $account->getFullName(),
+            'amount' => $amount,
+            'memo' => $memo,
+            'msg' => $message,
+        ]);
+    }
+
+    /**
+     * Affiche le report des alertes.
+     */
+    public function reportAlerts(): void
+    {
+        $this->inOut->table(['Date', 'Compte', 'Montant', 'Mémo', 'Alerte'], (array) $this->alerts);
     }
 
     /**
