@@ -160,6 +160,22 @@ class Account
     private $institution;
 
     /**
+     * Compte associé pour les tes transactions (Ex : PEA -> PEA Caisse.
+     *
+     * @var Account
+     *
+     * @ORM\OneToOne(targetEntity=Account::class, cascade={"persist", "remove"})
+     */
+    private $accAssoc;
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity=StockPortfolio::class, mappedBy="account")
+     */
+    private $stockPortfolios;
+
+    /**
      * @var ArrayCollection
      *
      * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="account")
@@ -175,6 +191,7 @@ class Account
         $this->currency = 'EUR';
         $this->overdraft = 0;
         $this->invested = 0;
+        $this->stockPortfolios = new ArrayCollection();
         $this->transactions = new ArrayCollection();
     }
 
@@ -335,6 +352,48 @@ class Account
     public function setInstitution(?Institution $institution): self
     {
         $this->institution = $institution;
+
+        return $this;
+    }
+
+    public function getAccAssoc(): ?self
+    {
+        return $this->accAssoc;
+    }
+
+    public function setAccAssoc(?self $accAssoc): self
+    {
+        $this->accAssoc = $accAssoc;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StockPortfolio>
+     */
+    public function getStockPortfolios(): Collection
+    {
+        return $this->stockPortfolios;
+    }
+
+    public function addStockPortfolio(StockPortfolio $stockPortfolio): self
+    {
+        if (!$this->stockPortfolios->contains($stockPortfolio)) {
+            $this->stockPortfolios[] = $stockPortfolio;
+            $stockPortfolio->setAccount($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStockPortfolio(StockPortfolio $stockPortfolio): self
+    {
+        if ($this->stockPortfolios->removeElement($stockPortfolio)) {
+            // set the owning side to null (unless already changed)
+            if ($stockPortfolio->getAccount() === $this) {
+                $stockPortfolio->setAccount(null);
+            }
+        }
 
         return $this;
     }
