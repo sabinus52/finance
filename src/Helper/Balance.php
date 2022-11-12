@@ -77,6 +77,7 @@ class Balance
             $balance += $item->getAmount();
             $item->setBalance($balance);
             if (Category::VERSEMENT === $item->getCategory()->getCode()) {
+            if (Category::INVESTMENT === $item->getCategory()->getCode()) {
                 $invested += $item->getAmount();
             }
         }

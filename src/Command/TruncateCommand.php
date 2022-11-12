@@ -13,7 +13,7 @@ namespace App\Command;
 
 use App\Entity\Category;
 use App\Entity\Recipient;
-use App\Helper\ImportHelper;
+use App\Import\AssocDatas;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Console\Command\Command;
@@ -114,7 +114,7 @@ class TruncateCommand extends Command
         /**
          * Creation des éléments obligatoires pour les virements internes.
          */
-        $helper = new ImportHelper($this->entityManager);
+        $helper = new AssocDatas($this->entityManager);
 
         $helper->createRecipient(Recipient::VIRT_NAME);
         $rows[] = ['Création du bénéficiaire de virement interne', '<info>OK</info>'];

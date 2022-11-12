@@ -9,7 +9,7 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\Helper;
+namespace App\Import;
 
 use App\Entity\Account;
 use App\Entity\Category;
@@ -24,7 +24,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class ImportStatistic
+class Statistic
 {
     /**
      * @var SymfonyStyle
@@ -139,7 +139,7 @@ class ImportStatistic
     public function reportAccounts(): void
     {
         $this->accounts->ksort();
-        $this->inOut->table(['Compte', 'Type', 'Date', 'Nbr transaction', 'Nbr virement', 'Nbr placement'], (array) $this->accounts);
+        $this->inOut->table(['Compte', 'Type', 'Date', 'Nbr transaction', 'Nbr virement', 'Nbr placement', 'Solde', 'Mt investi'], (array) $this->accounts);
     }
 
     /**
@@ -166,6 +166,8 @@ class ImportStatistic
             'transactions' => 0,
             'transfers' => 0,
             'investments' => 0,
+            'balance' => '',
+            'invest' => '',
         ];
     }
 
@@ -174,11 +176,16 @@ class ImportStatistic
      *
      * @param Account $account
      */
-    private function setAccountData(Account $account): void
+    public function setAccountData(Account $account): void
     {
         $accountName = $account->getFullName();
+        if (!$this->accounts->offsetExists($accountName)) {
+            $this->addAccount($account);
+        }
         $this->accounts[$accountName]['type'] = $account->getType()->getLabel();
         $this->accounts[$accountName]['opened'] = $account->getOpenedAt()->format('d/m/Y');
+        $this->accounts[$accountName]['balance'] = number_format($account->getBalance(), 2, '.', ' ');
+        $this->accounts[$accountName]['invest'] = number_format($account->getInvested(), 2, '.', ' ');
     }
 
     /**

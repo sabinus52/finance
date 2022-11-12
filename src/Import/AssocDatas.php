@@ -9,81 +9,69 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\Helper;
+namespace App\Import;
 
 use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Institution;
 use App\Entity\Recipient;
 use App\Entity\Stock;
-use App\Entity\StockPortfolio;
-use App\Entity\Transaction;
 use App\Repository\AccountRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\InstitutionRepository;
 use App\Repository\RecipientRepository;
 use App\Repository\StockRepository;
 use App\Values\AccountType;
-use App\Values\Payment;
-use App\Values\StockPosition;
 use ArrayObject;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Classe d'aide pour l'omport des transactions venant d'un programme extérieur.
+ * Liste des données associées pour l'import.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @SuppressWarnings(PHPMD.StaticAccess)
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class ImportHelper
+class AssocDatas
 {
     /**
      * @var EntityManagerInterface
      */
-    protected $entityManager;
-
-    /**
-     * @var ImportStatistic
-     */
-    public $statistic;
+    private $entityManager;
 
     /**
      * Liste des organismes.
      *
      * @var ArrayObject
      */
-    protected $institutions;
+    private $institutions;
 
     /**
      * Liste des comptes.
      *
      * @var ArrayObject
      */
-    protected $accounts;
+    private $accounts;
 
     /**
      * Liste des bénéficiaires.
      *
      * @var ArrayObject
      */
-    protected $recipients;
+    private $recipients;
 
     /**
      * Liste des catégories de niveau 1.
      *
      * @var ArrayObject
      */
-    protected $catLevel1;
+    private $catLevel1;
 
     /**
      * Liste des catégories de niveau 2.
      *
      * @var ArrayObject
      */
-    protected $catLevel2;
+    private $catLevel2;
 
     /**
      * Liste des titres (actions).
@@ -100,7 +88,6 @@ class ImportHelper
     public function __construct(EntityManagerInterface $manager)
     {
         $this->entityManager = $manager;
-        $this->statistic = new ImportStatistic();
         $this->institutions = new ArrayObject();
         $this->accounts = new ArrayObject();
         $this->recipients = new ArrayObject();
@@ -112,7 +99,7 @@ class ImportHelper
     /**
      * Chargement des tableaux associatifs pour les liens avec les transactions.
      */
-    public function loadAssociations(): void
+    public function load(): void
     {
         /** @var InstitutionRepository $repositoryInstitut */
         $repositoryInstitut = $this->entityManager->getRepository(Institution::class);
@@ -134,134 +121,6 @@ class ImportHelper
         /** @var StockRepository $repositoryStock */
         $repositoryStock = $this->entityManager->getRepository(Stock::class);
         $this->stocks = new ArrayObject($repositoryStock->get4Import());
-    }
-
-    /**
-     * Création d'une transaction.
-     *
-     * @param Account|string   $account
-     * @param DateTime|string  $date
-     * @param float|string     $amount
-     * @param Recipient|string $recipient
-     * @param Category|string  $category
-     * @param string           $memo
-     * @param int|string       $state
-     * @param Payment|string   $payment
-     *
-     * @return Transaction
-     */
-    public function createTransaction($account, $date, $amount, $recipient, $category, ?string $memo, $state, $payment): Transaction
-    {
-        if (!$date instanceof DateTime) {
-            $date = $this->getDateTime($date, QifParser::DATE_FORMAT);
-        }
-        if (!$account instanceof Account) {
-            $account = $this->getAccount($account, $date);
-        }
-        if (!is_float($amount)) {
-            $amount = $this->getAmount($amount);
-        }
-        if (!$recipient instanceof Recipient) {
-            $recipient = $this->getRecipient($recipient);
-        }
-        if (!$category instanceof Category) {
-            $category = $this->getCategory($category, $amount);
-        }
-        if (!is_int($state)) {
-            $state = $this->getState($state);
-        }
-        if (!$payment instanceof Payment) {
-            $payment = $this->getPayment($payment);
-        }
-        $transaction = new Transaction();
-        $transaction->setAccount($account);
-        $transaction->setDate($date);
-        $transaction->setRecipient($recipient);
-        $transaction->setMemo($this->getMemo($memo));
-        $transaction->setAmount($amount);
-        $transaction->setState($state);
-        $transaction->setPayment($payment);
-        $transaction->setCategory($category);
-
-        $this->statistic->incTransaction($transaction);
-        $this->entityManager->persist($transaction);
-
-        return $transaction;
-    }
-
-    /**
-     * Création d'une ligne d'opération boursière.
-     *
-     * @param Account|string  $account
-     * @param DateTime|string $date
-     * @param float|string    $amount
-     * @param Stock|string    $stock
-     * @param StockPosition   $operation
-     * @param float|null      $volume
-     * @param float|null      $price
-     *
-     * @return StockPortfolio
-     */
-    public function createStockPortfolio($account, $date, $amount, $stock, StockPosition $operation, ?float $volume, ?float $price): StockPortfolio
-    {
-        if (!$date instanceof DateTime) {
-            $date = $this->getDateTime($date, QifParser::DATE_FORMAT);
-        }
-        if (!$account instanceof Account) {
-            $account = $this->getAccount($account, $date);
-        }
-        if (!is_float($amount)) {
-            $amount = $this->getAmount($amount);
-        }
-        if (!$stock instanceof Stock) {
-            $stock = $this->getStock($stock);
-        }
-        // Calcul de la commission
-        $fee = (null === $volume || null === $price) ? null : abs($amount) - ($volume * $price);
-        // Création de l'opération boursière
-        $portfolio = new StockPortfolio();
-        $portfolio->setDate($date);
-        $portfolio->setPosition($operation);
-        $portfolio->setVolume($volume);
-        $portfolio->setPrice($price);
-        $portfolio->setFee($fee);
-        $portfolio->setTotal($amount);
-        $portfolio->setStock($stock);
-        $portfolio->setAccount($account);
-
-        $this->entityManager->persist($portfolio);
-
-        return $portfolio;
-    }
-
-    /**
-     * Retourne la date au format DateTime.
-     *
-     * @param string $date
-     * @param string $format Format de base (ex d/m/Y)
-     *
-     * @return DateTime
-     */
-    public function getDateTime(string $date, string $format): DateTime
-    {
-        $objDate = DateTime::createFromFormat($format, $date);
-        if (false === $objDate) {
-            $objDate = new DateTime('1970-01-01');
-        }
-
-        return $objDate;
-    }
-
-    /**
-     * Retourne le montant en virgule flotante.
-     *
-     * @param string $amount
-     *
-     * @return float
-     */
-    public function getAmount(string $amount): float
-    {
-        return (float) str_replace(',', '.', $amount);
     }
 
     /**
@@ -348,37 +207,6 @@ class ImportHelper
         $this->accounts->offsetSet($searchAccount, $account);
 
         return $account;
-    }
-
-    /**
-     * Retourne le code du moyen de paiement.
-     *
-     * @param string $searchPayment
-     *
-     * @return Payment
-     */
-    public function getPayment(string $searchPayment): Payment
-    {
-        $matches = new ArrayObject([
-            0 => Payment::INTERNAL,
-            1 => Payment::CARTE,
-            2 => Payment::CHEQUE,
-            3 => Payment::ESPECE,
-            4 => Payment::VIREMENT,
-            5 => Payment::CARTE,
-            6 => Payment::VIREMENT,
-            7 => Payment::ELECTRONIC,
-            8 => Payment::DEPOT,
-            9 => Payment::PRELEVEMENT,
-            10 => Payment::PRELEVEMENT,
-            11 => Payment::PRELEVEMENT,
-        ]);
-        $searchPayment = (int) $searchPayment;
-        if ($matches->offsetExists($searchPayment)) {
-            return new Payment($matches->offsetGet($searchPayment));
-        }
-
-        return new Payment(Payment::VIREMENT);
     }
 
     /**
@@ -509,38 +337,6 @@ class ImportHelper
         $this->entityManager->persist($stock);
 
         return $stock;
-    }
-
-    /**
-     * Retourne le mémo.
-     *
-     * @param string $memo
-     *
-     * @return string|null
-     */
-    public function getMemo(?string $memo): ?string
-    {
-        if ('' === $memo || '(null)' === $memo) {
-            return null;
-        }
-
-        return $memo;
-    }
-
-    /**
-     * Retourne le statut (rapprochement).
-     *
-     * @param string $state
-     *
-     * @return int
-     */
-    public function getState(string $state): int
-    {
-        if ('R' === $state) {
-            return 1;
-        }
-
-        return 0;
     }
 
     /**

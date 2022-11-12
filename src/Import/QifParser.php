@@ -9,7 +9,7 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\Helper;
+namespace App\Import;
 
 use App\Entity\Account;
 use App\Entity\Category;
@@ -19,6 +19,7 @@ use App\Values\AccountType;
 use App\Values\Payment;
 use ArrayObject;
 use SplFileObject;
+use Throwable;
 
 /**
  * Classe pour parser les fichiers QIF.
@@ -49,7 +50,7 @@ class QifParser
     private $file;
 
     /**
-     * @var ImportHelper
+     * @var Helper
      */
     private $helper;
 
@@ -88,10 +89,10 @@ class QifParser
      * Constructeur.
      *
      * @param SplFileObject $file
-     * @param ImportHelper  $helper
+     * @param Helper        $helper
      * @param array<mixed>  $options
      */
-    public function __construct(SplFileObject $file, ImportHelper $helper, array $options)
+    public function __construct(SplFileObject $file, Helper $helper, array $options)
     {
         $this->file = $file;
         $this->helper = $helper;
@@ -207,7 +208,7 @@ class QifParser
                     break;
             }
         }
-        $account = $this->helper->getAccount($this->account['name']);
+        $account = $this->helper->assocDatas->getAccount($this->account['name']);
         if ('Oth A' === $this->account['type'] || 'Oth L' === $this->account['type']) {
             $account->setType(new AccountType(26));
         }
@@ -232,15 +233,14 @@ class QifParser
      */
     public function parseTransaction(array $item): void
     {
-        $date = $strAmount = $state = $recipient = $category = $memo = '';
-        $amount = 0;
+        $date = $amount = $state = $recipient = $category = $memo = '';
+        $isTransactStandard = true;
 
         foreach ($item as $line) {
             if ('D' === $line[0]) {
                 $date = substr($line, 1);
             } elseif ('T' === $line[0]) {
-                $strAmount = substr($line, 1);
-                $amount = $this->helper->getAmount($strAmount);
+                $amount = substr($line, 1);
             } elseif ('C' === $line[0]) {
                 $state = substr($line, 1);
             } elseif ('P' === $line[0]) {
@@ -252,54 +252,66 @@ class QifParser
             }
         }
 
-        $isTransactionStandard = true;
+        $itemFound = new QifItem($this->helper->assocDatas);
+        $itemFound->setDate($date)
+            ->setAmount($amount)
+            ->setState($state)
+            ->setRecipient($recipient)
+            ->setMemo($memo)
+            ->setCategory($category)
+            ->setAccount($this->account['name'])
+        ;
+
         if ('' !== $category && '[' === $category[0] && ']' === $category[strlen($category) - 1]) {
             /**
              * Détection d'un virement.
              */
-            $transactionSource = $this->helper->createTransaction(
-                $this->account['name'],
-                $date,
-                $amount,
-                Recipient::VIRT_NAME,
-                ($amount > 0) ? Category::getBaseCategoryLabel('VIRT+') : Category::getBaseCategoryLabel('VIRT-'),
-                $memo,
-                $state,
-                new Payment(Payment::INTERNAL)
-            );
-            $transactionTarget = $this->helper->createTransaction(
-                substr($category, 1, -1),
-                $date,
-                $amount * -1,
-                Recipient::VIRT_NAME,
-                ($amount * -1 > 0) ? Category::getBaseCategoryLabel('VIRT+') : Category::getBaseCategoryLabel('VIRT-'),
-                $memo,
-                $state,
-                new Payment(Payment::INTERNAL)
-            );
-            // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions
-            $this->transfers[] = [
-                'source' => $transactionSource,
-                'target' => $transactionTarget,
-            ];
-            $isTransactionStandard = false;
-        } elseif (false !== $this->options['parse-memo'] && '' !== $memo) {
+            $this->createTransfer($itemFound, substr($category, 1, -1));
+            $isTransactStandard = false;
+        } elseif (false !== $this->options['parse-memo'] && null !== $itemFound->getMemo()) {
             /**
              * Parse le champs mémp pour les comptes de capitalisation et boursier.
              */
             try {
-                $isTransactionStandard = $this->memoParser->parse($memo, $this->account['name'], $date, $amount, $recipient, $category, $state);
-            } catch (\Throwable $th) {
-                $this->helper->statistic->addAlert($this->helper->getDateTime($date, self::DATE_FORMAT), $this->helper->getAccount($this->account['name']), $amount, $memo, $th->getMessage());
+                $isTransactStandard = $this->memoParser->parse($itemFound);
+            } catch (Throwable $th) {
+                $this->helper->statistic->addAlert($itemFound->getDate(), $itemFound->getAccount(), $itemFound->getAmount(), $itemFound->getMemo(), $th->getMessage());
             }
         }
-        if ($isTransactionStandard) {
+        if ($isTransactStandard) {
             /**
              * Transaction standard.
              */
-            $payment = ($amount > 0) ? new Payment(Payment::DEPOT) : new Payment(Payment::PRELEVEMENT);
-            $this->helper->createTransaction($this->account['name'], $date, $strAmount, $recipient, $category, $memo, $state, $payment);
+            $this->helper->createTransaction($itemFound);
         }
+    }
+
+    /**
+     * Créer les 2 transactions lors d'un virement.
+     *
+     * @param QifItem $item          Transaction trouvée
+     * @param string  $accountTarget Compte cible du virement
+     */
+    private function createTransfer(QifItem $item, string $accountTarget): void
+    {
+        $item->setRecipient(Recipient::VIRT_NAME);
+        $item->setPayment(Payment::INTERNAL);
+
+        // Virement source
+        $item->setCategoryWithCode(Category::VIREMENT);
+        $transactionSource = $this->helper->createTransaction($item);
+
+        // Virement cible
+        $item->setAccount($accountTarget);
+        $item->setAmount($item->getAmount() * -1);
+        $item->setCategoryWithCode(Category::VIREMENT);
+        $transactionTarget = $this->helper->createTransaction($item);
+
+        // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions
+        $this->transfers[] = [
+            'source' => $transactionSource,
+            'target' => $transactionTarget,
+        ];
     }
 
     /**

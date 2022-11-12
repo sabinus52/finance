@@ -112,7 +112,7 @@ class StockPortfolio
      * @var Transaction
      *
      * @ORM\OneToOne(targetEntity=Transaction::class, cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=true)
      */
     private $transaction;
 

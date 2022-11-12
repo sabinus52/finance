@@ -31,7 +31,6 @@ class Category
     public const RECETTES = true;
     public const DEPENSES = false;
     public const VIREMENT = 'VIRT';
-    public const VERSEMENT = 'VERS';
     public const INVESTMENT = 'INVS';
     public const REVALUATION = 'EVAL';
     public const STOCKOPERT = 'OPST';
@@ -45,7 +44,7 @@ class Category
     public static $baseCategories = [
         'VIRT+' => ['type' => self::RECETTES, 'code' => self::VIREMENT, 'label' => 'Finance:Virement reçu'],
         'VIRT-' => ['type' => self::DEPENSES, 'code' => self::VIREMENT, 'label' => 'Finance:Virement émis'],
-        'VERS+' => ['type' => self::RECETTES, 'code' => self::VERSEMENT, 'label' => 'Finance:Investissement'],
+        'INVS+' => ['type' => self::RECETTES, 'code' => self::INVESTMENT, 'label' => 'Finance:Investissement'],
         'INVS-' => ['type' => self::DEPENSES, 'code' => self::INVESTMENT, 'label' => 'Finance:Versement'],
         'EVAL+' => ['type' => self::RECETTES, 'code' => self::REVALUATION, 'label' => 'Finance:Révaluation bénéficiaire'],
         'EVAL-' => ['type' => self::DEPENSES, 'code' => self::REVALUATION, 'label' => 'Finance:Révaluation déficitaire'],

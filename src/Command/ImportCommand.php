@@ -11,9 +11,13 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Entity\Account;
 use App\Entity\Transaction;
-use App\Helper\ImportHelper;
-use App\Helper\QifParser;
+use App\Helper\Balance;
+use App\Import\Helper;
+use App\Import\QifItem;
+use App\Import\QifParser;
+use App\Repository\AccountRepository;
 use App\Repository\TransactionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use SplFileObject;
@@ -30,6 +34,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * @author Sabinus52 <sabinus52@gmail.com>
  *
  * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ImportCommand extends Command
 {
@@ -54,9 +59,16 @@ class ImportCommand extends Command
     /**
      * Classe d'aide pour l'import.
      *
-     * @var ImportHelper
+     * @var Helper
      */
     protected $helper;
+
+    /**
+     * Classe de calcul du solde.
+     *
+     * @var Balance
+     */
+    protected $balance;
 
     /**
      * Constructeur.
@@ -98,9 +110,11 @@ class ImportCommand extends Command
         $this->inOut->note(sprintf('Utilisation du fichier : %s', $this->fileQIF));
 
         // Chargement de l'aide pour gérer les associations
-        $this->helper = new ImportHelper($this->entityManager);
+        $this->helper = new Helper($this->entityManager);
         $this->helper->statistic->setStyle($this->inOut);
-        $this->helper->loadAssociations();
+        $this->helper->assocDatas->load();
+
+        $this->balance = new Balance($this->entityManager);
     }
 
     /**
@@ -120,6 +134,7 @@ class ImportCommand extends Command
             return Command::FAILURE;
         }
 
+        // Ouverture du parseur du fichier
         $file = new SplFileObject($this->fileQIF);
         $options = [
             'parse-memo' => $input->getOption('parse-memo'),
@@ -127,6 +142,7 @@ class ImportCommand extends Command
         ];
         $parser = new QifParser($file, $this->helper, $options);
 
+        // Si déjà importé
         if ($this->isImported($file)) {
             $this->inOut->warning(sprintf('Ce fichier %s a été déjà importé', $this->fileQIF));
 
@@ -141,6 +157,9 @@ class ImportCommand extends Command
         $parser->setAssocTransfer();
         $this->entityManager->flush();
 
+        // Calcul des soldes
+        $this->calulateBalance();
+
         // Affiche les rapports
         $this->helper->statistic->reportAlerts();
         $this->helper->statistic->reportAccounts();
@@ -150,29 +169,48 @@ class ImportCommand extends Command
     }
 
     /**
+     * Calcule le solde de tous les comptes.
+     */
+    protected function calulateBalance(): void
+    {
+        /** @var AccountRepository $repository */
+        $repository = $this->entityManager->getRepository(Account::class);
+        $accounts = $repository->findAll();
+
+        /** @var Account $account */
+        foreach ($accounts as $account) {
+            $this->balance->updateBalanceAll($account);
+            $this->helper->statistic->setAccountData($account);
+        }
+    }
+
+    /**
      * Test si le fichier a été déjà importé.
      *
      * @param SplFileObject $file
      *
      * @return bool
      */
-    private function isImported(SplFileObject $file): bool
+    protected function isImported(SplFileObject $file): bool
     {
-        $date = $account = '';
-        $amount = 0.0;
+        $date = $account = $amount = '';
+        $item = new QifItem($this->helper->assocDatas);
 
         // Recherche les premières valeurs dans le fichier
         foreach ($file as $line) {
             $line = (string) str_replace(["\n", "\r"], ['', ''], $line); /** @phpstan-ignore-line */
             if ('D' === $line[0]) {
                 $date = substr($line, 1);
+                $item->setDate($date);
             } elseif ('T' === $line[0]) {
-                $amount = $this->helper->getAmount(substr($line, 1));
+                $amount = substr($line, 1);
+                $item->setAmount($amount);
             } elseif ('N' === $line[0]) {
                 $account = substr($line, 1);
+                $item->setAccount($account);
             }
 
-            if ('' !== $date && 0.0 !== $amount && '' !== $account) {
+            if ('' !== $date && 0.0 !== $item->getAmount() && '' !== $account) {
                 break;
             }
         }
@@ -180,9 +218,9 @@ class ImportCommand extends Command
         /** @var TransactionRepository $repository */
         $repository = $this->entityManager->getRepository(Transaction::class);
         $transaction = $repository->findOneBy([
-            'date' => $this->helper->getDateTime($date, QifParser::DATE_FORMAT),
-            'account' => $this->helper->getAccount($account),
-            'amount' => $amount,
+            'date' => $item->getDate(),
+            'account' => $item->getAccount(),
+            'amount' => $item->getAmount(),
         ]);
 
         return null !== $transaction;

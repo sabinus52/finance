@@ -9,7 +9,7 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\Helper;
+namespace App\Import;
 
 use App\Entity\Account;
 use App\Entity\Category;
@@ -35,7 +35,7 @@ class MemoParser
     public const STOCK_PEA = 'CA PEA Titres';
 
     /**
-     * @var ImportHelper
+     * @var Helper
      */
     private $helper;
 
@@ -54,44 +54,51 @@ class MemoParser
     /**
      * Constructeur.
      *
-     * @param ImportHelper $helper
+     * @param Helper       $helper
      * @param array<mixed> $options
      */
-    public function __construct(ImportHelper $helper, array $options)
+    public function __construct(Helper $helper, array $options)
     {
         $this->helper = $helper;
         $this->investments = new ArrayObject();
 
         // Si on parse le champs mémo, alors on utilise les comptes Titres
         if (false !== $options['parse-memo']) {
-            $accountTitres = $this->helper->getAccount(self::STOCK_PORTFOLIO);
+            $accountTitres = $this->helper->assocDatas->getAccount(self::STOCK_PORTFOLIO);
             $accountTitres->setType(new AccountType(41));
         }
         if (false !== $options['pea']) {
-            $this->accountPEA = $this->helper->getAccount($options['pea']);
-            $accountTitres = $this->helper->getAccount(self::STOCK_PEA);
+            $this->accountPEA = $this->helper->assocDatas->getAccount($options['pea']);
+            $accountTitres = $this->helper->assocDatas->getAccount(self::STOCK_PEA);
             $accountTitres->setType(new AccountType(41));
         }
     }
 
-    public function parse(string $memo, string $account, string $date, float $amount, string $recipient, string $category, string $state): bool
+    /**
+     * Parse le Mémo et retourne l'indiquation s'il faut créer à la suite une transaction standard.
+     *
+     * @param QifItem $item
+     *
+     * @return bool
+     */
+    public function parse(QifItem $item): bool
     {
         // Versement:[Compte] -> Versement
-        $operation = strstr($memo, ':', true);
+        $operation = strstr($item->getMemo(), ':', true);
 
         switch ($operation) {
             case 'Versement':
-                $this->parseVersement($memo, $account, $date, $amount, $state);
+                $this->parseVersement($item);
 
                 return false;
 
             case 'Stock':
-                $this->parseStockPosition($memo, $account, $date, $amount, $recipient, $category, $state);
+                $this->parseStockPosition($item);
 
                 return false;
 
             case 'Dividendes':
-                $this->parseStockDividende($memo, $account, $date, $amount, $recipient, $category, $state);
+                $this->parseStockDividende($item);
 
                 return false;
 
@@ -99,44 +106,42 @@ class MemoParser
                 return true;
 
             default:
-                if (false !== strpos($memo, ':')) {
-                    throw new Exception('Memo peut être incorrect');
+                if (false !== strpos($item->getMemo(), ':')) {
+                    throw new Exception('Memo est peut être incorrect');
                 }
 
                 return true;
         }
     }
 
-    private function parseVersement(string $memo, string $account, string $date, float $amount, string $state): void
+    /**
+     * Parse dans le cas d'un versement sur un compte de capitalisation.
+     *
+     * @param QifItem $item
+     */
+    private function parseVersement(QifItem $item): void
     {
+        $memo = $item->getMemo();
         $accountPlacement = $this->getPlacement($memo);
         if (null === $accountPlacement) {
             throw new Exception('Compte de placement introuvable dans le memo');
         }
-        $amountPlacement = $this->getAmountVersement($memo, $amount);
+        $amountPlacement = $this->getAmountVersement($memo, $item->getAmount());
+
+        // Valeurs communes
+        $item->setRecipient(Recipient::VIRT_NAME);
+        $item->setPayment(Payment::INTERNAL);
 
         // Toujours compte débiteur = Compte courant où se fait le prélèvement
-        $transactionSource = $this->helper->createTransaction(
-            $account,
-            $date,
-            $amount,
-            Recipient::VIRT_NAME,
-            Category::getBaseCategoryLabel('INVS-'),
-            '',
-            $state,
-            new Payment(Payment::INTERNAL)
-        );
+        $item->setCategoryWithCode(Category::INVESTMENT);
+        $transactionSource = $this->helper->createTransaction($item);
+
         // Toujours versement sur le placement
-        $transactionTarget = $this->helper->createTransaction(
-            $accountPlacement,
-            $date,
-            $amountPlacement,
-            Recipient::VIRT_NAME,
-            Category::getBaseCategoryLabel('VERS+'),
-            '',
-            0,
-            new Payment(Payment::INTERNAL)
-        );
+        $item->setAccount($accountPlacement);
+        $item->setAmount($amountPlacement);
+        $item->setState('');
+        $item->setCategoryWithCode(Category::INVESTMENT);
+        $transactionTarget = $this->helper->createTransaction($item);
 
         // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions
         $this->investments[] = [
@@ -148,8 +153,14 @@ class MemoParser
         $this->setAccountType($accountPlacement);
     }
 
-    private function parseStockPosition(string $memo, string $account, string $date, float $amount, string $recipient, string $category, string $state): void
+    /**
+     * Parse dans le cas d'un achat ou d'une vente d'un titre boursier.
+     *
+     * @param QifItem $item
+     */
+    private function parseStockPosition(QifItem $item): void
     {
+        $memo = $item->getMemo();
         $stock = $this->getPlacement($memo);
         if (null === $stock) {
             throw new Exception('Compte de placement introuvable dans le memo');
@@ -163,35 +174,41 @@ class MemoParser
             throw new Exception('Prix du titre (p=*) introuvable dans le memo');
         }
 
-        $payment = ($amount > 0) ? new Payment(Payment::DEPOT) : new Payment(Payment::PRELEVEMENT);
-        $transaction = $this->helper->createTransaction($account, $date, $amount, $recipient, $category, $memo, $state, $payment);
+        // Transaction standard
+        $transaction = $this->helper->createTransaction($item);
 
+        // Opération boursière
         $operation = $this->helper->createStockPortfolio(
-            ($account === $this->accountPEA->getFullName()) ? $this->helper->getAccount(self::STOCK_PEA) : $this->helper->getAccount(self::STOCK_PORTFOLIO),
-            $date,
-            $amount,
+            $item,
+            $this->getWallet($item),
             $stock,
-            ($amount < 0) ? new StockPosition(StockPosition::BUYING) : new StockPosition(StockPosition::SELLING),
+            ($item->getAmount() < 0) ? new StockPosition(StockPosition::BUYING) : new StockPosition(StockPosition::SELLING),
             $volume,
             $price
         );
         $operation->setTransaction($transaction);
     }
 
-    private function parseStockDividende(string $memo, string $account, string $date, float $amount, string $recipient, string $category, string $state): void
+    /**
+     * Parse dans le cas d'un versement de dividende.
+     *
+     * @param QifItem $item
+     */
+    private function parseStockDividende(QifItem $item): void
     {
+        $memo = $item->getMemo();
         $stock = $this->getPlacement($memo);
         if (null === $stock) {
             throw new Exception('Compte de placement introuvable dans le memo');
         }
 
-        $payment = ($amount > 0) ? new Payment(Payment::DEPOT) : new Payment(Payment::PRELEVEMENT);
-        $transaction = $this->helper->createTransaction($account, $date, $amount, $recipient, $category, $memo, $state, $payment);
+        // Transaction standard
+        $transaction = $this->helper->createTransaction($item);
 
+        // Opération boursière
         $operation = $this->helper->createStockPortfolio(
-            ($account === $this->accountPEA->getFullName()) ? $this->helper->getAccount(self::STOCK_PEA) : $this->helper->getAccount(self::STOCK_PORTFOLIO),
-            $date,
-            $amount,
+            $item,
+            $this->getWallet($item),
             $stock,
             new StockPosition(StockPosition::DIVIDEND),
             null,
@@ -201,13 +218,29 @@ class MemoParser
     }
 
     /**
+     * Retourne le compte de portefeuille à utiliser.
+     *
+     * @param QifItem $item
+     *
+     * @return Account
+     */
+    private function getWallet(QifItem $item): Account
+    {
+        if ($item->getAccount()->getFullName() === $this->accountPEA->getFullName()) {
+            return $this->helper->assocDatas->getAccount(self::STOCK_PEA);
+        }
+
+        return $this->helper->assocDatas->getAccount(self::STOCK_PORTFOLIO);
+    }
+
+    /**
      * Affecte le type de placement en tant que "Assurance Vie" par défaut.
      *
      * @param string $account
      */
     private function setAccountType(string $account): void
     {
-        $account = $this->helper->getAccount($account);
+        $account = $this->helper->assocDatas->getAccount($account);
         $account->setType(new AccountType(51));
     }
 
@@ -263,7 +296,7 @@ class MemoParser
 
         preg_match('/€([0-9]*[.]?[0-9]+)/', $memo, $matches);
         if (isset($matches[1])) {
-            $amount = $this->helper->getAmount($matches[1]);
+            $amount = (float) $matches[1];
         }
 
         return $amount;
