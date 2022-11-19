@@ -45,6 +45,17 @@ class Institution
     private $name;
 
     /**
+     * Nom court.
+     *
+     * @var string
+     *
+     * @ORM\Column(type="string", length=20)
+     * @Assert\NotBlank
+     * @Assert\Length(max=20)
+     */
+    private $shortName;
+
+    /**
      * Lien du site web.
      *
      * @var string
@@ -54,6 +65,16 @@ class Institution
      * @Assert\Length(max=255)
      */
     private $link;
+
+    /**
+     * Code SWIFT de la banque.
+     *
+     * @var string
+     *
+     * @ORM\Column(type="string", length=12, nullable=true)
+     * @Assert\Length(max=12)
+     */
+    private $codeSwift;
 
     /**
      * Image de l'organisme.
@@ -93,6 +114,18 @@ class Institution
         return $this;
     }
 
+    public function getShortName(): ?string
+    {
+        return $this->shortName;
+    }
+
+    public function setShortName(string $shortName): self
+    {
+        $this->shortName = $shortName;
+
+        return $this;
+    }
+
     public function getLink(): ?string
     {
         return $this->link;
@@ -101,6 +134,18 @@ class Institution
     public function setLink(?string $link): self
     {
         $this->link = $link;
+
+        return $this;
+    }
+
+    public function getCodeSwift(): ?string
+    {
+        return $this->codeSwift;
+    }
+
+    public function setCodeSwift(?string $codeSwift): self
+    {
+        $this->codeSwift = $codeSwift;
 
         return $this;
     }

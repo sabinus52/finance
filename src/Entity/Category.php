@@ -35,6 +35,7 @@ class Category
     public const REVALUATION = 'EVAL';
     public const STOCKOPERT = 'OPST';
     public const DIVIDENDES = 'DIVD';
+    public const PRIMARY_LABEL = 'Finance';
 
     /**
      * Listes des catégories à créer.
@@ -42,15 +43,15 @@ class Category
      * @var array<mixed>
      */
     public static $baseCategories = [
-        'VIRT+' => ['type' => self::RECETTES, 'code' => self::VIREMENT, 'label' => 'Finance:Virement reçu'],
-        'VIRT-' => ['type' => self::DEPENSES, 'code' => self::VIREMENT, 'label' => 'Finance:Virement émis'],
-        'INVS+' => ['type' => self::RECETTES, 'code' => self::INVESTMENT, 'label' => 'Finance:Investissement'],
-        'INVS-' => ['type' => self::DEPENSES, 'code' => self::INVESTMENT, 'label' => 'Finance:Versement'],
-        'EVAL+' => ['type' => self::RECETTES, 'code' => self::REVALUATION, 'label' => 'Finance:Révaluation bénéficiaire'],
-        'EVAL-' => ['type' => self::DEPENSES, 'code' => self::REVALUATION, 'label' => 'Finance:Révaluation déficitaire'],
-        'OPST+' => ['type' => self::RECETTES, 'code' => self::STOCKOPERT, 'label' => 'Finance:Achat titres'],
-        'OPST-' => ['type' => self::DEPENSES, 'code' => self::STOCKOPERT, 'label' => 'Finance:Vente titres'],
-        'DIVD+' => ['type' => self::RECETTES, 'code' => self::DIVIDENDES, 'label' => 'Finance:Dividendes'],
+        'VIRT+' => ['type' => self::RECETTES, 'code' => self::VIREMENT, 'label' => 'Virement reçu'],
+        'VIRT-' => ['type' => self::DEPENSES, 'code' => self::VIREMENT, 'label' => 'Virement émis'],
+        'INVS+' => ['type' => self::RECETTES, 'code' => self::INVESTMENT, 'label' => 'Investissement'],
+        'INVS-' => ['type' => self::DEPENSES, 'code' => self::INVESTMENT, 'label' => 'Versement'],
+        'EVAL+' => ['type' => self::RECETTES, 'code' => self::REVALUATION, 'label' => 'Révaluation bénéficiaire'],
+        'EVAL-' => ['type' => self::DEPENSES, 'code' => self::REVALUATION, 'label' => 'Révaluation déficitaire'],
+        'OPST+' => ['type' => self::RECETTES, 'code' => self::STOCKOPERT, 'label' => 'Achat titres'],
+        'OPST-' => ['type' => self::DEPENSES, 'code' => self::STOCKOPERT, 'label' => 'Vente titres'],
+        'DIVD+' => ['type' => self::RECETTES, 'code' => self::DIVIDENDES, 'label' => 'Dividendes'],
     ];
 
     /**
@@ -302,7 +303,7 @@ class Category
             throw new Exception('La clé "%s" n\'existe pas dans la table Category::$baseCategories');
         }
 
-        return self::$baseCategories[$key]['label'];
+        return sprintf('%s:%s', self::PRIMARY_LABEL, self::$baseCategories[$key]['label']);
     }
 
     /**

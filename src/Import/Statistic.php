@@ -114,7 +114,7 @@ class Statistic
      *
      * @param string $message
      */
-    public function addAlert(DateTime $date, Account $account, float $amount, string $memo, string $message): void
+    public function addMemoAlert(DateTime $date, Account $account, float $amount, string $memo, string $message): void
     {
         $this->alerts->append([
             'date' => $date->format('d/m/Y'),
@@ -128,7 +128,7 @@ class Statistic
     /**
      * Affiche le report des alertes.
      */
-    public function reportAlerts(): void
+    public function reportMemoAlerts(): void
     {
         $this->inOut->table(['Date', 'Compte', 'Montant', 'Mémo', 'Alerte'], (array) $this->alerts);
     }

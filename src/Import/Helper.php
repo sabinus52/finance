@@ -15,10 +15,11 @@ use App\Entity\Account;
 use App\Entity\Stock;
 use App\Entity\StockPortfolio;
 use App\Entity\Transaction;
-use App\Values\Payment;
+use App\Helper\Balance;
+use App\Repository\AccountRepository;
 use App\Values\StockPosition;
-use ArrayObject;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 
 /**
  * Classe d'aide pour l'omport des transactions venant d'un programme extérieur.
@@ -59,6 +60,28 @@ class Helper
         $this->entityManager = $manager;
         $this->statistic = new Statistic();
         $this->assocDatas = new AssocDatas($manager);
+    }
+
+    /**
+     * Purge la table.
+     *
+     * @param string $table
+     *
+     * @return string|null
+     */
+    public function truncate(string $table): ?string
+    {
+        $connection = $this->entityManager->getConnection();
+        $platform = $connection->getDatabasePlatform();
+        try {
+            $connection->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+            $connection->executeStatement($platform->getTruncateTableSQL($table, false /* whether to cascade */));
+            $connection->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+
+        return null;
     }
 
     /**
@@ -126,33 +149,20 @@ class Helper
     }
 
     /**
-     * Retourne le code du moyen de paiement.
-     *
-     * @param string $searchPayment
-     *
-     * @return Payment
+     * Calcule le solde de tous les comptes.
      */
-    public function getPayment(string $searchPayment): Payment
+    public function calulateBalance(): void
     {
-        $matches = new ArrayObject([
-            0 => Payment::INTERNAL,
-            1 => Payment::CARTE,
-            2 => Payment::CHEQUE,
-            3 => Payment::ESPECE,
-            4 => Payment::VIREMENT,
-            5 => Payment::CARTE,
-            6 => Payment::VIREMENT,
-            7 => Payment::ELECTRONIC,
-            8 => Payment::DEPOT,
-            9 => Payment::PRELEVEMENT,
-            10 => Payment::PRELEVEMENT,
-            11 => Payment::PRELEVEMENT,
-        ]);
-        $searchPayment = (int) $searchPayment;
-        if ($matches->offsetExists($searchPayment)) {
-            return new Payment($matches->offsetGet($searchPayment));
-        }
+        $balance = new Balance($this->entityManager);
 
-        return new Payment(Payment::VIREMENT);
+        /** @var AccountRepository $repository */
+        $repository = $this->entityManager->getRepository(Account::class);
+        $accounts = $repository->findAll();
+
+        /** @var Account $account */
+        foreach ($accounts as $account) {
+            $balance->updateBalanceAll($account);
+            $this->statistic->setAccountData($account);
+        }
     }
 }

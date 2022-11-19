@@ -53,6 +53,10 @@ class AccountType extends AbstractType
                 'label' => 'Nom du compte',
                 'required' => false,
             ])
+            ->add('shortName', TextType::class, [
+                'label' => 'Nom court',
+                'required' => false,
+            ])
             ->add('number', TextType::class, [
                 'label' => 'Numéro du compte',
                 'required' => false,

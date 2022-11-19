@@ -36,6 +36,14 @@ class InstitutionType extends AbstractType
                 'label' => 'Nom de l\'organisme',
                 'required' => false,
             ])
+            ->add('shortName', TextType::class, [
+                'label' => 'Nom court',
+                'required' => false,
+            ])
+            ->add('codeSwift', TextType::class, [
+                'label' => 'Code SWIFT',
+                'required' => false,
+            ])
             ->add('link', UrlType::class, [
                 'label' => 'Site web',
                 'required' => false,

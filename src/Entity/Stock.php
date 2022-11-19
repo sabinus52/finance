@@ -33,15 +33,6 @@ class Stock
     private $id; /** @phpstan-ignore-line */
 
     /**
-     * Symbole de l'action.
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=10, unique=true)
-     */
-    private $symbol;
-
-    /**
      * Code ISIN.
      *
      * @var string
@@ -82,18 +73,6 @@ class Stock
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getSymbol(): ?string
-    {
-        return $this->symbol;
-    }
-
-    public function setSymbol(string $symbol): self
-    {
-        $this->symbol = $symbol;
-
-        return $this;
     }
 
     public function getCodeISIN(): ?string

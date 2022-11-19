@@ -78,7 +78,14 @@ class AssocDatas
      *
      * @var ArrayObject
      */
-    private $stocks;
+    public $stocks;
+
+    /**
+     * Liste des datas nouvellement crées.
+     *
+     * @var array<mixed>
+     */
+    private $newCreated;
 
     /**
      * Constructeur.
@@ -94,6 +101,12 @@ class AssocDatas
         $this->catLevel1 = new ArrayObject();
         $this->catLevel2 = new ArrayObject();
         $this->stocks = new ArrayObject();
+        /*$this->newCreated = [
+            'institutions' => [],
+            'accounts' => [],
+            'stocks' => [],
+        ];*/
+        $this->newCreated = [];
     }
 
     /**
@@ -154,7 +167,9 @@ class AssocDatas
     {
         $institution = new Institution();
         $institution->setName($strInstitution);
+        $institution->setShortName($strInstitution);
         $this->entityManager->persist($institution);
+        $this->newCreated[] = $institution;
 
         return $institution;
     }
@@ -201,12 +216,32 @@ class AssocDatas
         $account = new Account();
         $account->setInstitution($this->getInstitution($strIntitution));
         $account->setName($strAccount);
+        $account->setShortName($strAccount);
         $account->setType(new AccountType(11));
         $account->setOpenedAt($dateOpened);
         $this->entityManager->persist($account);
-        $this->accounts->offsetSet($searchAccount, $account);
+        $this->newCreated[] = $account;
 
         return $account;
+    }
+
+    /**
+     * Retoune un compte particulier en fonction de son type.
+     *
+     * @param int $type Numéro du type de compte
+     *
+     * @return Account|null
+     */
+    public function getAccountSpecial(int $type): ?Account
+    {
+        foreach ($this->accounts as $account) {
+            /** @var Account $account */
+            if ($type === $account->getType()->getValue()) {
+                return $account;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -332,11 +367,32 @@ class AssocDatas
     {
         $stock = new Stock();
         $stock->setName($strStock);
-        $stock->setSymbol($this->generateRandomString(10, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'));
         $stock->setCodeISIN('FR'.$this->generateRandomString(10, '0123456789'));
         $this->entityManager->persist($stock);
+        $this->newCreated[] = $stock;
 
         return $stock;
+    }
+
+    /**
+     * Retoune la liste des nouveaux éléments créés.
+     *
+     * @return array<mixed>
+     */
+    public function getReportNewCreated(): array
+    {
+        $rows = [];
+        foreach ($this->newCreated as $item) {
+            if ($item instanceof Institution) {
+                $rows[] = [$item->getName(), 'Organisme'];
+            } elseif ($item instanceof Account) {
+                $rows[] = [$item->getFullName(), 'Compte'];
+            } elseif ($item instanceof Stock) {
+                $rows[] = [$item->getName(), 'Titre'];
+            }
+        }
+
+        return $rows;
     }
 
     /**

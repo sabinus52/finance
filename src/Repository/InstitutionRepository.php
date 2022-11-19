@@ -41,7 +41,7 @@ class InstitutionRepository extends ServiceEntityRepository
 
         /** @var Institution $institution */
         foreach ($this->findAll() as $institution) {
-            $result[$institution->getName()] = $institution;
+            $result[$institution->getShortName()] = $institution;
         }
 
         return $result;

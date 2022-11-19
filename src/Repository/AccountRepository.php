@@ -77,7 +77,7 @@ class AccountRepository extends ServiceEntityRepository
 
         /** @var Account $account */
         foreach ($query->getResult() as $account) {
-            $result[$account->getFullName()] = $account;
+            $result[$account->getName4Import()] = $account;
         }
 
         return $result;

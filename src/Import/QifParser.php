@@ -15,7 +15,6 @@ use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Recipient;
 use App\Entity\Transaction;
-use App\Values\AccountType;
 use App\Values\Payment;
 use ArrayObject;
 use SplFileObject;
@@ -60,9 +59,9 @@ class QifParser
     private $memoParser;
 
     /**
-     * @var array<mixed>
+     * @var bool
      */
-    private $options;
+    private $isParseMemo;
 
     /**
      * Mode du type de section à ajouter (ACCOUNT, TRANST_BANK, ...).
@@ -90,14 +89,14 @@ class QifParser
      *
      * @param SplFileObject $file
      * @param Helper        $helper
-     * @param array<mixed>  $options
+     * @param bool          $isParseMemo
      */
-    public function __construct(SplFileObject $file, Helper $helper, array $options)
+    public function __construct(SplFileObject $file, Helper $helper, bool $isParseMemo)
     {
         $this->file = $file;
         $this->helper = $helper;
-        $this->options = $options;
-        $this->memoParser = new MemoParser($helper, $options);
+        $this->isParseMemo = $isParseMemo;
+        $this->memoParser = new MemoParser($helper);
         $this->account = new ArrayObject();
         $this->transfers = new ArrayObject();
     }
@@ -208,10 +207,7 @@ class QifParser
                     break;
             }
         }
-        $account = $this->helper->assocDatas->getAccount($this->account['name']);
-        if ('Oth A' === $this->account['type'] || 'Oth L' === $this->account['type']) {
-            $account->setType(new AccountType(26));
-        }
+        $this->helper->assocDatas->getAccount($this->account['name']);
     }
 
     /**
@@ -268,14 +264,14 @@ class QifParser
              */
             $this->createTransfer($itemFound, substr($category, 1, -1));
             $isTransactStandard = false;
-        } elseif (false !== $this->options['parse-memo'] && null !== $itemFound->getMemo()) {
+        } elseif (true === $this->isParseMemo && null !== $itemFound->getMemo()) {
             /**
              * Parse le champs mémp pour les comptes de capitalisation et boursier.
              */
             try {
                 $isTransactStandard = $this->memoParser->parse($itemFound);
             } catch (Throwable $th) {
-                $this->helper->statistic->addAlert($itemFound->getDate(), $itemFound->getAccount(), $itemFound->getAmount(), $itemFound->getMemo(), $th->getMessage());
+                $this->helper->statistic->addMemoAlert($itemFound->getDate(), $itemFound->getAccount(), $itemFound->getAmount(), $itemFound->getMemo(), $th->getMessage());
             }
         }
         if ($isTransactStandard) {
@@ -329,7 +325,7 @@ class QifParser
             $transactionTarget->setTransfer($transactionSource);
         }
 
-        if (false !== $this->options['parse-memo']) {
+        if (true === $this->isParseMemo) {
             $this->memoParser->setAssocInvestment();
         }
     }

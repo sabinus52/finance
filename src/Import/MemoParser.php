@@ -31,8 +31,7 @@ use Exception;
  */
 class MemoParser
 {
-    public const STOCK_PORTFOLIO = 'CA Compte Titres';
-    public const STOCK_PEA = 'CA PEA Titres';
+    public const ACC_WALLET_DEFAULT = 'MyBank Compte Titres';
 
     /**
      * @var Helper
@@ -49,29 +48,36 @@ class MemoParser
     /**
      * @var Account
      */
-    private $accountPEA;
+    private $accountPEACaisse;
+
+    /**
+     * @var Account
+     */
+    private $accountPEATitres;
+
+    /**
+     * @var Account
+     */
+    private $accountTitres;
 
     /**
      * Constructeur.
      *
-     * @param Helper       $helper
-     * @param array<mixed> $options
+     * @param Helper $helper
      */
-    public function __construct(Helper $helper, array $options)
+    public function __construct(Helper $helper)
     {
         $this->helper = $helper;
         $this->investments = new ArrayObject();
 
         // Si on parse le champs mémo, alors on utilise les comptes Titres
-        if (false !== $options['parse-memo']) {
-            $accountTitres = $this->helper->assocDatas->getAccount(self::STOCK_PORTFOLIO);
-            $accountTitres->setType(new AccountType(41));
+        $this->accountTitres = $this->helper->assocDatas->getAccountSpecial(AccountType::ACC_TITRES);
+        if (null === $this->accountTitres) {
+            $this->accountTitres = $this->helper->assocDatas->getAccount(self::ACC_WALLET_DEFAULT);
+            $this->accountTitres->setType(new AccountType(AccountType::ACC_TITRES));
         }
-        if (false !== $options['pea']) {
-            $this->accountPEA = $this->helper->assocDatas->getAccount($options['pea']);
-            $accountTitres = $this->helper->assocDatas->getAccount(self::STOCK_PEA);
-            $accountTitres->setType(new AccountType(41));
-        }
+        $this->accountPEACaisse = $this->helper->assocDatas->getAccountSpecial(AccountType::PEA_CAISSE);
+        $this->accountPEATitres = $this->helper->assocDatas->getAccountSpecial(AccountType::PEA_TITRES);
     }
 
     /**
@@ -226,11 +232,14 @@ class MemoParser
      */
     private function getWallet(QifItem $item): Account
     {
-        if ($item->getAccount()->getFullName() === $this->accountPEA->getFullName()) {
-            return $this->helper->assocDatas->getAccount(self::STOCK_PEA);
+        if (null === $this->accountPEACaisse || null === $this->accountPEATitres) {
+            return $this->accountTitres;
+        }
+        if ($item->getAccount()->getFullName() !== $this->accountPEACaisse->getFullName()) {
+            return $this->accountTitres;
         }
 
-        return $this->helper->assocDatas->getAccount(self::STOCK_PORTFOLIO);
+        return $this->accountPEATitres;
     }
 
     /**

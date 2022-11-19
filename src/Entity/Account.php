@@ -25,6 +25,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Sabinus52 <sabinus52@gmail.com>
  *
  * @ORM\Entity(repositoryClass=AccountRepository::class)
+ *
+ * @SuppressWarnings(PHPMD.TooManyFields)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class Account
 {
@@ -61,9 +64,20 @@ class Account
      *
      * @ORM\Column(type="string", length=50)
      * @Assert\NotBlank
-     * @Assert\Length(max=30)
+     * @Assert\Length(max=50)
      */
     private $name;
+
+    /**
+     * Nom court.
+     *
+     * @var string
+     *
+     * @ORM\Column(type="string", length=20)
+     * @Assert\NotBlank
+     * @Assert\Length(max=20)
+     */
+    private $shortName;
 
     /**
      * Solde initial du compte.
@@ -232,6 +246,18 @@ class Account
     public function setName(string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getShortName(): ?string
+    {
+        return $this->shortName;
+    }
+
+    public function setShortName(string $shortName): self
+    {
+        $this->shortName = $shortName;
 
         return $this;
     }
@@ -435,7 +461,17 @@ class Account
      */
     public function getFullName(): string
     {
-        return $this->getInstitution()->getName().' '.$this->getName();
+        return sprintf('%s %s', $this->getInstitution()->getName(), $this->getName());
+    }
+
+    public function getFullShortName(): string
+    {
+        return sprintf('%s %s', $this->getInstitution()->getShortName(), $this->getShortName());
+    }
+
+    public function getName4Import(): string
+    {
+        return sprintf('%s %s', $this->getInstitution()->getShortName(), $this->getName());
     }
 
     /**

@@ -32,6 +32,7 @@
                                 <tr>
                                     <td class="text-center"><img src="{{ item.logo }}" height="48"></td>
                                     <td class="align-middle"><b>{{ item.name }}<b></td>
+                                    <td class="align-middle"><a href="{{ item.link }}" target="_blank">{{ item.link }}</td>
                                     <td class="text-right align-middle">
                                         <a data-remote="{{ path('manage_institution__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
                                     </td>

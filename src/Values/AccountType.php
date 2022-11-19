@@ -29,32 +29,53 @@ class AccountType
     public const EPARGNE_FINANCIERE = 4;
     public const EPARGNE_ASSURANCE_VIE = 5;
 
+    public const ACC_CURRENT = 11;
+    public const ACC_EPOSIT = 12;
+    public const CREDIT_CARD = 13;
+    public const PEA_CAISSE = 14;
+    public const CEL = 21;
+    public const LIVRET_A = 22;
+    public const LDD = 23;
+    public const LEP = 24;
+    public const BOOKLET_JEUNE = 25;
+    public const BOOKLET = 26;
+    public const PEL = 31;
+    public const CAT = 32;
+    public const ACC_TITRES = 41;
+    public const PEA_TITRES = 42;
+    public const INVEST_ASSVIE = 51;
+    public const INVEST_CONTRACT = 52;
+    public const INVEST_PEP = 53;
+    public const INVEST_PERP = 54;
+    public const INVEST_PEE = 55;
+    public const INVEST_OTHER = 59;
+
     /**
      * Liste des types de comptes.
      *
      * @var array<string>
      */
     private static $values = [
-        11 => 'Compte chèque',
-        12 => 'Compte de dépôt',
-        21 => 'CEL (compte d\'épargne logement)',
-        22 => 'Livret A',
-        23 => 'LDD (livret de développement durable)',
-        24 => 'LEP (livret d\'épargne populaire)',
-        25 => 'Livret Jeune',
-        26 => 'Livret',
-        31 => 'PEL (plan d\'épargne logement)',
-        32 => 'Compte à Terme',
-        41 => 'Compte Titres',
-        42 => 'Compte Titres Espèces',
-        43 => 'PEA Titres',
-        44 => 'PEA Espèces',
-        51 => 'Assurance vie',
-        52 => 'Contrat de Capitalisation',
-        53 => 'PEP (plan d\'épargne populaire)',
-        54 => 'PERP (plan d\'épargne retraite populaire)',
-        55 => 'PEE (plan d\'épargne entreprise)',
-        59 => 'Autre',
+        self::ACC_CURRENT => 'Compte chèque',
+        self::ACC_EPOSIT => 'Compte de dépôt',
+        self::CREDIT_CARD => 'Carte de débit',
+        self::PEA_CAISSE => 'PEA Espèces',
+        self::CEL => 'CEL (compte d\'épargne logement)',
+        self::LIVRET_A => 'Livret A',
+        self::LDD => 'LDD (livret de développement durable)',
+        self::LEP => 'LEP (livret d\'épargne populaire)',
+        self::BOOKLET_JEUNE => 'Livret Jeune',
+        self::BOOKLET => 'Livret',
+        self::PEL => 'PEL (plan d\'épargne logement)',
+        self::CAT => 'Compte à Terme',
+        self::ACC_TITRES => 'Compte Titres',
+        self::PEA_TITRES => 'PEA Titres',
+        self::INVEST_ASSVIE => 'Assurance vie',
+        self::INVEST_CONTRACT => 'Contrat de Capitalisation',
+        self::INVEST_PEP => 'PEP (plan d\'épargne populaire)',
+        self::INVEST_PERP => 'PERP (plan d\'épargne retraite populaire)',
+        self::INVEST_PEE => 'PEE (plan d\'épargne entreprise)',
+        self::INVEST_OTHER => 'Autre',
     ];
 
     /**
@@ -65,31 +86,31 @@ class AccountType
             'menu' => 'Compte courant',
             'label' => 'Compte courant',
             'icon' => 'fas fa-credit-card',
-            'values' => [11, 12],
+            'values' => [self::ACC_CURRENT, self::ACC_EPOSIT, self::CREDIT_CARD, self::PEA_CAISSE],
         ],
         self::EPARGNE_LIQUIDE => [
             'menu' => 'Epargne liquide',
             'label' => 'Epargne liquide',
             'icon' => 'fas fa-piggy-bank',
-            'values' => [21, 22, 23, 24, 25, 26],
+            'values' => [self::CEL, self::LIVRET_A, self::LDD, self::LEP, self::BOOKLET_JEUNE, self::BOOKLET],
         ],
         self::EPARGNE_A_TERME => [
             'menu' => 'Epargne à terme',
             'label' => 'Epargne à terme',
             'icon' => 'fas fa-coins',
-            'values' => [31, 32],
+            'values' => [self::PEL, self::CAT],
         ],
         self::EPARGNE_FINANCIERE => [
             'menu' => 'Epargne financière',
             'label' => 'Epargne financière',
             'icon' => 'fas fa-landmark',
-            'values' => [41, 42, 43, 44],
+            'values' => [self::ACC_TITRES, self::PEA_TITRES],
         ],
         self::EPARGNE_ASSURANCE_VIE => [
             'menu' => 'Capitalisation',
             'label' => 'Assurance vie et capitalisation',
             'icon' => 'fas fa-wallet',
-            'values' => [51, 52, 53, 54, 55, 59],
+            'values' => [self::INVEST_ASSVIE, self::INVEST_CONTRACT, self::INVEST_PEP, self::INVEST_PERP, self::INVEST_PEE, self::INVEST_OTHER],
         ],
     ];
 

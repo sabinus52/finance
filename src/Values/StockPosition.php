@@ -20,6 +20,8 @@ class StockPosition
 {
     public const BUYING = 1;
     public const SELLING = 2;
+    public const FUSION_BUY = 3;
+    public const FUSION_SALE = 4;
     public const DIVIDEND = 5;
 
     /**
@@ -30,6 +32,8 @@ class StockPosition
     protected static $positions = [
         self::BUYING => ['label' => 'Achat'],
         self::SELLING => ['label' => 'Vente'],
+        self::FUSION_BUY => ['label' => 'Fusion fin'],
+        self::FUSION_SALE => ['label' => 'Fusion début'],
         self::DIVIDEND => ['label' => 'Dividende'],
     ];
 

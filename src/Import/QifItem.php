@@ -79,6 +79,11 @@ class QifItem
         $this->assocDatas = $assocDatas;
     }
 
+    public function __toString()
+    {
+        return sprintf('%s | %s | %s | %s | %s', $this->date->format('d/m/Y'), $this->getAccount()->getFullName(), $this->amount, $this->getRecipient()->getName(), $this->getCategory()->getFullName());
+    }
+
     public function setDate(string $date, string $format = QifParser::DATE_FORMAT): self
     {
         $this->date = DateTime::createFromFormat($format, $date); /** @phpstan-ignore-line */
@@ -114,7 +119,7 @@ class QifItem
 
     public function setRecipient(string $recipient): self
     {
-        $this->recipient = $recipient;
+        $this->recipient = ('' === $recipient) ? Recipient::VIRT_NAME : $recipient;
 
         return $this;
     }
