@@ -17,14 +17,9 @@ use App\Entity\Transaction;
 use App\Form\TransactionType;
 use App\Form\TransferType;
 use App\Helper\Balance;
-use App\Helper\DateRange;
 use App\Helper\Transfer;
-use App\Repository\TransactionRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormError;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -33,21 +28,19 @@ use Symfony\Component\Routing\Annotation\Route;
  * Controleur des comptes et contrats.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @SuppressWarnings(PHPMD.StaticAccess)
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class TransactionController extends AbstractController
+class TransactionController extends TransactionBase
 {
     /**
      * Page d'accueil des comptes.
      *
      * @Route("/account/{id}/transactions", name="account__index")
      */
-    public function index(Request $request, TransactionRepository $repository, Account $account): Response
+    public function index(Request $request, Account $account): Response
     {
-        $formFilter = $this->getFormFilter();
+        $formFilter = $this->createFormFilter(false);
         $formDelete = $this->createFormBuilder()->getForm();
+        $formRecon = $this->createFormReconBalance($account);
 
         // Remplit le formulaire avec les données de la session
         $session = $request->getSession();
@@ -59,81 +52,17 @@ class TransactionController extends AbstractController
                 }
             }
         }
-        $session->set('filter', '');
 
-        return $this->renderForm('account/transactions.html.twig', [
+        return $this->render('account/transactions.html.twig', [
             'forceMenuActiv' => sprintf('account%s', $account->getId()),
             'account' => $account,
-            'transactions' => $repository->findByAccount($account),
-            'filter' => $formFilter,
-            'delete' => $formDelete,
+            'form' => [
+                'filter' => $formFilter->createView(),
+                'delete' => $formDelete->createView(),
+                'recon' => $formRecon->createView(),
+            ],
+            'isReconcilied' => false,
         ]);
-    }
-
-    /**
-     * @Route("/account/{id}/transactions/ajax", name="account__ajax")
-     */
-    public function getListTransactionAjax(Request $request, TransactionRepository $repository, Account $account): Response
-    {
-        $datas = $request->get('form');
-
-        $session = $request->getSession();
-        $filter = $session->get('filter');
-        if (null !== $filter) {
-            $session->set('filter', $datas);
-        }
-
-        $filters = [];
-        /*$range = $request->get('range');
-        if ($range != null) {
-            $filters['range'] = $range;
-        }*/
-
-        unset($datas['_token']);
-        foreach ($datas as $key => $value) {
-            // Si null alors pas de filtre
-            if ('' === $value || null === $value) {
-                continue;
-            }
-            if ('range' === $key) {
-                $ttt = new DateRange($value);
-                $value = $ttt->getRange();
-            }
-            $filters[$key] = $value;
-        }
-        /*if (null !== $type) {
-            $filters['state'] = $type;
-        }*/
-        // var_dump($datas);
-
-        return $this->render('account/transaction-table.html.twig', [
-            'transactions' => $repository->findByAccount($account, $filters),
-        ]);
-    }
-
-    /**
-     * Retourne le formulaire du filtre.
-     *
-     * @return FormInterface
-     */
-    private function getFormFilter(): FormInterface
-    {
-        return $this->createFormBuilder()
-            ->add('range', ChoiceType::class, [
-                'label' => 'Plage :',
-                'choices' => DateRange::getChoices(),
-            ])
-            ->add('state', ChoiceType::class, [
-                'label' => 'Etat :',
-                'choices' => [
-                    'Tous les états' => null,
-                    'Non rapproché' => 0,
-                    'Rapproché' => 1,
-                ],
-                'choice_value' => fn ($value) => $value,
-            ])
-            ->getForm()
-        ;
     }
 
     /**
@@ -206,7 +135,19 @@ class TransactionController extends AbstractController
      */
     public function update(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
+        if (Transaction::STATE_RECONCILIED === $transaction->getState()) {
+            return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
+                'message' => 'Impossible de modifier cette transaction !',
+            ]);
+        }
+
         if (null !== $transaction->getTransfer()) {
+            if (Transaction::STATE_RECONCILIED === $transaction->getTransfer()->getState()) {
+                return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
+                    'message' => 'Impossible de modifier ce virement !',
+                ]);
+            }
+
             return $this->updateTransfer($request, $transaction, $entityManager);
         }
 
@@ -285,6 +226,19 @@ class TransactionController extends AbstractController
      */
     public function remove(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
+        if (Transaction::STATE_RECONCILIED === $transaction->getState()) {
+            return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
+                'message' => 'Impossible de supprimer cette transaction !',
+            ]);
+        }
+        if (null !== $transaction->getTransfer()) {
+            if (Transaction::STATE_RECONCILIED === $transaction->getTransfer()->getState()) {
+                return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
+                    'message' => 'Impossible de supprimer ce virement !',
+                ]);
+            }
+        }
+
         $form = $this->createFormBuilder()->getForm();
 
         $form->handleRequest($request);

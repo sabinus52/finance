@@ -70,19 +70,23 @@ class Balance
     public function updateBalanceAll(Account $account): int
     {
         $balance = $account->getInitial();
+        $reconcilied = $account->getInitial();
         $invested = $account->getInitial();
 
         $results = $this->findAll($account);
         foreach ($results as $item) {
             $balance += $item->getAmount();
             $item->setBalance($balance);
-            if (Category::VERSEMENT === $item->getCategory()->getCode()) {
+            if (Transaction::STATE_RECONCILIED === $item->getState()) {
+                $reconcilied += $item->getAmount();
+            }
             if (Category::INVESTMENT === $item->getCategory()->getCode()) {
                 $invested += $item->getAmount();
             }
         }
 
         $account->setBalance($balance);
+        $account->setReconBalance($reconcilied);
         $account->setInvested($invested);
         $this->entityManager->flush();
 

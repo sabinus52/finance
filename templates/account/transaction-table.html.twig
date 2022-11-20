@@ -18,17 +18,44 @@
     {% for item in transactions %}
         <tr>
             <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
-            <td>{{ item.payment.code }}</td>
-            <td>{% if item.payment.value == constant('INTERNAL', item.payment) %}{{ item.transfer.account.name }}{% else %}{{ item.recipient.name }}{% endif %}</td>
+            <td><img src="{{ asset(item.payment.pathImage) }}" width="24"></td>
+            <td>
+            {% if item.transfer %}
+                {% if item.amount > 0 %}<i class="fas fa-angle-double-left"></i>{% else %}<i class="fas fa-angle-double-right"></i>{% endif %}
+                {{ item.transfer.account.name }}
+             {% else %}
+                {{ item.recipient.name }}
+            {% endif %}
+            </td>
             <td>{{ item.category.fullName }}</td>
-            <td></td>
+            <td class="text-center">
+            {% if isReconcilied %}
+                <div class="icheck-orange">
+                    <input type="checkbox" id="remember{{ item.id }}" name="reconciliation" data-remote="{{ path('reconciliation_check', { 'id': item.id }) }}" value="{{ item.id }}"{% if item.state == constant('STATE_RECONTEMP', item) %} checked="checked"{% endif %}>
+                    <label for="remember{{ item.id }}">{{ item.state }}</label>
+                </div>
+            {% else %}
+                {% if item.state == constant('STATE_RECONCILIED', item) %}<span class="text-primary"><i class="far fa-check-circle"></i></span>{% endif %}
+            {% endif %}
+            </td>
             <td class="text-right text-red">{% if item.amount < 0 %}{{ item.amount|format_currency('EUR', locale='fr') }}{% endif %}</td>
             <td class="text-right text-green">{% if item.amount > 0 %}{{ item.amount|format_currency('EUR', locale='fr') }}{% endif %}</td>
             <td class="text-right">{{ item.balance|format_currency('EUR', locale='fr') }}</td>
             <td>{% set solde = solde + item.amount %}{{ solde|format_currency('EUR', locale='fr') }}</td>
             <td class="text-right align-middle">
-                <a href="{{ path('transaction__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
-                <a href="{{ path('transaction__remove', {'id': item.id}) }}" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalDelete"><i class="fas fa-trash"></i><span class="d-none d-md-inline">&nbsp;Supprimer<span></a>
+            {% if item.transfer %}
+                {% if item.transfer.state != constant('STATE_RECONCILIED', item) %}
+                    <a href="{{ path('transaction__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                    <a href="{{ path('transaction__remove', {'id': item.id}) }}" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalDelete"><i class="fas fa-trash"></i><span class="d-none d-md-inline">&nbsp;Supprimer<span></a>
+                {% endif %}
+            {% else %}
+                {% if item.state != constant('STATE_RECONCILIED', item) %}
+                    <a href="{{ path('transaction__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                    <a href="{{ path('transaction__remove', {'id': item.id}) }}" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalDelete"><i class="fas fa-trash"></i><span class="d-none d-md-inline">&nbsp;Supprimer<span></a>
+                {% endif %}
+            {% endif %}
+            
+            
             </td>
         </tr>
     {% else %}

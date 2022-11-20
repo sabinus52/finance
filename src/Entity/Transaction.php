@@ -22,6 +22,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Transaction
 {
+    public const STATE_NONE = 0;
+    public const STATE_RECONCILIED = 1;
+    public const STATE_RECONTEMP = 9;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue

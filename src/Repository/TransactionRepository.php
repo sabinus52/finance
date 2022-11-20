@@ -76,4 +76,34 @@ class TransactionRepository extends ServiceEntityRepository
 
         return $query->getQuery()->getResult();
     }
+
+    /**
+     * Toutes les transactions pour le rapprochement.
+     *
+     * @param Account $account
+     *
+     * @return Transaction[]
+     */
+    public function findToReconciliation(Account $account): array
+    {
+        return $this->createQueryBuilder('trt')
+            ->addSelect('rcp')
+            ->addSelect('cat')
+            ->addSelect('prt')
+            ->addSelect('tsf')
+            ->innerJoin('trt.recipient', 'rcp')
+            ->innerJoin('trt.category', 'cat')
+            ->innerJoin('cat.parent', 'prt')
+            ->leftJoin('trt.transfer', 'tsf')
+            ->leftJoin('tsf.account', 'tac')
+            ->andWhere('trt.account = :account')
+            ->andWhere('trt.state IN (:state)')
+            ->setParameter('account', $account)
+            ->setParameter('state', [Transaction::STATE_NONE, Transaction::STATE_RECONTEMP])
+            ->orderBy('trt.date', 'ASC')
+            ->addOrderBy('trt.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }
