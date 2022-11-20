@@ -18,7 +18,7 @@ namespace App\Values;
  */
 class Payment
 {
-    public const INTERNAL = 0; // Virement interne
+    public const INTERNAL = 0; // Transaction interne : Virement, investissement
     public const CARTE = 1;
     public const CHEQUE = 2;
     public const ESPECE = 3;
@@ -34,15 +34,15 @@ class Payment
      * @var array<array<string>>
      */
     protected static $payments = [
-        self::INTERNAL => ['code' => 'INT', 'label' => 'Virement interne'],
-        self::CARTE => ['code' => 'CB', 'label' => 'Carte de crédit/débit'],
-        self::CHEQUE => ['code' => 'CHQ', 'label' => 'Chèque'],
-        self::ESPECE => ['code' => 'ESP', 'label' => 'Espèces'],
-        self::VIREMENT => ['code' => 'VIR', 'label' => 'Virement'],
-        self::ELECTRONIC => ['code' => 'ETC', 'label' => 'Paiement électronique'],
-        self::PAYPAL => ['code' => 'PP', 'label' => 'Paypal'],
-        self::DEPOT => ['code' => 'DEP', 'label' => 'Dépôt'],
-        self::PRELEVEMENT => ['code' => 'PVT', 'label' => 'Prélèvement'],
+        self::INTERNAL => ['code' => 'INT', 'image' => 'internal', 'label' => 'Virement interne'],
+        self::CARTE => ['code' => 'CB', 'image' => 'credit-card', 'label' => 'Carte de crédit/débit'],
+        self::CHEQUE => ['code' => 'CHQ', 'image' => 'cheque', 'label' => 'Chèque'],
+        self::ESPECE => ['code' => 'ESP', 'image' => 'money', 'label' => 'Espèces'],
+        self::VIREMENT => ['code' => 'VIR', 'image' => 'virement', 'label' => 'Virement'],
+        self::ELECTRONIC => ['code' => 'ETC', 'image' => 'electronique', 'label' => 'Paiement électronique'],
+        self::PAYPAL => ['code' => 'PP', 'image' => 'paypal', 'label' => 'Paypal'],
+        self::DEPOT => ['code' => 'DEP', 'image' => 'depot', 'label' => 'Dépôt'],
+        self::PRELEVEMENT => ['code' => 'PVT', 'image' => 'prelevement', 'label' => 'Prélèvement'],
     ];
 
     /**
@@ -112,6 +112,11 @@ class Payment
     public function getCode(): string
     {
         return self::$payments[$this->value]['code'];
+    }
+
+    public function getPathImage(): string
+    {
+        return sprintf('images/pay-%s.svg', self::$payments[$this->value]['image']);
     }
 
     public function __toString()
