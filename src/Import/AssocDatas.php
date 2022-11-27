@@ -101,11 +101,6 @@ class AssocDatas
         $this->catLevel1 = new ArrayObject();
         $this->catLevel2 = new ArrayObject();
         $this->stocks = new ArrayObject();
-        /*$this->newCreated = [
-            'institutions' => [],
-            'accounts' => [],
-            'stocks' => [],
-        ];*/
         $this->newCreated = [];
     }
 

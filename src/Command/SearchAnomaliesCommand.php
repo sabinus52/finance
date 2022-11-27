@@ -13,6 +13,7 @@ namespace App\Command;
 
 use App\Entity\Category;
 use App\Entity\Transaction;
+use App\Values\Payment;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
@@ -97,8 +98,17 @@ class SearchAnomaliesCommand extends Command
         $this->inOut->section('Rapport des catégories dépenses avec montant positif');
         $this->reportCatDepenses();
 
-        $this->inOut->section('Rapport des catégorie recettes avec montant négatif');
+        $this->inOut->section('Rapport des catégories recettes avec montant négatif');
         $this->reportCatRecettes();
+
+        $this->inOut->section('Rapport des paiements "prélèvement" avec montant positif');
+        $this->reportPaymentDepenses();
+
+        $this->inOut->section('Rapport des paiements "dépôt" avec montant négatif');
+        $this->reportPaymentRecettes();
+
+        $this->inOut->section('Rapport des virements en erreur');
+        $this->reportTransfer();
 
         $this->inOut->section('Rapport des catégorie inconnu');
         $this->reportCatUnknow();
@@ -113,9 +123,12 @@ class SearchAnomaliesCommand extends Command
     {
         $query = $this->entityManager->createQueryBuilder()
             ->select('trt')
+            ->addSelect('cat')
             ->from(Transaction::class, 'trt')
+            ->innerJoin('trt.category', 'cat')
             ->andWhere('trt.payment = 0')
-            ->andWhere('trt.transfer IS NULL')
+            ->andWhere('cat.code NOT IN (:cat)')
+            ->setParameter('cat', [Category::VIREMENT, Category::INVESTMENT, Category::REVALUATION])
             ->getQuery()
         ;
 
@@ -190,6 +203,40 @@ class SearchAnomaliesCommand extends Command
     }
 
     /**
+     * Affiche les transactions avec des montants positifs pour des paiements de type PRELEVEMENT.
+     */
+    public function reportPaymentDepenses(): void
+    {
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('trt')
+            ->from(Transaction::class, 'trt')
+            ->andWhere('trt.amount > 0')
+            ->andWhere('trt.payment = :payment')
+            ->setParameter('payment', Payment::PRELEVEMENT)
+            ->getQuery()
+        ;
+
+        $this->findAndPrintAnomlies($query);
+    }
+
+    /**
+     * Affiche les transactions avec des montants négatifs pour des paiements de type DEPOT.
+     */
+    public function reportPaymentRecettes(): void
+    {
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('trt')
+            ->from(Transaction::class, 'trt')
+            ->andWhere('trt.amount < 0')
+            ->andWhere('trt.payment = :payment')
+            ->setParameter('payment', Payment::DEPOT)
+            ->getQuery()
+        ;
+
+        $this->findAndPrintAnomlies($query);
+    }
+
+    /**
      * Affiche les transactions avec une catégorie INCONNU.
      */
     public function reportCatUnknow(): void
@@ -205,6 +252,37 @@ class SearchAnomaliesCommand extends Command
         ;
 
         $this->findAndPrintAnomlies($query);
+    }
+
+    /**
+     * Affiche les virements dont les transactions ne sont pas liées entre elles.
+     */
+    public function reportTransfer(): void
+    {
+        $outRows = [];
+
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('trt')
+            ->addSelect('vir')
+            ->from(Transaction::class, 'trt')
+            ->innerJoin('trt.transfer', 'vir')
+            ->getQuery()
+        ;
+
+        /** @var Transaction $transaction */
+        foreach ($query->getResult() as $transaction) {
+            if (null !== $transaction->getTransfer()->getTransfer() && $transaction->getId() === $transaction->getTransfer()->getTransfer()->getId()) {
+                continue;
+            }
+            $outRows[$transaction->getId()] = [
+                $transaction->getDate()->format('d/m/Y'),
+                $transaction->getAccount()->getFullName(),
+                $transaction->getRecipient()->getName(),
+                $transaction->getCategory()->getFullName(),
+                number_format($transaction->getAmount(), 2, '.', ' '),
+            ];
+        }
+        $this->inOut->table(['Date', 'Compte', 'Tiers', 'Catégorie', 'Montant'], $outRows);
     }
 
     /**
