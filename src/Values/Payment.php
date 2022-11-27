@@ -25,6 +25,7 @@ class Payment
     public const VIREMENT = 4;
     public const ELECTRONIC = 11;
     public const PAYPAL = 12;
+    public const CADEO = 13;
     public const DEPOT = 21;
     public const PRELEVEMENT = 22;
 
@@ -41,6 +42,7 @@ class Payment
         self::VIREMENT => ['code' => 'VIR', 'image' => 'virement', 'label' => 'Virement'],
         self::ELECTRONIC => ['code' => 'ETC', 'image' => 'electronique', 'label' => 'Paiement électronique'],
         self::PAYPAL => ['code' => 'PP', 'image' => 'paypal', 'label' => 'Paypal'],
+        self::CADEO => ['code' => 'CDO', 'image' => 'cadeo', 'label' => 'Carte cadeaux'],
         self::DEPOT => ['code' => 'DEP', 'image' => 'depot', 'label' => 'Dépôt'],
         self::PRELEVEMENT => ['code' => 'PVT', 'image' => 'prelevement', 'label' => 'Prélèvement'],
     ];
