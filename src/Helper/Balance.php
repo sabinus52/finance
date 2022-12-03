@@ -14,6 +14,7 @@ namespace App\Helper;
 use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -40,15 +41,23 @@ class Balance
      * Mets à jour le solde des transactions après celle définie.
      *
      * @param Transaction $transaction Transaction courante modifiée
+     * @param DateTime    $date
      *
      * @return int
      */
-    public function updateBalanceAfter(Transaction $transaction): int
+    public function updateBalanceAfter(Transaction $transaction, ?DateTime $date = null): int
     {
-        $lastTransaction = $this->findOneLastBefore($transaction);
+        // Prends la date la plus ancienne entre celle modifié et avant modification
+        if (null === $date) {
+            $date = $transaction->getDate();
+        } else {
+            $date = min($date, $transaction->getDate());
+        }
+
+        $lastTransaction = $this->findOneLastBefore($transaction, $date);
         $balance = $lastTransaction->getBalance();
 
-        $results = $this->findToDoAfter($transaction);
+        $results = $this->findToDoAfter($transaction, $date);
         foreach ($results as $item) {
             $balance += $item->getAmount();
             $item->setBalance($balance);
@@ -80,7 +89,7 @@ class Balance
             if (Transaction::STATE_RECONCILIED === $item->getState()) {
                 $reconcilied += $item->getAmount();
             }
-            if (Category::INVESTMENT === $item->getCategory()->getCode()) {
+            if (Category::CAPITALISATION === $item->getCategory()->getCode()) {
                 $invested += $item->getAmount();
             }
         }
@@ -97,10 +106,11 @@ class Balance
      * Recherche la transaction juste avant celle qui a été ajouté ou modifié.
      *
      * @param Transaction $transaction
+     * @param DateTime    $date
      *
      * @return Transaction
      */
-    private function findOneLastBefore(Transaction $transaction): Transaction
+    private function findOneLastBefore(Transaction $transaction, DateTime $date): Transaction
     {
         return $this->entityManager->createQueryBuilder()
             ->select('trt')
@@ -108,7 +118,7 @@ class Balance
             ->andWhere('trt.account = :account')
             ->andWhere('trt.date < :date')
             ->setParameter('account', $transaction->getAccount())
-            ->setParameter('date', $transaction->getDate()->format('Y-m-d'))
+            ->setParameter('date', $date->format('Y-m-d'))
             ->addOrderBy('trt.date', 'DESC')
             ->addOrderBy('trt.id', 'DESC')
             ->setMaxResults(1)
@@ -121,10 +131,11 @@ class Balance
      * Recherche les transactions à mettre à jour à partir de la date de modif.
      *
      * @param Transaction $transaction
+     * @param DateTime    $date
      *
      * @return Transaction[]
      */
-    private function findToDoAfter(Transaction $transaction): array
+    private function findToDoAfter(Transaction $transaction, DateTime $date): array
     {
         return $this->entityManager->createQueryBuilder()
             ->select('trt')
@@ -132,7 +143,7 @@ class Balance
             ->andWhere('trt.account = :account')
             ->andWhere('trt.date >= :date')
             ->setParameter('account', $transaction->getAccount())
-            ->setParameter('date', $transaction->getDate()->format('Y-m-d'))
+            ->setParameter('date', $date->format('Y-m-d'))
             ->addOrderBy('trt.date', 'ASC')
             ->addOrderBy('trt.id', 'ASC')
             ->getQuery()

@@ -32,6 +32,7 @@ class Category
     public const DEPENSES = false;
     public const VIREMENT = 'VIRT';
     public const INVESTMENT = 'INVS';
+    public const CAPITALISATION = 'CAPT';
     public const REVALUATION = 'EVAL';
     public const STOCKOPERT = 'OPST';
     public const DIVIDENDES = 'DIVD';
@@ -45,8 +46,10 @@ class Category
     public static $baseCategories = [
         'VIRT+' => ['type' => self::RECETTES, 'code' => self::VIREMENT, 'label' => 'Virement reçu'],
         'VIRT-' => ['type' => self::DEPENSES, 'code' => self::VIREMENT, 'label' => 'Virement émis'],
-        'INVS+' => ['type' => self::RECETTES, 'code' => self::INVESTMENT, 'label' => 'Investissement'],
-        'INVS-' => ['type' => self::DEPENSES, 'code' => self::INVESTMENT, 'label' => 'Versement'],
+        'CAPT+' => ['type' => self::RECETTES, 'code' => self::CAPITALISATION, 'label' => 'Versement'],
+        'CAPT-' => ['type' => self::DEPENSES, 'code' => self::CAPITALISATION, 'label' => 'Rachat'],
+        'INVS+' => ['type' => self::RECETTES, 'code' => self::INVESTMENT, 'label' => 'Capital'],
+        'INVS-' => ['type' => self::DEPENSES, 'code' => self::INVESTMENT, 'label' => 'Investissement'],
         'EVAL+' => ['type' => self::RECETTES, 'code' => self::REVALUATION, 'label' => 'Révaluation bénéficiaire'],
         'EVAL-' => ['type' => self::DEPENSES, 'code' => self::REVALUATION, 'label' => 'Révaluation déficitaire'],
         'OPST+' => ['type' => self::RECETTES, 'code' => self::STOCKOPERT, 'label' => 'Achat titres'],

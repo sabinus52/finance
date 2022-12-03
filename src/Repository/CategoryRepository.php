@@ -22,6 +22,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Category|null findOneBy(array $criteria, array $orderBy = null)
  * @method Category[]    findAll()
  * @method Category[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @SuppressWarnings(PHPMD.StaticAccess)
  */
 class CategoryRepository extends ServiceEntityRepository
 {
@@ -48,19 +49,21 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Retourne la catégorie "VIREMENT" en fonction du crédit/débit.
+     * Retourne la catégorie en fonction de son code complet.
      *
-     * @param bool $type (RECETTES|DEPENSES)
+     * @param string $code (CODE+|-)
      *
      * @return Category|null
      */
-    public function findTransfer(bool $type): ?Category
+    public function findByCode(string $code): ?Category
     {
+        $cat = Category::getBaseCategory($code);
+
         return $this->createQueryBuilder('cat')
             ->andWhere('cat.type = :val')
-            ->setParameter('val', $type)
+            ->setParameter('val', $cat['type'])
             ->andWhere('cat.code = :code')
-            ->setParameter('code', Category::VIREMENT)
+            ->setParameter('code', $cat['code'])
             ->andWhere('cat.level = 2')
             ->addOrderBy('cat.name', 'ASC')
             ->getQuery()

@@ -146,7 +146,7 @@ class MemoParser
         $item->setAccount($accountPlacement);
         $item->setAmount($amountPlacement);
         $item->setState('');
-        $item->setCategoryWithCode(Category::INVESTMENT);
+        $item->setCategoryWithCode(Category::CAPITALISATION);
         $transactionTarget = $this->helper->createTransaction($item);
 
         // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions

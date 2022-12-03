@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Account;
+use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Repository\AccountRepository;
 use Olix\BackOfficeBundle\Form\Type\DatePickerType;
@@ -34,6 +35,11 @@ class TransferType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $filterAcc = 'acc.type <= 39';
+        if (Category::INVESTMENT === $options['transfer'] || Category::CAPITALISATION === $options['transfer']) {
+            $filterAcc = 'acc.type BETWEEN 50 AND 59';
+        }
+
         $builder
             ->add('date', DatePickerType::class, [
                 'label' => 'Date',
@@ -48,14 +54,29 @@ class TransferType extends AbstractType
                 'label' => 'De',
                 'required' => false,
                 'class' => Account::class,
-                'choice_label' => 'fullname',
                 'query_builder' => function (AccountRepository $er) {
                     return $er->createQueryBuilder('acc')
                         ->addSelect('ist')
                         ->innerJoin('acc.institution', 'ist')
+                        ->where('acc.type <= 39')
                         ->orderBy('ist.name')
                         ->addOrderBy('acc.name')
-                    ; // TODO uniquement que les comptes ouverts
+                    ;
+                },
+                'choice_label' => function (Account $choice) {
+                    $result = $choice->getFullName();
+                    if (null !== $choice->getClosedAt()) {
+                        $result .= ' (fermé)';
+                    }
+
+                    return $result;
+                },
+                'choice_attr' => function (Account $choice) {
+                    if (null !== $choice->getClosedAt()) {
+                        return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
+                    }
+
+                    return [];
                 },
                 'constraints' => [new NotBlank()],
                 'empty_data' => null,
@@ -65,14 +86,29 @@ class TransferType extends AbstractType
                 'label' => 'Vers',
                 'required' => false,
                 'class' => Account::class,
-                'choice_label' => 'fullname',
-                'query_builder' => function (AccountRepository $er) {
+                'query_builder' => function (AccountRepository $er) use ($filterAcc) {
                     return $er->createQueryBuilder('acc')
                         ->addSelect('ist')
                         ->innerJoin('acc.institution', 'ist')
+                        ->where($filterAcc)
                         ->orderBy('ist.name')
                         ->addOrderBy('acc.name')
-                    ; // TODO uniquement que les comptes ouverts
+                    ;
+                },
+                'choice_label' => function (Account $choice) {
+                    $result = $choice->getFullName();
+                    if (null !== $choice->getClosedAt()) {
+                        $result .= ' (fermé)';
+                    }
+
+                    return $result;
+                },
+                'choice_attr' => function (Account $choice) {
+                    if (null !== $choice->getClosedAt()) {
+                        return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
+                    }
+
+                    return [];
                 },
                 'constraints' => [new NotBlank()],
                 'empty_data' => null,
@@ -89,6 +125,7 @@ class TransferType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Transaction::class,
+            'transfer' => Category::VIREMENT,
         ]);
     }
 }

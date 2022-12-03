@@ -33,6 +33,13 @@ class Transfer
     private $entityManager;
 
     /**
+     * Type du transfert (VIREMENT | INVESTMENT).
+     *
+     * @var string
+     */
+    private $type;
+
+    /**
      * Transaction créditeur.
      *
      * @var Transaction
@@ -58,6 +65,30 @@ class Transfer
     }
 
     /**
+     * Affecte le type de transfert.
+     *
+     * @param string $type (VIREMENT | INVESTMENT)
+     *
+     * @return Transfer
+     */
+    public function setType(string $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * Retourne le type de transfert.
+     *
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    /**
      * Affecte les transactions de débit et de crédit en fonction de la transaction transmise.
      *
      * @param Transaction $transaction
@@ -76,6 +107,7 @@ class Transfer
                 $this->debit = $transaction->getTransfer();
                 $this->credit = $transaction;
             }
+            $this->setType($transaction->getCategory()->getCode());
         } else {
             // Sinon on crée le viremment
             $this->credit = $transaction;
@@ -116,10 +148,17 @@ class Transfer
         /** @var CategoryRepository $repoCat */
         $repoCat = $this->entityManager->getRepository(Category::class);
 
-        // Transaction créditeur
-        $this->setCredit($target, $repoRpt->find(1), $repoCat->findTransfer(Category::RECETTES));
-        // Transaction débiteur
-        $this->setDebit($source, $repoRpt->find(1), $repoCat->findTransfer(Category::DEPENSES));
+        if (Category::INVESTMENT === $this->type || Category::CAPITALISATION === $this->type) {
+            // Transaction créditeur
+            $this->setCredit($target, $repoRpt->find(1), $repoCat->findByCode(sprintf('%s+', Category::CAPITALISATION)));
+            // Transaction débiteur
+            $this->setDebit($source, $repoRpt->find(1), $repoCat->findByCode(sprintf('%s-', Category::INVESTMENT)));
+        } else {
+            // Transaction créditeur
+            $this->setCredit($target, $repoRpt->find(1), $repoCat->findByCode(sprintf('%s+', Category::VIREMENT)));
+            // Transaction débiteur
+            $this->setDebit($source, $repoRpt->find(1), $repoCat->findByCode(sprintf('%s-', Category::VIREMENT)));
+        }
     }
 
     /**
