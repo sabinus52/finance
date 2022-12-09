@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% form_theme form.filter '@OlixBackOffice/Twig/form-theme-horizontal-layout.html.twig' %}
+
 {#% form_theme formRecon '@OlixBackOffice/Twig/form-theme-layout.html.twig' %#}
 
 {% import 'macro.html.twig' as mymacro %}
@@ -50,13 +50,15 @@
                 <div class="p-2 text-right">
                     <div class="btn-group">
                         <a href="{{ path('transaction__create', { 'id': account.id }) }}" class="btn btn-md bg-gradient-success" data-toggle="olix-modal" data-id="0-1" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">&nbsp;Ajouter une opération</span></a>
-                        <a href="" class="btn bg-gradient-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></a>
+                        <a href="#" class="btn bg-gradient-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></a>
                         <div class="dropdown-menu" role="menu" style="">
                             <a class="dropdown-item" href="{{ path('transfer__create', { 'id': account.id }) }}" data-toggle="olix-modal" data-id="0-2" data-target="#modalForm"><i class="fas fa-exchange-alt"></i> &nbsp;Faire un virement</a>
                             <a class="dropdown-item" href="{{ path('invest__create', { 'id': account.id }) }}" data-toggle="olix-modal" data-id="0-3" data-target="#modalForm"><i class="fas fa-hand-holding-usd"></i> &nbsp;Faire un investissement</a>
                         </div>
                     </div> &nbsp;
-                    <a href="" class="btn btn-md bg-gradient-info"><i class="fas fa-check-circle"></i> <span class="d-none d-md-inline">&nbsp;Rapprochement</span></a>
+                    {% block recon_button %}
+                        <a href="{{ path('reconciliation_create', { 'id': account.id }) }}" class="btn btn-md bg-gradient-info" data-toggle="olix-modal" data-id="recon" data-target="#modalForm"><i class="fas fa-check-circle"></i> <span class="d-none d-md-inline">&nbsp;Rapprochement</span></a>
+                    {% endblock %}
                 </div>
             </div>
         </div>
@@ -65,15 +67,18 @@
             <div class="col-md-12">
 
                 <div class="card card-outline" style="">
-                    <div class="card-header">
-                    {{ form_start(form.filter, { 'action': path('account_get_transaction', { 'id': account.id }), 'attr': { 'class': 'filter' }}) }}
-                        <div class="row">
-                            <div class="col-md-6">{{ form_row(form.filter.range) }}</div>
-                            <div class="col-md-6">{{ form_row(form.filter.state) }}</div>
-                        </div>
-                    {{ form_end(form.filter) }}
-                    </div>
 
+                    {% block transaction_filter %}
+                        <div class="card-header">
+                            {% form_theme form.filter '@OlixBackOffice/Twig/form-theme-horizontal-layout.html.twig' %}
+                            {{ form_start(form.filter, { 'action': path('account_get_transaction', { 'id': account.id }), 'attr': { 'class': 'filter' }}) }}
+                                <div class="row">
+                                    <div class="col-md-6">{{ form_row(form.filter.range) }}</div>
+                                    <div class="col-md-6">{{ form_row(form.filter.state) }}</div>
+                                </div>
+                            {{ form_end(form.filter) }}
+                        </div>
+                    {% endblock %}
 
                     <div class="card-body table-responsive p-0">
                         <div class="my-custom-scrollbar">

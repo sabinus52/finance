@@ -31,7 +31,14 @@
             </td>
             <td>{{ item.category.fullName }}</td>
             <td class="text-center">
+            {% if isReconcilied is defined %}
+                <div class="icheck-orange">
+                    <input type="checkbox" id="recon{{ item.id }}" name="reconciliation" data-remote="{{ path('reconciliation_check', { 'id': item.id }) }}" data-gab="#gab" {% if item.state == constant('STATE_RECONTEMP', item) %} checked="checked"{% endif %}>
+                    <label for="recon{{ item.id }}"></label>
+                </div>
+            {% else %}
                 {% if item.state == constant('STATE_RECONCILIED', item) %}<span class="text-primary"><i class="far fa-check-circle"></i></span>{% endif %}
+            {% endif %}
             </td>
             <td class="text-right text-red">{% if item.amount < 0 %}{{ mymacro.money(item.amount, account.currency, false) }}{% endif %}</td>
             <td class="text-right text-green">{% if item.amount > 0 %}{{ mymacro.money(item.amount, account.currency, false) }}{% endif %}</td>

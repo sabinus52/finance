@@ -1,0 +1,20 @@
+{% extends 'account/layout.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+{% block transaction_filter %}
+    <div class="card-header">
+        <h3 class="card-title">Rapprochement bancaire</h3>
+        <div class="card-tools">
+            Dernier rapprochement : <span class="p-2"><strong>{{ mymacro.money(account.reconBalance, account.currency, false) }}</strong></span>
+            Rapprochement en cours : <span class="p-2"><strong>{{ mymacro.money(account.reconCurrent, account.currency, false) }}</strong></span>
+            Ecart : <span class="p-2" id="gab"><strong>{{ gab|number_format(2, ',') }}</strong><input type="hidden" name="gab" value="{{ gab }}"></span>
+        </div>
+    </div>
+{% endblock %}
+
+{% block recon_button %}
+    {{ form_start(form.valid, { action:  path('reconciliation_valid', { 'id': account.id }), attr: { style: 'display:inline;'} }) }}
+        <button type="submit" id="btnGab" class="btn btn-md bg-gradient-info"{% if gab != 0 %} disabled{% endif %}><i class="fas fa-check-circle"></i> <span class="d-none d-md-inline">Valider le rapprochement</span></button>
+    {{ form_end(form.valid) }}
+{% endblock %}
