@@ -45,11 +45,7 @@
                                         <td class="align-middle text-right"><b>{{ mymacro.money(item.balance, item.currency) }}</b></td>
                                         <td class="align-middle text-right">{% if item.invested != 0 %}{{ mymacro.money(item.invested, item.currency, false) }}{% endif %}</td>
                                         <td class="text-right align-middle">
-                                            {% if key == constant('EPARGNE_FINANCIERE', item.type) %}
-                                                <a href="{{ path('portfolio__index', {'id': item.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i><span class="d-none d-md-inline">&nbsp;Voir<span></a>
-                                            {% else %}
-                                                <a href="{{ path('account__index', {'id': item.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i><span class="d-none d-md-inline">&nbsp;Voir<span></a>
-                                            {% endif %}
+                                            <a href="{{ path('account_'~key~'_index', {'id': item.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i><span class="d-none d-md-inline">&nbsp;Voir<span></a>
                                             <a href="{{ path('manage_account__edit', {'id': item.id}) }}" class="btn btn-sm btn-info"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
                                             <a href="{{ path('manage_account__balance', {'id': item.id}) }}" class="btn btn-sm btn-secondary"><i class="fas fa-sync"></i><span class="d-none d-md-inline">&nbsp;Recalcul<span></a>
                                         </td>

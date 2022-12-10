@@ -45,7 +45,6 @@ class IndexController extends BaseController
     private function index(Request $request, Account $account, string $template): Response
     {
         $formFilter = $this->createFormFilter();
-        $formDelete = $this->createFormBuilder()->getForm();
 
         // Remplit le formulaire avec les données de la session
         $session = $request->getSession();
@@ -63,7 +62,6 @@ class IndexController extends BaseController
             'account' => $account,
             'form' => [
                 'filter' => $formFilter->createView(),
-                'delete' => $formDelete->createView(),
             ],
         ]);
     }

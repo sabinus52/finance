@@ -21,7 +21,7 @@
                 <div class="card card-info card-outline">
                     <div class="card-header">
                         <h3 class="card-title">Liste des bénéficiaires</h3>
-                        <div class="card-tools"><a data-remote="{{ path('manage_recipient__create') }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un bénéficiaire</span></a></div>
+                        <div class="card-tools"><a href="{{ path('manage_recipient__create') }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un bénéficiaire</span></a></div>
                     </div>
                     <div class="card-body">
                         {{ olixbo_datatable_html(datatable) }}

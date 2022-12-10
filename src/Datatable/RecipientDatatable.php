@@ -71,7 +71,7 @@ class RecipientDatatable extends AbstractDatatable
                     [
                         'route' => 'manage_recipient__edit',
                         'icon' => 'fas fa-edit',
-                        'label' => '<span class="d-none d-md-inline">Modifier</span>',
+                        'label' => 'Modifier',
                         'route_parameters' => [
                             'id' => 'id',
                         ],
@@ -79,7 +79,7 @@ class RecipientDatatable extends AbstractDatatable
                             'rel' => 'tooltip',
                             'title' => 'Modifier ce bénéficiaire',
                             'class' => 'btn btn-primary btn-sm',
-                            'data-toggle' => 'modal',
+                            'data-toggle' => 'olix-modal',
                             'data-target' => '#modalForm',
                         ],
                     ],

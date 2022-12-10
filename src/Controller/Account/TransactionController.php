@@ -206,7 +206,7 @@ class TransactionController extends AbstractController
     }
 
     /**
-     * @Route("/account/transactions/remove/{id}", name="transaction__remove", methods={"POST"})
+     * @Route("/account/transactions/remove/{id}", name="transaction__remove")
      */
     public function remove(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
@@ -236,9 +236,10 @@ class TransactionController extends AbstractController
             return new Response('OK');
         }
 
-        $this->addFlash('danger', 'Erreur lors de la suppression');
-
-        return new Response('OK');
+        return $this->renderForm('@OlixBackOffice/Include/modal-delete.html.twig', [
+            'form' => $form,
+            'element' => 'cette opération',
+        ]);
     }
 
     /**

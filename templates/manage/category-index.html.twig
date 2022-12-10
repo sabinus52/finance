@@ -24,7 +24,7 @@
                 <div class="card card-success card-outline">
                     <div class="card-header">
                         <h3 class="card-title">Catégories des revenus</h3>
-                        <div class="card-tools"><a data-remote="{{ path('manage_category__create1', { type: 1 }) }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter une catégorie</span></a></div>
+                        <div class="card-tools"><a href="{{ path('manage_category__create1', { type: 1 }) }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter une catégorie</span></a></div>
                     </div>
                     <div class="card-body table-responsive p-0">
                         <table class="table table-hover text-nowrap">
@@ -33,15 +33,15 @@
                                 <tr>
                                     <td><b>{{ item.name }}<b></td>
                                     <td class="text-right">
-                                        <a data-remote="{{ path('manage_category__create2', {'id': item.id}) }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Ajouter une sous catégorie<span></a>
-                                        <a data-remote="{{ path('manage_category__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                        <a href="{{ path('manage_category__create2', {'id': item.id}) }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Ajouter une sous catégorie<span></a>
+                                        <a href="{{ path('manage_category__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
                                     </td>
                                 </tr>
                                 {% for row in item.children %}
                                     <tr>
                                         <td><i class="pl-3">{{ row.name }}</i></td>
                                         <td class="text-right">
-                                            <a data-remote="{{ path('manage_category__edit', {'id': row.id}) }}" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                            <a href="{{ path('manage_category__edit', {'id': row.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -60,7 +60,7 @@
                 <div class="card card-danger card-outline">
                     <div class="card-header">
                         <h3 class="card-title">Catégories des dépenses</h3>
-                        <div class="card-tools"><a data-remote="{{ path('manage_category__create1', { type: 0 }) }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter une catégorie</span></a></div>
+                        <div class="card-tools"><a href="{{ path('manage_category__create1', { type: 0 }) }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter une catégorie</span></a></div>
                     </div>
                     <div class="card-body table-responsive p-0">
                         <table class="table table-hover text-nowrap">
@@ -69,15 +69,15 @@
                                 <tr>
                                     <td><b>{{ item.name }}<b></td>
                                     <td class="text-right">
-                                        <a data-remote="{{ path('manage_category__create2', {'id': item.id}) }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Ajouter une sous catégorie<span></a>
-                                        <a data-remote="{{ path('manage_category__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                        <a href="{{ path('manage_category__create2', {'id': item.id}) }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Ajouter une sous catégorie<span></a>
+                                        <a href="{{ path('manage_category__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
                                     </td>
                                 </tr>
                                 {% for row in item.children %}
                                     <tr>
                                         <td><i class="pl-3">{{ row.name }}</i></td>
                                         <td class="text-right">
-                                            <a data-remote="{{ path('manage_category__edit', {'id': row.id}) }}" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                            <a href="{{ path('manage_category__edit', {'id': row.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
                                         </td>
                                     </tr>
                                 {% endfor %}
