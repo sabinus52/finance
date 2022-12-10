@@ -65,6 +65,10 @@ class AccountType extends AbstractType
                 'label' => 'Devise du compte',
                 'required' => false,
             ])
+            ->add('unit', ChoiceType::class, [
+                'label' => 'Groupe',
+                'choices' => array_flip($options['choice_units']),
+            ])
             ->add('initial', MoneyType::class, [
                 'label' => 'Solde initial',
                 'required' => false,
@@ -118,6 +122,7 @@ class AccountType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Account::class,
+            'choice_units' => null,
         ]);
     }
 }

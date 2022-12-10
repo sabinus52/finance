@@ -28,6 +28,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  */
 class Account
 {
@@ -78,6 +79,15 @@ class Account
      * @Assert\Length(max=20)
      */
     private $shortName;
+
+    /**
+     * Groupe d'appartenance.
+     *
+     * @var int
+     *
+     * @ORM\Column(type="smallint", options={"default": 0})
+     */
+    private $unit;
 
     /**
      * Solde initial du compte.
@@ -198,6 +208,7 @@ class Account
 
     public function __construct()
     {
+        $this->unit = 0;
         $this->initial = 0;
         $this->balance = 0;
         $this->reconBalance = 0;
@@ -258,6 +269,18 @@ class Account
     public function setShortName(string $shortName): self
     {
         $this->shortName = $shortName;
+
+        return $this;
+    }
+
+    public function getUnit(): ?int
+    {
+        return $this->unit;
+    }
+
+    public function setUnit(?int $unit): self
+    {
+        $this->unit = $unit;
 
         return $this;
     }

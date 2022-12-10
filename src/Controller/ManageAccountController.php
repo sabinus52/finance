@@ -60,7 +60,9 @@ class ManageAccountController extends AbstractController
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $account = new Account();
-        $form = $this->createForm(AccountType::class, $account);
+        $form = $this->createForm(AccountType::class, $account, [
+            'choice_units' => $this->getParameter('app.account.units'),
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -83,7 +85,9 @@ class ManageAccountController extends AbstractController
      */
     public function update(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(AccountType::class, $account);
+        $form = $this->createForm(AccountType::class, $account, [
+            'choice_units' => $this->getParameter('app.account.units'),
+        ]);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {

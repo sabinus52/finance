@@ -4,6 +4,12 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.account.units:
+        - 'Compte personnel'
+        - 'Compte joint'
+        - 'Groupe 3'
+        - 'Groupe 4'
+        - 'Groupe 5'
 
 services:
     # default configuration for services in *this* file
