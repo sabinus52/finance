@@ -59,8 +59,14 @@ class Balance
 
         $results = $this->findToDoAfter($transaction, $date);
         foreach ($results as $item) {
-            $balance += $item->getAmount();
-            $item->setBalance($balance);
+            if (Category::REVALUATION === $item->getCategory()->getCode()) {
+                // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
+                $item->setAmount($item->getBalance() - $balance);
+                $balance = $item->getBalance();
+            } else {
+                $balance += $item->getAmount();
+                $item->setBalance($balance);
+            }
         }
 
         $transaction->getAccount()->setBalance($balance);
@@ -84,8 +90,14 @@ class Balance
 
         $results = $this->findAll($account);
         foreach ($results as $item) {
-            $balance += $item->getAmount();
-            $item->setBalance($balance);
+            if (Category::REVALUATION === $item->getCategory()->getCode()) {
+                // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
+                $item->setAmount($item->getBalance() - $balance);
+                $balance = $item->getBalance();
+            } else {
+                $balance += $item->getAmount();
+                $item->setBalance($balance);
+            }
             if (Transaction::STATE_RECONCILIED === $item->getState()) {
                 $reconcilied += $item->getAmount();
             }
@@ -139,7 +151,9 @@ class Balance
     {
         return $this->entityManager->createQueryBuilder()
             ->select('trt')
+            ->addSelect('cat')
             ->from(Transaction::class, 'trt')
+            ->innerJoin('trt.category', 'cat')
             ->andWhere('trt.account = :account')
             ->andWhere('trt.date >= :date')
             ->setParameter('account', $transaction->getAccount())

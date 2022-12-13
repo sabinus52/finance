@@ -72,6 +72,28 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne la catégorie en fonction de son code.
+     *
+     * @param bool   $type (recette|depense)
+     * @param string $code
+     *
+     * @return Category|null
+     */
+    public function findOneByCode(bool $type, string $code): ?Category
+    {
+        return $this->createQueryBuilder('cat')
+            ->andWhere('cat.type = :val')
+            ->setParameter('val', $type)
+            ->andWhere('cat.code = :code')
+            ->setParameter('code', $code)
+            ->andWhere('cat.level = 2')
+            ->addOrderBy('cat.name', 'ASC')
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
+    /**
      * Retoune un tableau associatif des catégories de niveau 1 [+/-Level 1] => Category.
      *
      * @return Category[]

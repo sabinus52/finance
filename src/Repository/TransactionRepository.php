@@ -131,4 +131,32 @@ class TransactionRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
+
+    /**
+     * Recherche une transaction de valorisation à une période donnée.
+     *
+     * @param Transaction $transaction
+     *
+     * @return Transaction|null
+     */
+    public function findOneValorisation(Transaction $transaction): ?Transaction
+    {
+        $query = $this->createQueryBuilder('trt')
+            ->addSelect('cat')
+            ->innerJoin('trt.category', 'cat')
+            ->andWhere('trt.account = :account')
+            ->andWhere('cat.code = :code')
+            ->andWhere('trt.date = :date')
+            ->setParameter('account', $transaction->getAccount())
+            ->setParameter('code', Category::REVALUATION)
+            ->setParameter('date', $transaction->getDate()->modify('last day of this month')->format('Y-m-d'))
+            ->setMaxResults(1)
+        ;
+        // Ne cherche pas la transaction courante
+        if ($transaction->getId()) {
+            $query->andWhere('trt.id <> :id')->setParameter('id', $transaction->getId());
+        }
+
+        return $query->getQuery()->getOneOrNullResult();
+    }
 }

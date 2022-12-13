@@ -36,7 +36,8 @@ class ValorisationType extends AbstractType
             ->add('date', DatePickerType::class, [
                 'label' => 'Date',
                 'format' => 'dd/MM/yyyy',
-                'required' => false,
+                'disabled' => true,
+                'help' => 'Choisir n\'importe quel jour du mois',
             ])
             ->add('balance', MoneyType::class, [
                 'label' => 'Solde',
@@ -45,7 +46,7 @@ class ValorisationType extends AbstractType
             ])
             ->add('account', EntityType::class, [
                 'label' => 'Compte',
-                'required' => false,
+                'disabled' => true,
                 'class' => Account::class,
                 'query_builder' => function (AccountRepository $er) {
                     return $er->createQueryBuilder('acc')
