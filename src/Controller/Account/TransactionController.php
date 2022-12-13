@@ -121,11 +121,7 @@ class TransactionController extends BaseController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
-            $transfer->add();
-            $helper = new Balance($entityManager);
-            $helper->updateBalanceAfter($transfer->getDebit());
-            $helper->updateBalanceAfter($transfer->getCredit());
-
+            $transfer->persist();
             $this->addFlash('success', 'La création du virement a bien été prise en compte');
 
             return new Response('OK');
@@ -196,7 +192,6 @@ class TransactionController extends BaseController
     {
         $transfer = new Transfer($entityManager, $transaction);
         $transaction = $transfer->getCredit();
-        $dateBefore = $transaction->getDate();
 
         $form = $this->createForm(TransferType::class, $transaction, ['transfer' => $transfer->getType()]);
         $form->get('source')->setData($transfer->getDebit()->getAccount()); // Compte débiteur
@@ -206,10 +201,6 @@ class TransactionController extends BaseController
         if ($form->isSubmitted() && $form->isValid()) {
             $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
             $transfer->update();
-            $helper = new Balance($entityManager);
-            $helper->updateBalanceAfter($transfer->getDebit(), $dateBefore);
-            $helper->updateBalanceAfter($transfer->getCredit(), $dateBefore);
-
             $this->addFlash('success', 'La modification du virement a bien été prise en compte');
 
             return new Response('OK');

@@ -15,8 +15,6 @@ use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Recipient;
 use App\Entity\Transaction;
-use App\Repository\CategoryRepository;
-use App\Repository\RecipientRepository;
 use App\Values\Payment;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -24,6 +22,8 @@ use Doctrine\ORM\EntityManagerInterface;
  * Gestion des virements internes.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD.StaticAccess)
  */
 class Transfer
 {
@@ -54,12 +54,22 @@ class Transfer
     private $debit;
 
     /**
+     * Transaction avant la validation du formulaire.
+     *
+     * @var Transaction
+     */
+    private $before;
+
+    /**
+     * Constructeur.
+     *
      * @param EntityManagerInterface $manager
      * @param Transaction            $transaction
      */
     public function __construct(EntityManagerInterface $manager, Transaction $transaction)
     {
         $this->entityManager = $manager;
+        $this->before = clone $transaction;
 
         $this->setTransaction($transaction);
     }
@@ -143,32 +153,28 @@ class Transfer
      */
     public function makeTransfer(Account $source, Account $target): void
     {
-        /** @var RecipientRepository $repoRpt */
-        $repoRpt = $this->entityManager->getRepository(Recipient::class);
-        /** @var CategoryRepository $repoCat */
-        $repoCat = $this->entityManager->getRepository(Category::class);
-
         if (Category::INVESTMENT === $this->type || Category::CAPITALISATION === $this->type) {
             // Transaction créditeur
-            $this->setCredit($target, $repoRpt->find(1), $repoCat->findByCode(sprintf('%s+', Category::CAPITALISATION)));
+            $this->setCredit($target, Category::CAPITALISATION);
             // Transaction débiteur
-            $this->setDebit($source, $repoRpt->find(1), $repoCat->findByCode(sprintf('%s-', Category::INVESTMENT)));
+            $this->setDebit($source, Category::INVESTMENT);
         } else {
             // Transaction créditeur
-            $this->setCredit($target, $repoRpt->find(1), $repoCat->findByCode(sprintf('%s+', Category::VIREMENT)));
+            $this->setCredit($target, Category::VIREMENT);
             // Transaction débiteur
-            $this->setDebit($source, $repoRpt->find(1), $repoCat->findByCode(sprintf('%s-', Category::VIREMENT)));
+            $this->setDebit($source, Category::VIREMENT);
         }
     }
 
     /**
      * Ajoute en base les transactions.
      */
-    public function add(): void
+    public function persist(): void
     {
         $this->entityManager->persist($this->debit);
         $this->entityManager->persist($this->credit);
-        $this->entityManager->flush();
+
+        $this->update();
     }
 
     /**
@@ -177,6 +183,10 @@ class Transfer
     public function update(): void
     {
         $this->entityManager->flush();
+
+        $helper = new Balance($this->entityManager);
+        $helper->updateBalanceAfter($this->debit, $this->before->getDate());
+        $helper->updateBalanceAfter($this->credit, $this->before->getDate());
     }
 
     /**
@@ -216,41 +226,42 @@ class Transfer
     /**
      * Affecte les données à la transaction créditeur.
      *
-     * @param Account   $account
-     * @param Recipient $recipient
-     * @param Category  $category
-     *
-     * @return Transfer
+     * @param Account $account
+     * @param string  $catCode
      */
-    private function setCredit(Account $account, Recipient $recipient, Category $category): self
+    private function setCredit(Account $account, string $catCode): void
     {
+        TransactionHelper::setTransactionInternal($this->entityManager, $this->credit);
         $this->credit->setAccount($account);
         $this->credit->setAmount(abs($this->credit->getAmount()));
-        $this->credit->setPayment(new Payment(Payment::INTERNAL));
-        $this->credit->setRecipient($recipient);
-        $this->credit->setCategory($category);
-
-        return $this;
+        $this->credit->setCategory($this->getCategory(Category::RECETTES, $catCode));
     }
 
     /**
      * Affecte les données à la transaction débiteur.
      *
-     * @param Account   $account
-     * @param Recipient $recipient
-     * @param Category  $category
-     *
-     * @return Transfer
+     * @param Account $account
+     * @param string  $catCode
      */
-    private function setDebit(Account $account, Recipient $recipient, Category $category): self
+    private function setDebit(Account $account, string $catCode): void
     {
+        TransactionHelper::setTransactionInternal($this->entityManager, $this->debit);
         $this->debit->setAccount($account);
         $this->debit->setDate($this->credit->getDate());
         $this->debit->setAmount($this->credit->getAmount() * -1);
-        $this->debit->setPayment(new Payment(Payment::INTERNAL));
-        $this->debit->setRecipient($recipient);
-        $this->debit->setCategory($category);
+        $this->debit->setCategory($this->getCategory(Category::DEPENSES, $catCode));
+    }
 
-        return $this;
+    /**
+     * Retourne une catégorie en fonction de son code.
+     *
+     * @param bool   $type
+     * @param string $code
+     *
+     * @return Category
+     */
+    private function getCategory(bool $type, string $code): Category
+    {
+        return TransactionHelper::getCategoryByCode($this->entityManager, $type, $code);
     }
 }

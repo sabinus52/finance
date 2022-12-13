@@ -98,28 +98,6 @@ class TransactionHelper
         $this->flush();
     }
 
-    /**
-     * Initialise une transaction interne.
-     */
-    public function initInternal(): void
-    {
-        $this->transaction->setPayment(new Payment(Payment::INTERNAL));
-        $this->transaction->setRecipient($this->entityManager->getRepository(Recipient::class)->find(1));
-    }
-
-    /**
-     * Affecte une catégorie en fonction de son code.
-     *
-     * @param bool   $type
-     * @param string $code
-     */
-    public function setCategory(bool $type, string $code): void
-    {
-        /** @var CategoryRepository $repo */
-        $repo = $this->entityManager->getRepository(Category::class);
-        $this->transaction->setCategory($repo->findOneByCode($type, $code));
-    }
-
     // === TRANSACTION STANDARD ===========================================================
 
     /**
@@ -172,7 +150,7 @@ class TransactionHelper
         if (null !== $last) {
             $variation = $this->transaction->getBalance() - $last->getBalance();
             $this->transaction->setAmount($variation);
-            $this->setCategory(($variation > 0), Category::REVALUATION);
+            $this->transaction->setCategory(self::getCategoryByCode($this->entityManager, ($variation > 0), Category::REVALUATION));
         }
 
         $this->persist();
@@ -185,7 +163,7 @@ class TransactionHelper
     {
         $variation = $this->transaction->getBalance() - $this->before->getBalance() + $this->before->getAmount();
         $this->transaction->setAmount($variation);
-        $this->setCategory(($variation > 0), Category::REVALUATION);
+        $this->transaction->setCategory(self::getCategoryByCode($this->entityManager, ($variation > 0), Category::REVALUATION));
 
         $this->flush();
     }
@@ -222,11 +200,39 @@ class TransactionHelper
             $date = clone $last->getDate()->modify('+ 15 days');
         }
 
-        $this->initInternal();
+        self::setTransactionInternal($this->entityManager, $this->transaction);
         $this->transaction->setDate($date->modify('last day of this month'));
         $this->transaction->setAmount(0);
-        $this->setCategory(Category::RECETTES, Category::REVALUATION);
+        $this->transaction->setCategory(new Category());
 
         return $last;
+    }
+
+    // === FUNCTIONS STATIQUES ====================================================================
+
+    /**
+     * Initialise une transaction interne.
+     */
+    public static function setTransactionInternal(EntityManagerInterface $manager, Transaction $transaction): void
+    {
+        $transaction->setPayment(new Payment(Payment::INTERNAL));
+        $transaction->setRecipient($manager->getRepository(Recipient::class)->find(1));
+    }
+
+    /**
+     * Retourne une catégorie en fonction de son code.
+     *
+     * @param EntityManagerInterface $manager
+     * @param bool                   $type
+     * @param string                 $code
+     *
+     * @return Category
+     */
+    public static function getCategoryByCode(EntityManagerInterface $manager, bool $type, string $code): Category
+    {
+        /** @var CategoryRepository $repo */
+        $repo = $manager->getRepository(Category::class);
+
+        return $repo->findOneByCode($type, $code);
     }
 }
