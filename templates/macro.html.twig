@@ -5,3 +5,11 @@
         {{ amount|format_currency(currency, locale='fr') }}
     {% endif %}
 {% endmacro %}
+
+{% macro pourcentage(rate, style = true) %}
+    {% if style %}
+        <span class="text-{% if rate > 0 %}green{% else %}red{% endif %}">{{ (rate*100)|number_format(2, ',', ' ') }} %</span>
+    {% else %}
+        {{ (rate*100)|number_format(2, ',', ' ') }} %
+    {% endif %}
+{% endmacro %}

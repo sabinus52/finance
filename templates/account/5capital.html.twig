@@ -1,0 +1,109 @@
+{% extends 'account/layout.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+{% import _self as selfmacro %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style type="text/css">
+.my-custom-scrollbar {
+    position: relative;
+    height: 160px;
+    overflow: auto;
+}
+</style>
+{% endblock %}
+
+{% block operation_button %}
+    <div class="btn-group">
+        <a href="{{ path('capital__create', { 'id': account.id }) }}" class="btn btn-md bg-gradient-success" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">&nbsp;Effectuer une valorisation</span></a>
+        <a href="#" class="btn bg-gradient-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></a>
+        <div class="dropdown-menu" role="menu" style="">
+            <a class="dropdown-item" href="{{ path('invest__create', { 'id': account.id }) }}" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-hand-holding-usd"></i> &nbsp;Faire un investissement</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block recon_button %}{% endblock %}
+
+
+{% macro table_perf(account, items, format, isVariation, isCumulInvesti) %}
+    <table class="table table-sm table-hover text-nowrap">
+        <thead>
+            <tr>
+                <th class="text-center">Date</th>
+                {% if isVariation %}<th class="text-right">Variation</th>{% endif %}
+                <th class="text-right">Montant investi</th>
+                {% if isCumulInvesti %}<th class="text-right">Cumul investi</th>{% endif %}
+                <th class="text-right">Performance</th>
+                <th class="text-right">Cumul</th>
+                <th class="text-right">Valorisation</th>
+                <th class="text-right"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in items %}
+            <tr>
+                <td class="text-center">{{ item.period|format_datetime(pattern=format, locale='fr') }}</td>
+                {% if isVariation %}<td class="text-right">{{ mymacro.money(item.variation, account.currency) }}</td>{% endif %}
+                <td class="text-right">{{ mymacro.money(item.versement, account.currency, false) }}</td>
+                {% if isCumulInvesti %}<td class="text-right">{{ mymacro.money(item.investCumul, account.currency, false) }}</td>{% endif %}
+                <td class="text-right">{{ mymacro.pourcentage(item.performance, true) }}</td>
+                <td class="text-right">{{ mymacro.pourcentage(item.cumulPerf, false) }}</td>
+                <td class="text-right">{{ mymacro.money(item.valuation, account.currency, false) }}</td>
+                <td></td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">Aucune opérations trouvées</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+{% block content_account %}
+
+    <div class="row">
+        <div class="col-md-7">
+
+        </div>
+
+        <div class="col-md-5">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par année</h3>            
+                </div>
+                <div class="card-body table-responsive p-0">
+                    {{ selfmacro.table_perf(account, itemsbyYear, 'Y', false, false) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par mois</h3>            
+                </div>
+                <div class="card-body table-responsive p-0">
+                    {{ selfmacro.table_perf(account, itemsbyMonth, 'MMMM Y', true, true) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par trimestre</h3>            
+                </div>
+                <div class="card-body table-responsive p-0">
+                    {{ selfmacro.table_perf(account, itemsbyQuarter, 'qqqq Y', false, false) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

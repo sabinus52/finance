@@ -12,6 +12,8 @@ declare(strict_types=1);
 namespace App\Controller\Account;
 
 use App\Entity\Account;
+use App\Helper\Performance;
+use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -42,7 +44,31 @@ class IndexController extends BaseController
         return $this->index($request, $account, 'account/3term.html.twig');
     }
 
-    private function index(Request $request, Account $account, string $template): Response
+    /**
+     * @Route("/contrat-de-capitalisation/{id}", name="account_5_index")
+     */
+    public function indexCapital(Request $request, Account $account, TransactionRepository $repository): Response
+    {
+        $performance = new Performance($repository, $account);
+
+        return $this->index($request, $account, 'account/5capital.html.twig', [
+            'itemsbyMonth' => array_slice($performance->getByMonth(), -12, 12, true),
+            'itemsbyQuarter' => array_slice($performance->getByQuarter(), -12, 12, true),
+            'itemsbyYear' => $performance->getByYear(),
+        ]);
+    }
+
+    /**
+     * Undocumented function.
+     *
+     * @param Request      $request
+     * @param Account      $account
+     * @param string       $template
+     * @param array<mixed> $parameters
+     *
+     * @return Response
+     */
+    private function index(Request $request, Account $account, string $template, array $parameters = []): Response
     {
         $formFilter = $this->createFormFilter();
 
@@ -57,12 +83,12 @@ class IndexController extends BaseController
             }
         }
 
-        return $this->render($template, [
+        return $this->render($template, array_merge([
             'forceMenuActiv' => sprintf('account%s', $account->getId()),
             'account' => $account,
             'form' => [
                 'filter' => $formFilter->createView(),
             ],
-        ]);
+        ], $parameters));
     }
 }

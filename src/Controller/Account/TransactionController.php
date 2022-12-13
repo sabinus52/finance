@@ -13,19 +13,25 @@ namespace App\Controller\Account;
 
 use App\Entity\Account;
 use App\Entity\Category;
+use App\Entity\Recipient;
 use App\Entity\Transaction;
 use App\Form\TransactionType;
 use App\Form\TransferType;
+use App\Form\ValorisationType;
 use App\Helper\Balance;
 use App\Helper\Transfer;
+use App\Repository\CategoryRepository;
+use App\Repository\RecipientRepository;
+use App\Repository\TransactionRepository;
+use App\Values\Payment;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class TransactionController extends AbstractController
+class TransactionController extends BaseController
 {
     /**
      * Création d'une transaction.
@@ -81,6 +87,61 @@ class TransactionController extends AbstractController
     }
 
     /**
+     * Création d'une valorisation sur un placement.
+     *
+     * @Route("/account/{id}/capital/create", name="capital__create", methods={"GET", "POST"})
+     */
+    public function createValorisation(Request $request, Account $account, EntityManagerInterface $entityManager): Response
+    {
+        /** @var TransactionRepository $repository */
+        $repository = $entityManager->getRepository(Transaction::class);
+        /** @var RecipientRepository $repoRpt */
+        $repoRpt = $entityManager->getRepository(Recipient::class);
+        /** @var CategoryRepository $repoCat */
+        $repoCat = $entityManager->getRepository(Category::class);
+
+        // Derniere transaction pour récuperer la date de la dernière valorisation
+        /** @var Transaction $last */
+        $last = $repository->findOneLastValorisation($account);
+        $date = new DateTime();
+        if (null !== $last) {
+            $date = clone $last->getDate()->modify('+ 15 days');
+        }
+
+        // Préremplit le formulaire
+        $transaction = new Transaction();
+        $transaction->setAccount($account);
+        $transaction->setDate($date->modify('last day of this month'));
+        $transaction->setAmount(0);
+        $transaction->setPayment(new Payment(Payment::INTERNAL));
+        $transaction->setRecipient($repoRpt->find(1));
+        $transaction->setCategory($repoCat->findByCode(sprintf('%s+', Category::REVALUATION)));
+
+        $form = $this->createForm(ValorisationType::class, $transaction);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $transaction->getDate()->modify('last day of this month');
+            if (null !== $last) {
+                $variation = $transaction->getBalance() - $last->getBalance();
+                $transaction->setAmount($variation);
+                $transaction->setCategory($repoCat->findByCode(sprintf('%s%s', Category::REVALUATION, ($variation < 0) ? '-' : '+')));
+            }
+            $entityManager->persist($transaction);
+            $entityManager->flush();
+            $helper = new Balance($entityManager);
+            $helper->updateBalanceAfter($transaction);
+
+            $this->addFlash('success', 'La création de la transaction a bien été prise en compte');
+
+            return new Response('OK');
+        }
+
+        return $this->renderForm('account/transaction-create.html.twig', [
+            'form' => $form,
+        ]);
+    }
+
+    /**
      * Création d'un transfert en fonction de son type.
      *
      * @param string                 $typeTransfer
@@ -129,6 +190,10 @@ class TransactionController extends AbstractController
 
         if (null !== $transaction->getTransfer()) {
             return $this->updateTransfer($request, $transaction, $entityManager);
+        }
+
+        if (Category::REVALUATION === $transaction->getCategory()->getCode()) {
+            return $this->updateValorisation($request, $transaction, $entityManager);
         }
 
         return $this->updateTransaction($request, $transaction, $entityManager);
@@ -206,6 +271,42 @@ class TransactionController extends AbstractController
     }
 
     /**
+     * Mise à jour d'une transaction de valorisation de placement.
+     *
+     * @param Request                $request
+     * @param Transaction            $transaction
+     * @param EntityManagerInterface $entityManager
+     *
+     * @return Response
+     */
+    private function updateValorisation(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
+    {
+        /** @var CategoryRepository $repoCat */
+        $repoCat = $entityManager->getRepository(Category::class);
+        $last = clone $transaction;
+
+        $form = $this->createForm(ValorisationType::class, $transaction);
+        $dateBefore = $transaction->getDate();
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $variation = $transaction->getBalance() - $last->getBalance() + $last->getAmount();
+            $transaction->setAmount($variation);
+            $transaction->setCategory($repoCat->findByCode(sprintf('%s%s', Category::REVALUATION, ($variation < 0) ? '-' : '+')));
+            $entityManager->flush();
+            $helper = new Balance($entityManager);
+            $helper->updateBalanceAfter($transaction, $dateBefore);
+            $this->addFlash('success', 'La modification de l\'opération a bien été prise en compte');
+
+            return new Response('OK');
+        }
+
+        return $this->renderForm('account/transaction-update.html.twig', [
+            'form' => $form,
+        ]);
+    }
+
+    /**
      * @Route("/account/transactions/remove/{id}", name="transaction__remove")
      */
     public function remove(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
@@ -240,49 +341,5 @@ class TransactionController extends AbstractController
             'form' => $form,
             'element' => 'cette opération',
         ]);
-    }
-
-    /**
-     * Vérifie si on peut supprimer ou modifier la transaction.
-     *
-     * @param Transaction $transaction
-     *
-     * @return Response|null
-     */
-    private function checkUpdate(Transaction $transaction): ?Response
-    {
-        if (null !== $transaction->getTransfer()) {
-            if (Transaction::STATE_RECONCILIED === $transaction->getTransfer()->getState()) {
-                return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
-                    'message' => 'Impossible de supprimer ce virement !',
-                ]);
-            }
-        }
-        if (Transaction::STATE_RECONCILIED === $transaction->getState()) {
-            return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
-                'message' => 'Impossible de supprimer cette transaction !',
-            ]);
-        }
-
-        return null;
-    }
-
-    /**
-     * Valide le formulaire de transaction.
-     *
-     * @param Transaction $transaction
-     *
-     * @return bool
-     */
-    private function checkValid(Transaction $transaction): bool
-    {
-        if ($transaction->getAmount() > 0 && Category::DEPENSES === $transaction->getCategory()->getType()) {
-            return false;
-        }
-        if ($transaction->getAmount() < 0 && Category::RECETTES === $transaction->getCategory()->getType()) {
-            return false;
-        }
-
-        return true;
     }
 }

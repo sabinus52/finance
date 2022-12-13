@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Controller\Account;
 
 use App\Entity\Account;
+use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Helper\DateRange;
 use App\Repository\TransactionRepository;
@@ -94,5 +95,49 @@ class BaseController extends AbstractController
             'account' => $account,
             'transactions' => $repository->findByAccount($account, $filters),
         ]);
+    }
+
+    /**
+     * Vérifie si on peut supprimer ou modifier la transaction.
+     *
+     * @param Transaction $transaction
+     *
+     * @return Response|null
+     */
+    protected function checkUpdate(Transaction $transaction): ?Response
+    {
+        if (null !== $transaction->getTransfer()) {
+            if (Transaction::STATE_RECONCILIED === $transaction->getTransfer()->getState()) {
+                return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
+                    'message' => 'Impossible de supprimer ce virement !',
+                ]);
+            }
+        }
+        if (Transaction::STATE_RECONCILIED === $transaction->getState()) {
+            return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
+                'message' => 'Impossible de supprimer cette transaction !',
+            ]);
+        }
+
+        return null;
+    }
+
+    /**
+     * Valide le formulaire de transaction.
+     *
+     * @param Transaction $transaction
+     *
+     * @return bool
+     */
+    protected function checkValid(Transaction $transaction): bool
+    {
+        if ($transaction->getAmount() > 0 && Category::DEPENSES === $transaction->getCategory()->getType()) {
+            return false;
+        }
+        if ($transaction->getAmount() < 0 && Category::RECETTES === $transaction->getCategory()->getType()) {
+            return false;
+        }
+
+        return true;
     }
 }

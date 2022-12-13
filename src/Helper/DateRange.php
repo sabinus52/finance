@@ -235,26 +235,10 @@ class DateRange
      */
     private function getCurrentQuarter(): array
     {
-        $startDate = new DateTimeImmutable();
-        $endDate = new DateTimeImmutable();
-
-        $month = $this->now->format('n');
-
-        if ($month < 4) {
-            $startDate = $this->now->modify('first day of january');
-            $endDate = $this->now->modify('last day of march');
-        } elseif ($month > 3 && $month < 7) {
-            $startDate = $this->now->modify('first day of april');
-            $endDate = $this->now->modify('last day of june');
-        } elseif ($month > 6 && $month < 10) {
-            $startDate = $this->now->modify('first day of july');
-            $endDate = $this->now->modify('last day of september');
-        } elseif ($month > 9) {
-            $startDate = $this->now->modify('first day of october');
-            $endDate = $this->now->modify('last day of december');
-        }
-
-        return [$startDate, $endDate];
+        return [
+            self::getFirstDayOfQuarter($this->now),
+            self::getLastDayOfQuarter($this->now),
+        ];
     }
 
     /**
@@ -264,27 +248,12 @@ class DateRange
      */
     private function getLastQuarter(): array
     {
-        $startDate = new DateTimeImmutable();
-        $endDate = new DateTimeImmutable();
+        $last = $this->now->modify('- 3 month');
 
-        $last = $this->now->modify('- 1 month');
-        $month = $last->format('n');
-
-        if ($month < 4) {
-            $startDate = $last->modify('first day of january');
-            $endDate = $last->modify('last day of march');
-        } elseif ($month > 3 && $month < 7) {
-            $startDate = $last->modify('first day of april');
-            $endDate = $last->modify('last day of june');
-        } elseif ($month > 6 && $month < 10) {
-            $startDate = $last->modify('first day of july');
-            $endDate = $last->modify('last day of september');
-        } elseif ($month > 9) {
-            $startDate = $last->modify('first day of october');
-            $endDate = $last->modify('last day of december');
-        }
-
-        return [$startDate, $endDate];
+        return [
+            self::getFirstDayOfQuarter($last),
+            self::getLastDayOfQuarter($last),
+        ];
     }
 
     /**
@@ -313,5 +282,53 @@ class DateRange
             $last->modify('first day of january'),
             $last->modify('last day of december'),
         ];
+    }
+
+    /**
+     * Retourne le premier jour du trimestre.
+     *
+     * @param DateTimeImmutable $date
+     *
+     * @return DateTimeImmutable
+     */
+    public static function getFirstDayOfQuarter(DateTimeImmutable $date): DateTimeImmutable
+    {
+        $month = $date->format('n');
+
+        if ($month < 4) {
+            return $date->modify('first day of january');
+        }
+        if ($month > 3 && $month < 7) {
+            return $date->modify('first day of april');
+        }
+        if ($month > 6 && $month < 10) {
+            return $date->modify('first day of july');
+        }
+
+        return $date->modify('first day of october');
+    }
+
+    /**
+     * Retourne le dernier jour du trimestre.
+     *
+     * @param DateTimeImmutable $date
+     *
+     * @return DateTimeImmutable
+     */
+    public static function getLastDayOfQuarter(DateTimeImmutable $date): DateTimeImmutable
+    {
+        $month = $date->format('n');
+
+        if ($month < 4) {
+            return $date->modify('last day of march');
+        }
+        if ($month > 3 && $month < 7) {
+            return $date->modify('last day of june');
+        }
+        if ($month > 6 && $month < 10) {
+            return $date->modify('last day of september');
+        }
+
+        return $date->modify('last day of december');
     }
 }

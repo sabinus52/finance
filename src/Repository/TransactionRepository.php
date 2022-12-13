@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Account;
+use App\Entity\Category;
 use App\Entity\Transaction;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -104,6 +105,30 @@ class TransactionRepository extends ServiceEntityRepository
             ->addOrderBy('trt.id', 'ASC')
             ->getQuery()
             ->getResult()
+        ;
+    }
+
+    /**
+     * Dernière transaction de valorisation de placement.
+     *
+     * @param Account $account
+     *
+     * @return Transaction|null
+     */
+    public function findOneLastValorisation(Account $account): ?Transaction
+    {
+        return $this->createQueryBuilder('trt')
+            ->addSelect('cat')
+            ->innerJoin('trt.category', 'cat')
+            ->andWhere('trt.account = :account')
+            ->andWhere('cat.code = :code')
+            ->setParameter('account', $account)
+            ->setParameter('code', Category::REVALUATION)
+            ->orderBy('trt.date', 'DESC')
+            ->addOrderBy('trt.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult()
         ;
     }
 }
