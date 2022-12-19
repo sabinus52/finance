@@ -14,6 +14,7 @@ namespace App\Form;
 use App\Entity\Account;
 use App\Entity\Transaction;
 use App\Repository\AccountRepository;
+use App\Values\AccountType;
 use App\Values\TransactionType;
 use Olix\BackOfficeBundle\Form\Type\DatePickerType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -35,9 +36,18 @@ class TransferFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $filterAcc = 'acc.type <= 39';
+        $filterAccStandard = sprintf('acc.type <= 39 AND acc.type <> %s', AccountType::PEA_CAISSE);
+        $filterAccInvest = sprintf('(acc.type BETWEEN 50 AND 59 OR acc.type = %s)', AccountType::PEA_CAISSE);
+
         if (TransactionType::INVESTMENT === $options['transaction_type']) {
-            $filterAcc = 'acc.type BETWEEN 50 AND 59';
+            $filterSource = $filterAccStandard;
+            $filterTarget = $filterAccInvest;
+        } elseif (TransactionType::RACHAT === $options['transaction_type']) {
+            $filterSource = $filterAccInvest;
+            $filterTarget = $filterAccStandard;
+        } else {
+            $filterSource = $filterAccStandard;
+            $filterTarget = $filterAccStandard;
         }
 
         $builder
@@ -54,11 +64,11 @@ class TransferFormType extends AbstractType
                 'label' => 'De',
                 'required' => false,
                 'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) {
+                'query_builder' => function (AccountRepository $er) use ($filterSource) {
                     return $er->createQueryBuilder('acc')
                         ->addSelect('ist')
                         ->innerJoin('acc.institution', 'ist')
-                        ->where('acc.type <= 39')
+                        ->where($filterSource)
                         ->orderBy('ist.name')
                         ->addOrderBy('acc.name')
                     ;
@@ -86,11 +96,11 @@ class TransferFormType extends AbstractType
                 'label' => 'Vers',
                 'required' => false,
                 'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) use ($filterAcc) {
+                'query_builder' => function (AccountRepository $er) use ($filterTarget) {
                     return $er->createQueryBuilder('acc')
                         ->addSelect('ist')
                         ->innerJoin('acc.institution', 'ist')
-                        ->where($filterAcc)
+                        ->where($filterTarget)
                         ->orderBy('ist.name')
                         ->addOrderBy('acc.name')
                     ;

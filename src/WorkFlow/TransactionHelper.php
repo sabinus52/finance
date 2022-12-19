@@ -123,6 +123,22 @@ class TransactionHelper
     }
 
     /**
+     * Création d'un virement de rachat.
+     *
+     * @return Transaction
+     */
+    public function createWithdrawal(): Transaction
+    {
+        $this->transaction = $this->createInternal();
+        $this->transaction
+            ->setType(new TransactionType(TransactionType::RACHAT))
+            ->setCategory($this->getCategoryByCode(true, Category::CAPITALISATION))
+        ;
+
+        return $this->transaction;
+    }
+
+    /**
      * Création d'une transaction de type interne.
      *
      * @return Transaction

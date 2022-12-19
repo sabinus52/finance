@@ -14,6 +14,7 @@ namespace App\WorkFlow;
 use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
+use App\Values\TransactionType;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -59,7 +60,7 @@ class Balance
 
         $results = $this->findToDoAfter($transaction, $date);
         foreach ($results as $item) {
-            if (Category::REVALUATION === $item->getCategory()->getCode()) {
+            if (TransactionType::REVALUATION === $item->getType()->getValue()) {
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
                 $variation = $item->getBalance() - $balance;
                 $item->setAmount($variation);
@@ -92,7 +93,7 @@ class Balance
 
         $results = $this->findAll($account);
         foreach ($results as $item) {
-            if (Category::REVALUATION === $item->getCategory()->getCode()) {
+            if (TransactionType::REVALUATION === $item->getType()->getValue()) {
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
                 $variation = $item->getBalance() - $balance;
                 $item->setAmount($variation);
@@ -105,7 +106,7 @@ class Balance
             if (Transaction::STATE_RECONCILIED === $item->getState()) {
                 $reconcilied += $item->getAmount();
             }
-            if (Category::CAPITALISATION === $item->getCategory()->getCode()) {
+            if (TransactionType::INVESTMENT === $item->getType()->getValue()) {
                 $invested += $item->getAmount();
             }
         }
@@ -171,9 +172,7 @@ class Balance
     {
         return $this->entityManager->createQueryBuilder()
             ->select('trt')
-            ->addSelect('cat')
             ->from(Transaction::class, 'trt')
-            ->innerJoin('trt.category', 'cat')
             ->andWhere('trt.account = :account')
             ->andWhere('trt.date >= :date')
             ->setParameter('account', $transaction->getAccount())
@@ -196,9 +195,7 @@ class Balance
     {
         return $this->entityManager->createQueryBuilder()
             ->select('trt')
-            ->addSelect('cat')
             ->from(Transaction::class, 'trt')
-            ->innerJoin('trt.category', 'cat')
             ->andWhere('trt.account = :account')
             ->setParameter('account', $account)
             ->addOrderBy('trt.date', 'ASC')

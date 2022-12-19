@@ -70,6 +70,21 @@ class TransactionController extends BaseController
     }
 
     /**
+     * Création d'un rachat d'investissement.
+     *
+     * @Route("/account/{id}/rachat/create", name="rachat__create", methods={"GET", "POST"})
+     */
+    public function createWithdrawal(Request $request, Account $account, EntityManagerInterface $entityManager): Response
+    {
+        $helper = new TransactionHelper($entityManager);
+
+        $transaction = $helper->createWithdrawal();
+        $transaction->setAccount($account);
+
+        return $this->create($entityManager, $request, $transaction);
+    }
+
+    /**
      * Création d'une valorisation sur un placement.
      *
      * @Route("/account/{id}/capital/create", name="capital__create", methods={"GET", "POST"})

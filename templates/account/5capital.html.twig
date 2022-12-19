@@ -19,7 +19,8 @@
         <a href="{{ path('capital__create', { 'id': account.id }) }}" class="btn btn-md bg-gradient-success" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">&nbsp;Effectuer une valorisation</span></a>
         <a href="#" class="btn bg-gradient-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></a>
         <div class="dropdown-menu" role="menu" style="">
-            <a class="dropdown-item" href="{{ path('invest__create', { 'id': account.id }) }}" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-hand-holding-usd"></i> &nbsp;Faire un investissement</a>
+            <a class="dropdown-item" href="{{ path('invest__create', { 'id': account.id }) }}" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-hand-holding-usd"></i> &nbsp;Faire un versement</a>
+            <a class="dropdown-item" href="{{ path('rachat__create', { 'id': account.id }) }}" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-cart-arrow-down"></i> &nbsp;Faire un rachat</a>
         </div>
     </div>
 {% endblock %}

@@ -38,6 +38,10 @@ class Transfer
             Category::RECETTES => Category::CAPITALISATION,
             Category::DEPENSES => Category::INVESTMENT,
         ],
+        TransactionType::RACHAT => [
+            Category::RECETTES => Category::INVESTMENT,
+            Category::DEPENSES => Category::CAPITALISATION,
+        ],
     ];
 
     /**

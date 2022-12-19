@@ -29,10 +29,8 @@ class TransactionType
     public const STANDARD = 0;
     public const VIREMENT = 1;
     public const INVESTMENT = 2;
-    public const CAPITALISATION = 10;
+    public const RACHAT = 10;
     public const REVALUATION = 11;
-    public const STOCKOPERT = 20;
-    public const DIVIDENDES = 21;
 
     /**
      * Liste des types de transaction.
@@ -43,10 +41,8 @@ class TransactionType
         self::STANDARD => ['form' => TransactionFormType::class, 'label' => '', 'code' => '', 'msg' => 'de la transaction'],
         self::VIREMENT => ['form' => TransferFormType::class, 'label' => '', 'code' => '', 'msg' => 'du virement'],
         self::INVESTMENT => ['form' => TransferFormType::class, 'label' => '', 'code' => '', 'msg' => 'de l\'investissement'],
-        self::CAPITALISATION => ['form' => null, 'label' => '', 'code' => '', 'msg' => ''],
+        self::RACHAT => ['form' => TransferFormType::class, 'label' => '', 'code' => '', 'msg' => 'du rachat'],
         self::REVALUATION => ['form' => ValorisationFormType::class, 'label' => '', 'code' => '', 'msg' => 'de la valorisation'],
-        self::STOCKOPERT => ['form' => null, 'label' => '', 'code' => '', 'msg' => ''],
-        self::DIVIDENDES => ['form' => null, 'label' => '', 'code' => '', 'msg' => ''],
     ];
 
     /**

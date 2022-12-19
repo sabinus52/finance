@@ -178,7 +178,7 @@ class TransactionWorkFlow
      */
     public function isTransfer(): bool
     {
-        return TransactionType::VIREMENT === $this->getType() || TransactionType::INVESTMENT === $this->getType();
+        return TransactionType::VIREMENT === $this->getType() || TransactionType::INVESTMENT === $this->getType() || TransactionType::RACHAT === $this->getType();
     }
 
     /**
