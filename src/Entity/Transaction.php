@@ -13,6 +13,7 @@ namespace App\Entity;
 
 use App\Repository\TransactionRepository;
 use App\Values\Payment;
+use App\Values\TransactionType;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -72,6 +73,15 @@ class Transaction
      * @Assert\NotBlank
      */
     private $account;
+
+    /**
+     * Type de la transaction.
+     *
+     * @var TransactionType
+     *
+     * @ORM\Column(type="transaction_type", options={"default": 0})
+     */
+    private $type;
 
     /**
      * Moyen de paiement.
@@ -136,6 +146,7 @@ class Transaction
         $this->balance = 0;
         $this->state = 0;
         $this->date = new DateTime();
+        $this->type = new TransactionType(TransactionType::STANDARD);
     }
 
     public function getId(): ?int
@@ -187,6 +198,18 @@ class Transaction
     public function setAccount(?Account $account): self
     {
         $this->account = $account;
+
+        return $this;
+    }
+
+    public function getType(): ?TransactionType
+    {
+        return $this->type;
+    }
+
+    public function setType(TransactionType $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

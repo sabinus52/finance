@@ -19,6 +19,7 @@ use App\Repository\AccountRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\RecipientRepository;
 use App\Values\Payment;
+use App\Values\TransactionType;
 use Olix\BackOfficeBundle\Form\Type\DatePickerType;
 use Olix\BackOfficeBundle\Form\Type\Select2EntityType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -38,7 +39,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * @SuppressWarnings(PHPMD.StaticAccess)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class TransactionType extends AbstractType
+class TransactionFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -114,6 +115,7 @@ class TransactionType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Transaction::class,
+            'transaction_type' => TransactionType::STANDARD,
         ]);
     }
 }

@@ -31,6 +31,18 @@ class RecipientRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne le bénéficiare interne.
+     *
+     * @return Recipient
+     */
+    public function findInternal(): Recipient
+    {
+        return $this->findOneBy([
+            'name' => Recipient::VIRT_NAME,
+        ]);
+    }
+
+    /**
      * Retoune un tableau associatif des bénéficiares [Carrefour] => Recipient.
      *
      * @return Recipient[]

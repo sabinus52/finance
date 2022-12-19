@@ -13,7 +13,7 @@ namespace App\Controller;
 
 use App\Entity\Account;
 use App\Form\AccountType;
-use App\Helper\Balance;
+use App\WorkFlow\Balance;
 use App\Repository\AccountRepository;
 use App\Values\AccountType as ValuesAccountType;
 use Doctrine\ORM\EntityManagerInterface;

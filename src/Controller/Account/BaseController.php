@@ -95,29 +95,4 @@ class BaseController extends AbstractController
             'transactions' => $repository->findByAccount($account, $filters),
         ]);
     }
-
-    /**
-     * Vérifie si on peut supprimer ou modifier la transaction.
-     *
-     * @param Transaction $transaction
-     *
-     * @return Response|null
-     */
-    protected function checkUpdate(Transaction $transaction): ?Response
-    {
-        if (null !== $transaction->getTransfer()) {
-            if (Transaction::STATE_RECONCILIED === $transaction->getTransfer()->getState()) {
-                return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
-                    'message' => 'Impossible de supprimer ce virement !',
-                ]);
-            }
-        }
-        if (Transaction::STATE_RECONCILIED === $transaction->getState()) {
-            return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
-                'message' => 'Impossible de supprimer cette transaction !',
-            ]);
-        }
-
-        return null;
-    }
 }

@@ -12,14 +12,11 @@ declare(strict_types=1);
 namespace App\Controller\Account;
 
 use App\Entity\Account;
-use App\Entity\Category;
 use App\Entity\Transaction;
-use App\Form\TransactionType;
-use App\Form\TransferType;
-use App\Form\ValorisationType;
-use App\Helper\Balance;
-use App\Helper\TransactionHelper;
-use App\Helper\Transfer;
+use App\Repository\TransactionRepository;
+use App\WorkFlow\TransactionHelper;
+use App\WorkFlow\TransactionWorkFlow;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,22 +31,12 @@ class TransactionController extends BaseController
      */
     public function createTransaction(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
-        $transaction = new Transaction();
+        $helper = new TransactionHelper($entityManager);
+
+        $transaction = $helper->createStandard();
         $transaction->setAccount($account);
-        $helper = new TransactionHelper($entityManager, $transaction);
-        $form = $this->createForm(TransactionType::class, $transaction);
 
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid() && $helper->checkStandard($form)) {
-            $helper->persistStandard();
-            $this->addFlash('success', 'La création de la transaction a bien été prise en compte');
-
-            return new Response('OK');
-        }
-
-        return $this->renderForm('account/transaction-create.html.twig', [
-            'form' => $form,
-        ]);
+        return $this->create($entityManager, $request, $transaction);
     }
 
     /**
@@ -59,7 +46,12 @@ class TransactionController extends BaseController
      */
     public function createVirement(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
-        return $this->createTransfer(Category::VIREMENT, $request, $account, $entityManager);
+        $helper = new TransactionHelper($entityManager);
+
+        $transaction = $helper->createVirement();
+        $transaction->setAccount($account);
+
+        return $this->create($entityManager, $request, $transaction);
     }
 
     /**
@@ -69,7 +61,12 @@ class TransactionController extends BaseController
      */
     public function createInvestment(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
-        return $this->createTransfer(Category::INVESTMENT, $request, $account, $entityManager);
+        $helper = new TransactionHelper($entityManager);
+
+        $transaction = $helper->createInvestment();
+        $transaction->setAccount($account);
+
+        return $this->create($entityManager, $request, $transaction);
     }
 
     /**
@@ -77,52 +74,46 @@ class TransactionController extends BaseController
      *
      * @Route("/account/{id}/capital/create", name="capital__create", methods={"GET", "POST"})
      */
-    public function createValorisation(Request $request, Account $account, EntityManagerInterface $entityManager): Response
+    public function createValorisation(Request $request, Account $account, EntityManagerInterface $entityManager, TransactionRepository $repository): Response
     {
-        $transaction = new Transaction();
-        $transaction->setAccount($account);
-        $helper = new TransactionHelper($entityManager, $transaction);
-        $helper->initValorisation();
-        $form = $this->createForm(ValorisationType::class, $transaction);
+        $helper = new TransactionHelper($entityManager);
 
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid() && $helper->checkValorisation($form)) {
-            $helper->persistValorisation();
-            $this->addFlash('success', 'La création de la transaction a bien été prise en compte');
-
-            return new Response('OK');
+        // Recherche la dernière transaction de valorisation
+        $last = $repository->findOneLastValorisation($account);
+        $date = new DateTime();
+        if (null !== $last) {
+            $date = clone $last->getDate()->modify('+ 15 days');
         }
 
-        return $this->renderForm('account/transaction-create.html.twig', [
-            'form' => $form,
-        ]);
+        $transaction = $helper->createValorisation();
+        $transaction->setAccount($account);
+        $transaction->setDate($date->modify('last day of this month'));
+
+        return $this->create($entityManager, $request, $transaction);
     }
 
     /**
-     * Création d'un transfert en fonction de son type.
+     * Création d'une transaction.
      *
-     * @param string                 $typeTransfer
-     * @param Request                $request
-     * @param Account                $account
      * @param EntityManagerInterface $entityManager
+     * @param Request                $request
+     * @param Transaction            $transaction
      *
      * @return Response
      */
-    private function createTransfer(string $typeTransfer, Request $request, Account $account, EntityManagerInterface $entityManager): Response
+    private function create(EntityManagerInterface $entityManager, Request $request, Transaction $transaction): Response
     {
-        $transaction = new Transaction();
-        $transaction->setAccount($account);
-        $transfer = new Transfer($entityManager, $transaction);
-        $transfer->setType($typeTransfer);
-
-        $form = $this->createForm(TransferType::class, $transaction, ['transfer' => $typeTransfer]);
-        $form->get('source')->setData($account);
+        $workflow = new TransactionWorkFlow($entityManager, $transaction);
+        $transaction = $workflow->getTransaction();
+        $form = $this->createForm($workflow->getForm(), $transaction, ['transaction_type' => $workflow->getType()]);
+        if ($workflow->isTransfer()) {
+            $form->get('source')->setData($transaction->getAccount());
+        }
 
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
-            $transfer->persist();
-            $this->addFlash('success', 'La création du virement a bien été prise en compte');
+        if ($form->isSubmitted() && $form->isValid() && $workflow->checkForm($form)) {
+            $workflow->add($form);
+            $this->addFlash('success', sprintf('La création %s a bien été prise en compte', $transaction->getType()->getMessage()));
 
             return new Response('OK');
         }
@@ -133,6 +124,8 @@ class TransactionController extends BaseController
     }
 
     /**
+     * Mets à jour une transaction.
+     *
      * @Route("/account/transactions/edit/{id}", name="transaction__edit", methods={"GET", "POST"})
      */
     public function update(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
@@ -141,35 +134,18 @@ class TransactionController extends BaseController
             return $this->checkUpdate($transaction);
         }
 
-        if (null !== $transaction->getTransfer()) {
-            return $this->updateTransfer($request, $transaction, $entityManager);
+        $workflow = new TransactionWorkFlow($entityManager, $transaction);
+        $transaction = $workflow->getTransaction();
+        $form = $this->createForm($workflow->getForm(), $transaction, ['transaction_type' => $workflow->getType()]);
+        if ($workflow->isTransfer()) {
+            $form->get('source')->setData($transaction->getTransfer()->getAccount()); // Compte débiteur
+            $form->get('target')->setData($transaction->getAccount()); // Compte créditeur
         }
-
-        if (Category::REVALUATION === $transaction->getCategory()->getCode()) {
-            return $this->updateValorisation($request, $transaction, $entityManager);
-        }
-
-        return $this->updateTransaction($request, $transaction, $entityManager);
-    }
-
-    /**
-     * Mise à jour d'une transaction.
-     *
-     * @param Request                $request
-     * @param Transaction            $transaction
-     * @param EntityManagerInterface $entityManager
-     *
-     * @return Response
-     */
-    private function updateTransaction(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
-    {
-        $helper = new TransactionHelper($entityManager, $transaction);
-        $form = $this->createForm(TransactionType::class, $transaction);
 
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid() && $helper->checkStandard($form)) {
-            $helper->updateStandard();
-            $this->addFlash('success', 'La modification de l\'opération a bien été prise en compte');
+        if ($form->isSubmitted() && $form->isValid() && $workflow->checkForm($form)) {
+            $workflow->update($form);
+            $this->addFlash('success', sprintf('La modification %s a bien été prise en compte', $transaction->getType()->getMessage()));
 
             return new Response('OK');
         }
@@ -180,65 +156,8 @@ class TransactionController extends BaseController
     }
 
     /**
-     * Mise à jour d'un transfert.
+     * Supprime une transaction.
      *
-     * @param Request                $request
-     * @param Transaction            $transaction
-     * @param EntityManagerInterface $entityManager
-     *
-     * @return Response
-     */
-    private function updateTransfer(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
-    {
-        $transfer = new Transfer($entityManager, $transaction);
-        $transaction = $transfer->getCredit();
-
-        $form = $this->createForm(TransferType::class, $transaction, ['transfer' => $transfer->getType()]);
-        $form->get('source')->setData($transfer->getDebit()->getAccount()); // Compte débiteur
-        $form->get('target')->setData($transfer->getCredit()->getAccount()); // Compte créditeur
-
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
-            $transfer->update();
-            $this->addFlash('success', 'La modification du virement a bien été prise en compte');
-
-            return new Response('OK');
-        }
-
-        return $this->renderForm('account/transaction-update.html.twig', [
-            'form' => $form,
-        ]);
-    }
-
-    /**
-     * Mise à jour d'une transaction de valorisation de placement.
-     *
-     * @param Request                $request
-     * @param Transaction            $transaction
-     * @param EntityManagerInterface $entityManager
-     *
-     * @return Response
-     */
-    private function updateValorisation(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
-    {
-        $helper = new TransactionHelper($entityManager, $transaction);
-        $form = $this->createForm(ValorisationType::class, $transaction);
-
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid() && $helper->checkValorisation($form)) {
-            $helper->updateValorisation();
-            $this->addFlash('success', 'La modification de l\'opération a bien été prise en compte');
-
-            return new Response('OK');
-        }
-
-        return $this->renderForm('account/transaction-update.html.twig', [
-            'form' => $form,
-        ]);
-    }
-
-    /**
      * @Route("/account/transactions/remove/{id}", name="transaction__remove")
      */
     public function remove(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
@@ -251,18 +170,9 @@ class TransactionController extends BaseController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            if (null === $transaction->getTransfer()) {
-                $helper = new TransactionHelper($entityManager, $transaction);
-                $helper->remove();
-                $this->addFlash('success', 'La suppression de l\'opération a bien été prise en compte');
-            } else {
-                $helper = new Balance($entityManager);
-                $transfer = new Transfer($entityManager, $transaction);
-                $transfer->remove();
-                $helper->updateBalanceAfter($transfer->getDebit());
-                $helper->updateBalanceAfter($transfer->getCredit());
-                $this->addFlash('success', 'La suppression du virement a bien été prise en compte');
-            }
+            $workflow = new TransactionWorkFlow($entityManager, $transaction);
+            $workflow->remove();
+            $this->addFlash('success', sprintf('La suppression %s a bien été prise en compte', $transaction->getType()->getMessage()));
 
             return new Response('OK');
         }
@@ -271,5 +181,30 @@ class TransactionController extends BaseController
             'form' => $form,
             'element' => 'cette opération',
         ]);
+    }
+
+    /**
+     * Vérifie si on peut supprimer ou modifier la transaction.
+     *
+     * @param Transaction $transaction
+     *
+     * @return Response|null
+     */
+    private function checkUpdate(Transaction $transaction): ?Response
+    {
+        if (null !== $transaction->getTransfer()) {
+            if (Transaction::STATE_RECONCILIED === $transaction->getTransfer()->getState()) {
+                return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
+                    'message' => 'Impossible de supprimer ce virement !',
+                ]);
+            }
+        }
+        if (Transaction::STATE_RECONCILIED === $transaction->getState()) {
+            return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
+                'message' => 'Impossible de supprimer cette transaction !',
+            ]);
+        }
+
+        return null;
     }
 }

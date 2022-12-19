@@ -9,7 +9,7 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\Helper;
+namespace App\WorkFlow;
 
 use App\Entity\Account;
 use App\Entity\Category;
@@ -61,7 +61,9 @@ class Balance
         foreach ($results as $item) {
             if (Category::REVALUATION === $item->getCategory()->getCode()) {
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
-                $item->setAmount($item->getBalance() - $balance);
+                $variation = $item->getBalance() - $balance;
+                $item->setAmount($variation);
+                $item->setCategory($this->getCategory(($variation >= 0.0)));
                 $balance = $item->getBalance();
             } else {
                 $balance += $item->getAmount();
@@ -92,7 +94,9 @@ class Balance
         foreach ($results as $item) {
             if (Category::REVALUATION === $item->getCategory()->getCode()) {
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
-                $item->setAmount($item->getBalance() - $balance);
+                $variation = $item->getBalance() - $balance;
+                $item->setAmount($variation);
+                $item->setCategory($this->getCategory(($variation >= 0.0)));
                 $balance = $item->getBalance();
             } else {
                 $balance += $item->getAmount();
@@ -112,6 +116,22 @@ class Balance
         $this->entityManager->flush();
 
         return count($results);
+    }
+
+    /**
+     * Retourne la catgorie de Valorisation.
+     *
+     * @param bool $type
+     *
+     * @return Category
+     */
+    private function getCategory(bool $type): Category
+    {
+        /** @phpstan-ignore-next-line */
+        return $this->entityManager
+            ->getRepository(Category::class)
+            ->findOneByCode($type, Category::REVALUATION)
+        ;
     }
 
     /**

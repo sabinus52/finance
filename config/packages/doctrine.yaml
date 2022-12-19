@@ -4,6 +4,7 @@ doctrine:
 
         types:
             account_type: App\Doctrine\Type\AccountTypeType
+            transaction_type: App\Doctrine\Type\TransactionTypeType
             payment: App\Doctrine\Type\PaymentType
             position: App\Doctrine\Type\StockPositionType
 
