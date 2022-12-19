@@ -15,9 +15,9 @@ use App\Entity\Account;
 use App\Entity\Stock;
 use App\Entity\StockPortfolio;
 use App\Entity\Transaction;
-use App\Helper\Balance;
 use App\Repository\AccountRepository;
 use App\Values\StockPosition;
+use App\WorkFlow\Balance;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 
@@ -34,7 +34,7 @@ class Helper
     /**
      * @var EntityManagerInterface
      */
-    protected $entityManager;
+    public $entityManager;
 
     /**
      * Statistiques de l'import.
@@ -95,6 +95,7 @@ class Helper
     {
         $transaction = new Transaction();
         $transaction->setAccount($item->getAccount());
+        $transaction->setType($item->getType());
         $transaction->setDate($item->getDate());
         $transaction->setRecipient($item->getRecipient());
         $transaction->setMemo($item->getMemo());

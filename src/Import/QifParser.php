@@ -16,6 +16,7 @@ use App\Entity\Category;
 use App\Entity\Recipient;
 use App\Entity\Transaction;
 use App\Values\Payment;
+use App\Values\TransactionType;
 use ArrayObject;
 use SplFileObject;
 use Throwable;
@@ -292,6 +293,7 @@ class QifParser
     {
         $item->setRecipient(Recipient::VIRT_NAME);
         $item->setPayment(Payment::INTERNAL);
+        $item->setType(TransactionType::VIREMENT);
 
         // Virement source
         $item->setCategoryWithCode(Category::VIREMENT);

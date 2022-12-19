@@ -15,6 +15,7 @@ use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Recipient;
 use App\Values\Payment;
+use App\Values\TransactionType;
 use DateTime;
 use Exception;
 
@@ -43,6 +44,11 @@ class QifItem
      * @var string
      */
     private $account;
+
+    /**
+     * @var TransactionType
+     */
+    private $type;
 
     /**
      * @var float
@@ -77,6 +83,7 @@ class QifItem
     public function __construct(AssocDatas $assocDatas)
     {
         $this->assocDatas = $assocDatas;
+        $this->setType(TransactionType::STANDARD);
     }
 
     public function __toString()
@@ -97,6 +104,13 @@ class QifItem
     public function setAccount(string $account): self
     {
         $this->account = $account;
+
+        return $this;
+    }
+
+    public function setType(int $type): self
+    {
+        $this->type = new TransactionType($type);
 
         return $this;
     }
@@ -182,6 +196,11 @@ class QifItem
     public function getAccount(): Account
     {
         return $this->assocDatas->getAccount($this->account);
+    }
+
+    public function getType(): TransactionType
+    {
+        return $this->type;
     }
 
     public function getAmount(): float

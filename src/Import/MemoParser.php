@@ -18,6 +18,7 @@ use App\Entity\Transaction;
 use App\Values\AccountType;
 use App\Values\Payment;
 use App\Values\StockPosition;
+use App\Values\TransactionType;
 use ArrayObject;
 use Exception;
 
@@ -137,6 +138,7 @@ class MemoParser
         // Valeurs communes
         $item->setRecipient(Recipient::VIRT_NAME);
         $item->setPayment(Payment::INTERNAL);
+        $item->setType(TransactionType::INVESTMENT);
 
         // Toujours compte débiteur = Compte courant où se fait le prélèvement
         $item->setCategoryWithCode(Category::INVESTMENT);
