@@ -68,54 +68,56 @@
 
         {% block content_account %}{% endblock %}
 
-        <div class="row">
-            <div class="col-md-12">
+        {% block transactions %}
+            <div class="row">
+                <div class="col-md-12">
 
-                <div class="card card-outline" style="">
+                    <div class="card card-outline" style="">
 
-                    {% block transaction_filter %}
-                        <div class="card-header">
-                            {% form_theme form.filter '@OlixBackOffice/Twig/form-theme-horizontal-layout.html.twig' %}
-                            {{ form_start(form.filter, { 'action': path('account_get_transaction', { 'id': account.id }), 'attr': { 'class': 'filter' }}) }}
-                                <div class="row">
-                                    <div class="col-md-6">{{ form_row(form.filter.range) }}</div>
-                                    <div class="col-md-6">{{ form_row(form.filter.state) }}</div>
-                                </div>
-                            {{ form_end(form.filter) }}
+                        {% block transaction_filter %}
+                            <div class="card-header">
+                                {% form_theme form.filter '@OlixBackOffice/Twig/form-theme-horizontal-layout.html.twig' %}
+                                {{ form_start(form.filter, { 'action': path('account_get_transaction', { 'id': account.id }), 'attr': { 'class': 'filter' }}) }}
+                                    <div class="row">
+                                        <div class="col-md-6">{{ form_row(form.filter.range) }}</div>
+                                        <div class="col-md-6">{{ form_row(form.filter.state) }}</div>
+                                    </div>
+                                {{ form_end(form.filter) }}
+                            </div>
+                        {% endblock %}
+
+                        <div class="card-body table-responsive p-0">
+                            <div class="my-custom-scrollbar">
+                            {% if transactions is defined %}
+                                {% include "account/transaction-table.html.twig" %}
+                            {% else %}
+                                <table class="table table-sm table-hover text-nowrap">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Mode</th>
+                                            <th>Bénéficiaire</th>
+                                            <th>Catégories</th>
+                                            <th>Etat</th>
+                                            <th>Débit</th>
+                                            <th>Crédit</th>
+                                            <th>Solde</th>
+                                            <th>Mémo</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            {% endif %}
+                            </div>
                         </div>
-                    {% endblock %}
-
-                    <div class="card-body table-responsive p-0">
-                        <div class="my-custom-scrollbar">
-                        {% if transactions is defined %}
-                            {% include "account/transaction-table.html.twig" %}
-                        {% else %}
-                            <table class="table table-sm table-hover text-nowrap">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Mode</th>
-                                        <th>Bénéficiaire</th>
-                                        <th>Catégories</th>
-                                        <th>Etat</th>
-                                        <th>Débit</th>
-                                        <th>Crédit</th>
-                                        <th>Solde</th>
-                                        <th>Mémo</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        {% endif %}
-                        </div>
+                        <!-- <div class="overlay dark">
+                            <i class="fas fa-10x fa-spinner fa-spin"></i>
+                        </div> -->
                     </div>
-                    <!-- <div class="overlay dark">
-                        <i class="fas fa-10x fa-spinner fa-spin"></i>
-                    </div> -->
-                </div>
 
+                </div>
             </div>
-        </div>
+        {% endblock %}
 
     </div>
 

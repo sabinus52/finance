@@ -12,9 +12,10 @@ declare(strict_types=1);
 namespace App\Helper;
 
 use App\Entity\Account;
-use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
+use App\Values\TransactionType;
+use DateTimeImmutable;
 
 /**
  * Classe pour le calcul de la performance des placements.
@@ -64,6 +65,16 @@ class Performance
     }
 
     /**
+     * Affecte une liste de transactions autre s que ceux en base.
+     *
+     * @param Transaction[] $transactions
+     */
+    public function setTransactions(array $transactions): void
+    {
+        $this->transactions = $transactions;
+    }
+
+    /**
      * Génération de la performance pour un type de période donné.
      *
      * @param int $typePeriod
@@ -89,7 +100,7 @@ class Performance
             }
 
             // On a insvesti durant la période
-            if (Category::CAPITALISATION === $transaction->getCategory()->getCode()) {
+            if (TransactionType::INVESTMENT === $transaction->getType()->getValue()) {
                 $cumulInvest += $transaction->getAmount();
                 $results[$period]->addInvest($transaction->getAmount());
             }
@@ -97,10 +108,62 @@ class Performance
             $cumulValuation += $transaction->getAmount();
             $results[$period]->addValuation($transaction->getAmount());
 
+            // Ecrase par la vrai Valorisation
+            if (TransactionType::REVALUATION === $transaction->getType()->getValue()) {
+                $cumulValuation = $transaction->getBalance();
+                $results[$period]->setValuation($transaction->getBalance());
+            }
+
             $prevPerfItem = $results[$period];
         }
 
         return $results;
+    }
+
+    /**
+     * Retourne la performance glissante des X derniers mois.
+     *
+     * @return PerfItem[]
+     */
+    public function getPerfSlippery(): array
+    {
+        $result = [];
+        $items = $this->generate(self::MONTH);
+        $date = new DateTimeImmutable();
+
+        // Recherche la dernière valorisation et sa date
+        $idx = 0;
+        do {
+            $last = $this->searchByPeriod($items, $date->modify(sprintf('- %s month', ++$idx)));
+        } while (null === $last);
+        $date = $date->modify(sprintf('- %s month', $idx));
+
+        // Pour les X derniers mois
+        $list = [1, 3, 6, 12, 36, 60, 120];
+        foreach ($list as $value) {
+            $current = $this->searchByPeriod($items, $date->modify(sprintf('- %s month', $value)));
+            $last->setPrevious($current);
+            $result[$value] = clone $last;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Recherche et retourne une Perf d'une période donnée.
+     *
+     * @param PerfItem[]        $items
+     * @param DateTimeImmutable $date
+     *
+     * @return PerfItem|null
+     */
+    public function searchByPeriod(array $items, DateTimeImmutable $date): ?PerfItem
+    {
+        if (!isset($items[$date->format('Y-m')])) {
+            return null;
+        }
+
+        return $items[$date->format('Y-m')];
     }
 
     /**

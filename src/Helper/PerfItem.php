@@ -125,6 +125,11 @@ class PerfItem
         return $this;
     }
 
+    public function getPrevious(): ?self
+    {
+        return $this->previous;
+    }
+
     /**
      * Ajoute un montant investi durant la période.
      *
