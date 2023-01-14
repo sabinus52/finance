@@ -14,6 +14,36 @@
 </style>
 {% endblock %}
 
+{% block javascripts %}
+{{ parent() }}
+<script>
+$(function () {
+
+    var slipperyChartCanvas = $('#chartSlippery').get(0).getContext('2d');
+    new Chart(slipperyChartCanvas, {
+      type: 'bar',
+      data: {{ charts.slippery.data|json_encode()|raw() }},
+      options: {{ charts.slippery.options|json_encode()|raw() }}
+    });
+
+    var yearChartCanvas = $('#chartYear').get(0).getContext('2d');
+    new Chart(yearChartCanvas, {
+      type: 'bar',
+      data: {{ charts.year.data|json_encode()|raw() }},
+      options: {{ charts.year.options|json_encode()|raw() }}
+    });
+
+    var monthChartCanvas = $('#chartMonth').get(0).getContext('2d');
+    new Chart(monthChartCanvas, {
+      type: 'line',
+      data: {{ charts.month.data|json_encode()|raw() }},
+      options: {{ charts.month.options|json_encode()|raw() }}
+    });
+
+  })
+</script>
+{% endblock %}
+
 {% block operation_button %}
     <div class="btn-group">
         <a href="{{ path('capital__create', { 'id': account.id }) }}" class="btn btn-md bg-gradient-success" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">&nbsp;Effectuer une valorisation</span></a>
@@ -26,6 +56,33 @@
 {% endblock %}
 
 {% block recon_button %}{% endblock %}
+
+{% block content_header %}
+    <div class="col-2">
+        <div class="small-box bg-gradient-indigo">
+            <div class="inner"><h3>{{ mymacro.money(account.balance, account.currency, false) }}</h3><p>Valorisation</p></div>
+            <div class="icon"><i class="fas fa-euro-sign"></i></div>
+        </div>
+    </div>
+    <div class="col-2">
+        <div class="small-box bg-gradient-{{ mymacro.perfcolor(account.performance) }}">
+            <div class="inner"><h3>{{ mymacro.pourcentage(account.performance, false) }}</h3><p>Performance</p></div>
+            <div class="icon"><i class="fas fa-chart-line"></i></div>
+        </div>
+    </div>
+    <div class="col-2">
+        <div class="small-box bg-gradient-info">
+            <div class="inner"><h3>{{ mymacro.money(account.balance-account.invested, account.currency, false) }}</h3><p>+/- values</p></div>
+            <div class="icon"><i class="fas fa-wave-square"></i></div>
+        </div>
+    </div>
+    <div class="col-2">
+        <div class="small-box bg-gradient-secondary">
+            <div class="inner"><h3>{{ mymacro.money(account.invested, account.currency, false) }}</h3><p>Montant investi</p></div>
+            <div class="icon"><i class="fas fa-hand-holding-usd"></i></div>
+        </div>
+    </div>
+{% endblock %}
 
 
 {% macro table_perf(account, items, format, isVariation, isCumulInvesti) %}
@@ -66,34 +123,54 @@
 {% block content_account %}
 
     <div class="row">
+        <div class="col-md-4">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance glissante</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        <canvas id="chartSlippery" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Bar Chart</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        <canvas id="chartYear" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Test Chart</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        <canvas id="chartTest" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-7">
             <div class="card card-outline">
                 <div class="card-header">
-                    <h3 class="card-title">Performance glissante</h3>            
+                    <h3 class="card-title">Performance globale</h3>
                 </div>
-                <div class="card-body table-responsive p-0">
-                    <table class="table table-sm table-hover text-nowrap">
-                        <thead>
-                            <tr>
-                                <th class="text-center">Date</th>
-                                <th class="text-right">Performance</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for month, item in itemsSlippery %}
-                            <tr>
-                                <td class="text-center">{% if month < 12 %}{{ month }} mois{% else %}{{ month/12 }} an(s){% endif %}
-                                </td>
-                                <td class="text-right">{% if item.previous %}{{ mymacro.pourcentage(item.performance, true) }}{% endif %}</td>
-                                <td></td>
-                            </tr>
-                        {% else %}
-                            <tr>
-                                <td colspan="3">Aucune opérations trouvées</td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="card-body">
+                    <div class="chart">
+                        <canvas id="chartMonth" style="min-height: 300px;  max-width: 100%;"></canvas>
+                    </div>
                 </div>
             </div>
         </div>

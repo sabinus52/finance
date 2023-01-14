@@ -193,7 +193,7 @@ class PerfItem
      */
     public function getCumulPerf(): float
     {
-        return ($this->valuation - $this->investCumul) / $this->valuation;
+        return ($this->valuation - $this->investCumul) / $this->investCumul;
     }
 
     /**
@@ -203,6 +203,10 @@ class PerfItem
      */
     public function getPerformance(): float
     {
-        return ($this->getVariation() - $this->getVersement()) / $this->valuation;
+        if (null === $this->previous) {
+            return $this->getCumulPerf();
+        }
+
+        return ($this->getVariation() - $this->getVersement()) / ($this->previous->getValuation() + $this->getVersement());
     }
 }

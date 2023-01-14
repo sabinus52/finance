@@ -20,6 +20,7 @@
 
 {% block stylesheets %}
 {{ parent() }}
+<link rel="stylesheet" href="{{ asset('bundles/adminlte/plugins/chart.js/Chart.min.css') }}">
 <style type="text/css">
 .my-custom-scrollbar {
     position: relative;
@@ -31,7 +32,7 @@
 
 {% block javascripts %}
 {{ parent() }}
-
+<script src="{{ asset('bundles/adminlte/plugins/chart.js/Chart.min.js') }}"></script>
 <script>
 
 
@@ -43,9 +44,11 @@
     <div class="container-fluid">
 
         <div class="row">
-            <div class="col-md-8">
-
-            </div>
+            {% block content_header %}
+                <div class="col-md-8">
+                </div>
+            {% endblock %}
+            
             <div class="col-md-4">
                 <div class="p-2 text-right">
                     {% block operation_button %}

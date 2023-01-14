@@ -13,3 +13,7 @@
         {{ (rate*100)|number_format(2, ',', ' ') }} %
     {% endif %}
 {% endmacro %}
+
+{% macro perfcolor(rate) %}
+{% if rate < 0 %}red{% elseif rate < 0.05 %}orange{% elseif rate < 0.10 %}yellow{% else %}lime{% endif %}
+{% endmacro %}

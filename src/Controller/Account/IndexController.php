@@ -55,12 +55,16 @@ class IndexController extends BaseController
             'itemsbyMonth' => array_slice($performance->getByMonth(), -12, 12, true),
             'itemsbyQuarter' => array_slice($performance->getByQuarter(), -12, 12, true),
             'itemsbyYear' => $performance->getByYear(),
+            'itemsSlippery' => $performance->getBySlippery(),
+            'charts' => [
+                'slippery' => $performance->getChartSlippery(),
+                'year' => $performance->getChartYear(),
+                'month' => $performance->getChartMonth(),
+            ],
         ]);
     }
 
     /**
-     * Undocumented function.
-     *
      * @param Request      $request
      * @param Account      $account
      * @param string       $template

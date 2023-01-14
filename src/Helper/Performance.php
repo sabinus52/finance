@@ -13,6 +13,9 @@ namespace App\Helper;
 
 use App\Entity\Account;
 use App\Entity\Transaction;
+use App\Helper\Charts\MonthChart;
+use App\Helper\Charts\SlipperyChart;
+use App\Helper\Charts\YearChart;
 use App\Repository\TransactionRepository;
 use App\Values\TransactionType;
 use DateTimeImmutable;
@@ -125,45 +128,11 @@ class Performance
      *
      * @return PerfItem[]
      */
-    public function getPerfSlippery(): array
+    public function getBySlippery(): array
     {
-        $result = [];
         $items = $this->generate(self::MONTH);
-        $date = new DateTimeImmutable();
 
-        // Recherche la dernière valorisation et sa date
-        $idx = 0;
-        do {
-            $last = $this->searchByPeriod($items, $date->modify(sprintf('- %s month', ++$idx)));
-        } while (null === $last);
-        $date = $date->modify(sprintf('- %s month', $idx));
-
-        // Pour les X derniers mois
-        $list = [1, 3, 6, 12, 36, 60, 120];
-        foreach ($list as $value) {
-            $current = $this->searchByPeriod($items, $date->modify(sprintf('- %s month', $value)));
-            $last->setPrevious($current);
-            $result[$value] = clone $last;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Recherche et retourne une Perf d'une période donnée.
-     *
-     * @param PerfItem[]        $items
-     * @param DateTimeImmutable $date
-     *
-     * @return PerfItem|null
-     */
-    public function searchByPeriod(array $items, DateTimeImmutable $date): ?PerfItem
-    {
-        if (!isset($items[$date->format('Y-m')])) {
-            return null;
-        }
-
-        return $items[$date->format('Y-m')];
+        return self::getPerfSlipperyFromByMonth($items);
     }
 
     /**
@@ -197,6 +166,67 @@ class Performance
     }
 
     /**
+     * Retourne le graphique de performance glissante.
+     *
+     * @return SlipperyChart
+     */
+    public function getChartSlippery(): SlipperyChart
+    {
+        $labels = $values = [];
+        foreach ($this->getBySlippery() as $month => $item) {
+            $labels[] = (12 === $month) ? '1 an' : (($month < 12) ? sprintf('%s mois', $month) : sprintf('%s ans', $month / 12));
+            $values[] = round($item->getPerformance() * 100, 2);
+        }
+
+        $chart = new SlipperyChart();
+        $chart->setLabels($labels);
+        $chart->setValues($values);
+
+        return $chart;
+    }
+
+    /**
+     * Retourne le grapique de performance par année.
+     *
+     * @return YearChart
+     */
+    public function getChartYear(): YearChart
+    {
+        $labels = $values = $cumul = [];
+        foreach ($this->getByYear() as $year => $item) {
+            $labels[] = $year;
+            $values[] = round($item->getPerformance() * 100, 2);
+            $cumul[] = round($item->getCumulPerf() * 100, 2);
+        }
+
+        $chart = new YearChart();
+        $chart->setLabels($labels);
+        $chart->setValues([$values, $cumul]);
+
+        return $chart;
+    }
+
+    /**
+     * Retourne le graphique de performance par mois.
+     *
+     * @return MonthChart
+     */
+    public function getChartMonth(): MonthChart
+    {
+        $labels = $values = [];
+        foreach ($this->getByMonth() as $month => $item) {
+            $labels[] = $month;
+            $values[] = round($item->getCumulPerf() * 100, 2);
+        }
+
+        $chart = new MonthChart();
+        $chart->setLabels($labels);
+        $chart->setValues($values);
+
+        return $chart;
+    }
+
+    /**
      * Retourn la clé de la période en cours.
      *
      * @param Transaction $transaction
@@ -217,5 +247,52 @@ class Performance
         }
 
         return $date->format('Y-m');
+    }
+
+    /**
+     * Retourne la performance glissante des X derniers mois.
+     *
+     * @param PerfItem[] $items : Elements par mois
+     *
+     * @return PerfItem[]
+     */
+    public static function getPerfSlipperyFromByMonth(array $items): array
+    {
+        $result = [];
+        $date = new DateTimeImmutable();
+
+        // Recherche la dernière valorisation et sa date
+        $idx = 0;
+        do {
+            $last = self::searchByPeriod($items, $date->modify(sprintf('- %s month', ++$idx)));
+        } while (null === $last);
+        $date = $date->modify(sprintf('- %s month', $idx));
+
+        // Pour les X derniers mois
+        $list = [1, 3, 6, 12, 36, 60, 120];
+        foreach ($list as $value) {
+            $current = self::searchByPeriod($items, $date->modify(sprintf('- %s month', $value)));
+            $last->setPrevious($current);
+            $result[$value] = clone $last;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Recherche et retourne une Perf d'une période donnée.
+     *
+     * @param PerfItem[]        $items
+     * @param DateTimeImmutable $date
+     *
+     * @return PerfItem|null
+     */
+    public static function searchByPeriod(array $items, DateTimeImmutable $date): ?PerfItem
+    {
+        if (!isset($items[$date->format('Y-m')])) {
+            return null;
+        }
+
+        return $items[$date->format('Y-m')];
     }
 }

@@ -520,4 +520,14 @@ class Account
 
         return '<span class="badge bg-success text-uppercase">ouvert</span>';
     }
+
+    /**
+     * Retourne la performance du placement.
+     *
+     * @return float
+     */
+    public function getPerformance(): float
+    {
+        return round(($this->balance - $this->invested) / $this->invested, 5);
+    }
 }
