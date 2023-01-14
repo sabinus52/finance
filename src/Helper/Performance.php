@@ -13,9 +13,6 @@ namespace App\Helper;
 
 use App\Entity\Account;
 use App\Entity\Transaction;
-use App\Helper\Charts\MonthChart;
-use App\Helper\Charts\SlipperyChart;
-use App\Helper\Charts\YearChart;
 use App\Repository\TransactionRepository;
 use App\Values\TransactionType;
 use DateTimeImmutable;
@@ -163,67 +160,6 @@ class Performance
     public function getByYear(): array
     {
         return $this->generate(self::YEAR);
-    }
-
-    /**
-     * Retourne le graphique de performance glissante.
-     *
-     * @return SlipperyChart
-     */
-    public function getChartSlippery(): SlipperyChart
-    {
-        $labels = $values = [];
-        foreach ($this->getBySlippery() as $month => $item) {
-            $labels[] = (12 === $month) ? '1 an' : (($month < 12) ? sprintf('%s mois', $month) : sprintf('%s ans', $month / 12));
-            $values[] = round($item->getPerformance() * 100, 2);
-        }
-
-        $chart = new SlipperyChart();
-        $chart->setLabels($labels);
-        $chart->setValues($values);
-
-        return $chart;
-    }
-
-    /**
-     * Retourne le grapique de performance par année.
-     *
-     * @return YearChart
-     */
-    public function getChartYear(): YearChart
-    {
-        $labels = $values = $cumul = [];
-        foreach ($this->getByYear() as $year => $item) {
-            $labels[] = $year;
-            $values[] = round($item->getPerformance() * 100, 2);
-            $cumul[] = round($item->getCumulPerf() * 100, 2);
-        }
-
-        $chart = new YearChart();
-        $chart->setLabels($labels);
-        $chart->setValues([$values, $cumul]);
-
-        return $chart;
-    }
-
-    /**
-     * Retourne le graphique de performance par mois.
-     *
-     * @return MonthChart
-     */
-    public function getChartMonth(): MonthChart
-    {
-        $labels = $values = [];
-        foreach ($this->getByMonth() as $month => $item) {
-            $labels[] = $month;
-            $values[] = round($item->getCumulPerf() * 100, 2);
-        }
-
-        $chart = new MonthChart();
-        $chart->setLabels($labels);
-        $chart->setValues($values);
-
-        return $chart;
     }
 
     /**

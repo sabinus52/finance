@@ -11,12 +11,15 @@ declare(strict_types=1);
 
 namespace App\Helper\Charts;
 
+use App\Helper\PerfItem;
+use Symfony\UX\Chartjs\Model\Chart;
+
 /**
  * Grapique des données de performance par année.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class YearChart extends ChartBuilder
+class YearChart extends ChartBuilder implements ChartBuilderInterface
 {
     /**
      * Les options par défaut du graphique.
@@ -27,8 +30,10 @@ class YearChart extends ChartBuilder
         'responsive' => true,
         'maintainAspectRatio' => false,
         'datasetFill' => false,
-        'legend' => [
-            'display' => false,
+        'plugins' => [
+            'legend' => [
+                'display' => false,
+            ],
         ],
     ];
 
@@ -48,31 +53,37 @@ class YearChart extends ChartBuilder
         'data' => [],
     ];
 
-    /**
-     * Constructeur.
-     */
     public function __construct()
     {
-        $this->setOptions(self::$defaultOpts);
+        $this->chart = new Chart(Chart::TYPE_BAR);
     }
 
-    /**
-     * Retourne les données du graphique.
-     *
-     * @return array<mixed>
-     */
-    public function getData(): array
+    public function getOptions(): array
     {
+        return self::$defaultOpts;
+    }
+
+    public function getData($datas): array
+    {
+        $labels = $values1 = $values2 = $colors = [];
+        /** @var PerfItem[] $datas */
+        foreach ($datas as $year => $item) {
+            $labels[] = $year;
+            $values1[] = round($item->getPerformance() * 100, 2);
+            $values2[] = round($item->getCumulPerf() * 100, 2);
+            $colors[] = $this->getBackgroundColor($item->getPerformance());
+        }
+
         $dataSet1 = self::$defaultData;
-        $dataSet1['data'] = $this->values[0];
-        $dataSet1['backgroundColor'] = $this->getBackgroundColor();
+        $dataSet1['data'] = $values1;
+        $dataSet1['backgroundColor'] = $colors;
         $dataSet2 = self::$defaultData;
-        $dataSet2['data'] = $this->values[1];
+        $dataSet2['data'] = $values2;
         $dataSet2['backgroundColor'] = null;
         $dataSet2['type'] = 'line';
 
         return [
-            'labels' => $this->labels,
+            'labels' => $labels,
             'datasets' => [$dataSet2, $dataSet1],
         ];
     }
@@ -80,22 +91,19 @@ class YearChart extends ChartBuilder
     /**
      * Retourne la couleur de chaque barre en fonction de la valeur.
      *
-     * @return array<string>
+     * @param float $value
+     *
+     * @return string
      */
-    private function getBackgroundColor(): array
+    private function getBackgroundColor(float $value): string
     {
-        $result = [];
-
-        foreach ($this->values[0] as $value) {
-            $temp = 'green';
-            if ($value < 0.0) {
-                $temp = 'red';
-            } elseif ($value < 2.5) {
-                $temp = 'orange';
-            } elseif ($value < 5.0) {
-                $temp = 'yellow';
-            }
-            $result[] = $temp;
+        $result = 'green';
+        if ($value < 0.0) {
+            $result = 'red';
+        } elseif ($value < 0.025) {
+            $result = 'orange';
+        } elseif ($value < 0.050) {
+            $result = 'yellow';
         }
 
         return $result;

@@ -11,12 +11,15 @@ declare(strict_types=1);
 
 namespace App\Helper\Charts;
 
+use App\Helper\PerfItem;
+use Symfony\UX\Chartjs\Model\Chart;
+
 /**
  * Grapique des données de performance glissantes.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class SlipperyChart extends ChartBuilder
+class SlipperyChart extends ChartBuilder implements ChartBuilderInterface
 {
     /**
      * Les options par défaut du graphique.
@@ -27,28 +30,11 @@ class SlipperyChart extends ChartBuilder
         'responsive' => true,
         'maintainAspectRatio' => false,
         'datasetFill' => false,
-        'legend' => [
-            'display' => false,
+        'plugins' => [
+            'legend' => [
+                'display' => false,
+            ],
         ],
-        /*'animation' => [
-            'duration' => 2000,
-            'onComplete' => "function () {
-                var chartInstance = this.chart;
-                    ctx = chartInstance.ctx;
-                ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-
-                this.data.datasets.forEach(function (dataset, i) {
-                    var meta = chartInstance.controller.getDatasetMeta(i);
-                    if (dataset.type != 'line') {
-                    meta.data.forEach(function (bar, index) {
-                        var data = dataset.data[index];
-                        ctx.fillText(data, bar._model.x, bar._model.y - 5);
-                    });
-                    }
-                });",
-        ],*/
     ];
 
     /**
@@ -67,44 +53,64 @@ class SlipperyChart extends ChartBuilder
         'data' => [],
     ];
 
-    /**
-     * Constructeur.
-     */
     public function __construct()
     {
-        $this->setOptions(self::$defaultOpts);
+        $this->chart = new Chart(Chart::TYPE_BAR);
     }
 
-    /**
-     * Retourne les données du graphique.
-     *
-     * @return array<mixed>
-     */
-    public function getData(): array
+    public function getOptions(): array
     {
+        return self::$defaultOpts;
+    }
+
+    public function getData($datas): array
+    {
+        $labels = $values = $colors = [];
+        /** @var PerfItem[] $datas */
+        foreach ($datas as $month => $item) {
+            $labels[] = $this->getLabel($month);
+            $values[] = round($item->getPerformance() * 100, 2);
+            $colors[] = $this->getBackgroundColor($item->getPerformance());
+        }
+
         $dataSet = self::$defaultData;
-        $dataSet['data'] = $this->values;
-        $dataSet['backgroundColor'] = $this->getBackgroundColor();
+        $dataSet['data'] = $values;
+        $dataSet['backgroundColor'] = $colors;
 
         return [
-            'labels' => $this->labels,
+            'labels' => $labels,
             'datasets' => [$dataSet],
         ];
     }
 
     /**
-     * Retourne la couleur de chaque barre en fonction de la valeur.
+     * Retourne le label.
      *
-     * @return array<string>
+     * @param int $month
+     *
+     * @return string
      */
-    private function getBackgroundColor(): array
+    public function getLabel(int $month): string
     {
-        $result = [];
-
-        foreach ($this->values as $value) {
-            $result[] = ($value > 0) ? 'green' : 'red';
+        if (12 === $month) {
+            return '1 an';
+        }
+        if ($month < 12) {
+            return sprintf('%s mois', $month);
         }
 
-        return $result;
+        return sprintf('%s ans', $month / 12);
+    }
+
+    /**
+     * Retourne la couleur de chaque barre en fonction de la valeur.
+     *
+     * @param float $value
+     *
+     * @return string
+     */
+    private function getBackgroundColor(float $value): string
+    {
+        return ($value > 0.0) ? 'green' : 'red';
     }
 }

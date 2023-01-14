@@ -12,6 +12,9 @@ declare(strict_types=1);
 namespace App\Controller\Account;
 
 use App\Entity\Account;
+use App\Helper\Charts\MonthChart;
+use App\Helper\Charts\SlipperyChart;
+use App\Helper\Charts\YearChart;
 use App\Helper\Performance;
 use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -51,15 +54,19 @@ class IndexController extends BaseController
     {
         $performance = new Performance($repository, $account);
 
+        $chart2 = new MonthChart();
+        $chart3 = new SlipperyChart();
+        $chart4 = new YearChart();
+
         return $this->index($request, $account, 'account/5capital.html.twig', [
             'itemsbyMonth' => array_slice($performance->getByMonth(), -12, 12, true),
             'itemsbyQuarter' => array_slice($performance->getByQuarter(), -12, 12, true),
             'itemsbyYear' => $performance->getByYear(),
             'itemsSlippery' => $performance->getBySlippery(),
             'charts' => [
-                'slippery' => $performance->getChartSlippery(),
-                'year' => $performance->getChartYear(),
-                'month' => $performance->getChartMonth(),
+                'slippery' => $chart3->getChart($performance->getBySlippery()),
+                'year' => $chart4->getChart($performance->getByYear()),
+                'month' => $chart2->getChart($performance->getByMonth()),
             ],
         ]);
     }

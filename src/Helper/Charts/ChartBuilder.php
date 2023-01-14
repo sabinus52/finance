@@ -11,118 +11,32 @@ declare(strict_types=1);
 
 namespace App\Helper\Charts;
 
+use Symfony\UX\Chartjs\Model\Chart;
+
 /**
  * Construction des graphiques.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class ChartBuilder
+abstract class ChartBuilder implements ChartBuilderInterface
 {
     /**
-     * Liste des libellés des graphiques.
+     * @var Chart
+     */
+    protected $chart;
+
+    /**
+     * Retourne le graphique avec les données.
      *
-     * @var array<mixed>
-     */
-    protected $labels;
-
-    /**
-     * Liste des données.
+     * @param mixed $data
      *
-     * @var array<mixed>
+     * @return Chart
      */
-    protected $datasets;
-
-    /**
-     * Valeurs du DataSet.
-     *
-     * @var array<mixed>
-     */
-    protected $values;
-
-    /**
-     * Liste des options.
-     *
-     * @var array<mixed>
-     */
-    protected $options;
-
-    /**
-     * @param array<mixed> $labels
-     *
-     * @return self
-     */
-    public function setLabels(array $labels): self
+    public function getChart($data): Chart
     {
-        $this->labels = $labels;
+        $this->chart->setOptions($this->getOptions());
+        $this->chart->setData($this->getData($data));
 
-        return $this;
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getLabels(): array
-    {
-        return $this->labels;
-    }
-
-    /**
-     * @param array<mixed> $datasets
-     *
-     * @return self
-     */
-    public function setDatasets(array $datasets): self
-    {
-        $this->datasets = $datasets;
-
-        return $this;
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getValues(): array
-    {
-        return $this->values;
-    }
-
-    /**
-     * @param array<mixed> $values
-     *
-     * @return self
-     */
-    public function setValues(array $values): self
-    {
-        $this->values = $values;
-
-        return $this;
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getDataSets(): array
-    {
-        return $this->datasets;
-    }
-
-    /**
-     * @param array<mixed> $options
-     *
-     * @return self
-     */
-    public function setOptions(array $options): self
-    {
-        $this->options = $options;
-
-        return $this;
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getOptions(): array
-    {
-        return $this->options;
+        return $this->chart;
     }
 }
