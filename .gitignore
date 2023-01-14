@@ -31,7 +31,11 @@ yarn-error.log
 ###< php-cs-fixer ###
 
 ###> My configuration ###
+/.env
 /DEVELOP*.md
 /*.code-workspace
 /*.conf
+/public/institutions/
+/src/Command/*MyCommand.php
+/src/DataFixtures/*MyFixtures.php
 ###< My configuration ###

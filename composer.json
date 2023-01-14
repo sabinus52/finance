@@ -45,6 +45,7 @@
         "symfony/webpack-encore-bundle": "^1.15",
         "symfony/yaml": "5.4.*",
         "twig/extra-bundle": "^2.12|^3.0",
+        "twig/intl-extra": "^3.4",
         "twig/twig": "^2.12|^3.0"
     },
     "config": {
@@ -77,22 +78,16 @@
     "scripts": {
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+            "assets:install %PUBLIC_DIR%": "symfony-cmd",
+            "assets:adminlte %PUBLIC_DIR%": "symfony-cmd",
+            "fos:js-routing:dump --format=json --target=config/routes/fos_js_routes.json": "symfony-cmd"
         },
         "post-install-cmd": [
             "@auto-scripts"
         ],
         "post-update-cmd": [
             "@auto-scripts"
-        ],
-        "test": "phpunit --debug",
-        "phpmd": [
-            "phpmd src ansi ruleset.xml",
-            "phpmd tests ansi ruleset.xml"
-        ],
-        "phpstan": "phpstan analyse src --level=7 --configuration=phpstan.neon",
-        "codestyle": "php-cs-fixer fix --dry-run --verbose --diff",
-        "codestyle-fix": "php-cs-fixer fix"
+        ]
     },
     "conflict": {
         "symfony/symfony": "*"
