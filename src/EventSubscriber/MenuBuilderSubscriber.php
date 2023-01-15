@@ -35,14 +35,25 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             foreach ($type['accounts'] as $account) {
                 /** @var Account $account */
                 $menu->addChild(new MenuItemModel('account'.$account->getId(), [
-                    'label' => $account->getInstitution()->getName().' '.$account->getName(),
-                    'route' => 'account__index',
+                    'label' => sprintf('<img src="%s" height="28"> &nbsp; %s', $account->getInstitution()->getLogo(), $account->getName()),
+                    // 'label' => $account->getName(),
+                    'route' => sprintf('account_%s_index', $account->getType()->getTypeCode()),
                     'routeArgs' => ['id' => $account->getId()],
                     'icon' => ' ',
                 ]));
             }
             $event->addItem($menu);
         }
+
+        $report = new MenuItemModel('report', [
+            'label' => 'Rapports',
+            'icon' => 'fas fa-chart-bar',
+        ]);
+        $report->addChild(new MenuItemModel('report_capital', [
+            'label' => 'Capitalisation',
+            'route' => 'report_capital',
+            'icon' => 'fas fa-wallet',
+        ]));
 
         $manage = new MenuItemModel('manage', [
             'label' => 'Gerer ses finances',
@@ -70,6 +81,7 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
         ]));
 
         $event
+            ->addItem($report)
             ->addItem($manage)
         ;
     }

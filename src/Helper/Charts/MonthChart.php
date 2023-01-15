@@ -61,7 +61,7 @@ class MonthChart extends ChartBuilder implements ChartBuilderInterface
         'pointStrokeColor' => 'rgba(60,141,188,1)',
         'pointHighlightFill' => '#fff',
         'pointHighlightStroke' => 'rgba(60,141,188,1)',
-        'tension' => 0,
+        'tension' => 0.3,
         'data' => [],
     ];
 

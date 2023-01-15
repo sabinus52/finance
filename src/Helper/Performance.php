@@ -15,6 +15,7 @@ use App\Entity\Account;
 use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
 use App\Values\TransactionType;
+use DateTime;
 use DateTimeImmutable;
 
 /**
@@ -59,9 +60,13 @@ class Performance
     {
         $this->repository = $repository;
         $this->account = $account;
+        $date = new DateTime();
+        $date->modify('first day of this month');
 
         // Récupération des transactions du placement
-        $this->transactions = $this->repository->findByAccount($this->account);
+        $this->transactions = $this->repository->findByAccount($this->account, [
+            'range' => ['1970-01-01', $date->format('Y-m-d')],
+        ]);
     }
 
     /**
@@ -205,7 +210,7 @@ class Performance
         $date = $date->modify(sprintf('- %s month', $idx));
 
         // Pour les X derniers mois
-        $list = [1, 3, 6, 12, 36, 60, 120];
+        $list = [1, 3, 6, 12, 24, 36, 60, 120];
         foreach ($list as $value) {
             $current = self::searchByPeriod($items, $date->modify(sprintf('- %s month', $value)));
             $last->setPrevious($current);
