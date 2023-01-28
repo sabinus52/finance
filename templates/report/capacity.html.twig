@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+{% block title %}{{ parent() }} - Capcité d'épargne{% endblock %}
+
+{% block content_title %}<i class="fas fa-piggy-bank"></i> Capacité d'épargne{% endblock %}
+{% block content_subtitle %}{% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <ul class="nav nav-pills nav-fill mb-3" id="pills-tab" role="tablist">
+        {% for key, item in results.byYear %}
+            <li class="nav-item" role="presentation">
+                <a class="nav-link{% if loop.first %} active{% endif %}" id="pills-{{ key }}-tab" data-toggle="pill" data-target="#pills-{{ key }}" role="tab" aria-controls="pills-{{ key }}" aria-selected="true" href="#">{{ units[key] }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+        {% for key, items in results.byYear %}
+            <div class="tab-pane fade show{% if loop.first %} active{% endif %}" id="pills-{{ key }}" role="tabpanel" aria-labelledby="pills-{{ key }}-tab">
+            
+                <div class="row">
+                    <div class="col-7">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Date</th>
+                                    <th class="text-right">Revenus</th>
+                                    <th class="text-right">Dépenses</th>
+                                    <th class="text-right">Différence</th>
+                                    <th class="text-right">Versement</th>
+                                    <th class="text-right">Epargne</th>
+                                    <th class="text-right">Capacité</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in results.byYear[key].results %}
+                                <tr>
+                                    <td class="text-center">{{ item.period|date('Y') }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.income, 'EUR', false) }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.expense, 'EUR', false) }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.diff, 'EUR', true) }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.invest, 'EUR', false) }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.thrift, 'EUR', false) }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.capacity, 'EUR', true) }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-5">
+                        {{ render_chart(charts.year[key]) }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-7">
+                        <table class="table table-sm table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Date</th>
+                                    <th class="text-right">Revenus</th>
+                                    <th class="text-right">Dépenses</th>
+                                    <th class="text-right">Différence</th>
+                                    <th class="text-right">Versement</th>
+                                    <th class="text-right">Epargne</th>
+                                    <th class="text-right">Capacité</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in results.byMonth[key].results(24) %}
+                                <tr>
+                                    <td class="text-center">{{ item.period|date('Y-m') }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.income, 'EUR', false) }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.expense, 'EUR', false) }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.diff, 'EUR', true) }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.invest, 'EUR', false) }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.thrift, 'EUR', false) }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.capacity, 'EUR', true) }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-5">
+                        {{ render_chart(charts.month[key]) }}
+                    </div>
+                </div>
+            
+            </div>
+        {% endfor %}
+        </div>
+
+
+    </div>
+
+
+{% endblock %}
+

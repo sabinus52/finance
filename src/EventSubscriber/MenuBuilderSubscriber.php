@@ -54,6 +54,11 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'report_capital',
             'icon' => 'fas fa-wallet',
         ]));
+        $report->addChild(new MenuItemModel('report_capacity', [
+            'label' => 'Capacité d\'épargne',
+            'route' => 'report_capacity',
+            'icon' => 'fas fa-piggy-bank',
+        ]));
 
         $manage = new MenuItemModel('manage', [
             'label' => 'Gerer ses finances',
