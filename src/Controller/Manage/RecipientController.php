@@ -9,13 +9,13 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\Controller;
+namespace App\Controller\Manage;
 
-use App\Datatable\RecipientDatatable;
+use App\Datatable\RecipientTableType;
 use App\Entity\Recipient;
 use App\Form\RecipientType;
 use Doctrine\ORM\EntityManagerInterface;
-use Olix\BackOfficeBundle\Datatable\Response\DatatableResponse;
+use Omines\DataTablesBundle\DataTableFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,22 +26,19 @@ use Symfony\Component\Routing\Annotation\Route;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class ManageRecipientController extends AbstractController
+class RecipientController extends AbstractController
 {
     /**
      * @Route("/manage/recipient", name="manage_recipient__index")
      */
-    public function index(Request $request, RecipientDatatable $datatable, DatatableResponse $responseService): Response
+    public function index(Request $request, DataTableFactory $factory): Response
     {
-        $isAjax = $request->isXmlHttpRequest();
+        $datatable = $factory->createFromType(RecipientTableType::class)
+            ->handleRequest($request)
+        ;
 
-        $datatable->buildDatatable();
-
-        if ($isAjax) {
-            $responseService->setDatatable($datatable);
-            $responseService->getDatatableQueryBuilder();
-
-            return $responseService->getResponse();
+        if ($datatable->isCallback()) {
+            return $datatable->getResponse();
         }
 
         return $this->renderForm('manage/recipient-index.html.twig', [
@@ -55,23 +52,23 @@ class ManageRecipientController extends AbstractController
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $recipient = new Recipient();
-        $form = $this->createForm(RecipientType::class, $recipient, [
-            'action' => $this->generateUrl('manage_recipient__create'),
-        ]);
+        $form = $this->createForm(RecipientType::class, $recipient);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($recipient);
             $entityManager->flush();
 
-            $this->addFlash('success', 'La création du bénéficiare <strong>'.$recipient->getName().'</strong> a bien été prise en compte');
+            $this->addFlash('success', 'La création du bénéficiare <strong>'.$recipient.'</strong> a bien été prise en compte');
 
             return new Response('OK');
         }
 
-        return $this->renderForm('manage/recipient-create.html.twig', [
-            'action' => 'create',
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
+            'modal' => [
+                'title' => 'Créer un nouveau bénéficiaire',
+            ],
         ]);
     }
 
@@ -83,25 +80,25 @@ class ManageRecipientController extends AbstractController
         // Bénéficiaire réservé pour les virements internes
         if (1 === $recipient->getId()) {
             return $this->renderForm('@OlixBackOffice/Include/modal-alert.html.twig', [
-                'message' => 'Ce bénéficiaire <strong>'.$recipient->getName().'</strong> ne peut pas être modifié.',
+                'message' => 'Ce bénéficiaire <strong>'.$recipient.'</strong> ne peut pas être modifié.',
             ]);
         }
 
-        $form = $this->createForm(RecipientType::class, $recipient, [
-            'action' => $this->generateUrl('manage_recipient__edit', ['id' => $recipient->getId()]),
-        ]);
+        $form = $this->createForm(RecipientType::class, $recipient);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'La modification du bénéficiare <strong>'.$recipient->getName().'</strong> a bien été prise en compte');
+            $this->addFlash('success', 'La modification du bénéficiare <strong>'.$recipient.'</strong> a bien été prise en compte');
 
             return new Response('OK');
         }
 
-        return $this->renderForm('manage/recipient-update.html.twig', [
-            'action' => 'update',
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
+            'modal' => [
+                'title' => 'Modifier un bénéficiaire',
+            ],
         ]);
     }
 }

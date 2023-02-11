@@ -7,10 +7,6 @@
 {% block content_title %}<i class="fas fa-piggy-bank"></i> Gérer les comptes{% endblock %}
 {% block content_subtitle %}(Contrat, épargne, capitalisation, ...){% endblock %}
 
-{% block javascripts %}
-{{ parent()}}
-{% endblock %}
-
 
 {% block content %}
 
@@ -20,16 +16,16 @@
             <div class="col-md-12">
 
                 {{ form_start(form) }}
-                <div class="card card-{% if action == 'create' %}success{% else %}primary{% endif %}">
+                <div class="card card-{% if form.vars.value is empty %}success{% else %}primary{% endif %}">
                     <div class="card-header">
-                        <h3 class="card-title">Formulaire {% if action == 'create' %}de création{% else %}d'édition{% endif %} d'un compte ou contrat</h3>
+                        <h3 class="card-title">Formulaire {% if form.vars.value is empty %}de création{% else %}d'édition{% endif %} d'un compte ou contrat</h3>
                     </div>
                     <div class="card-body">
                         {{ form_rest(form) }}
                     </div>
                     <div class="card-footer">
                         <a href="{{ path('manage_account__index') }}" class="btn btn-sm btn-secondary">Annuler</a>
-                        {% if action == 'create' %}
+                        {% if form.vars.value is empty %}
                             <button type="submit" class="btn btn-success float-right"><i class="fas fa-plus"></i> Ajouter</button>
                         {% else %}
                             <button type="submit" class="btn btn-primary float-right"><i class="fas fa-edit"></i> Modifier</button>

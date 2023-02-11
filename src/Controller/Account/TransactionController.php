@@ -133,8 +133,11 @@ class TransactionController extends BaseController
             return new Response('OK');
         }
 
-        return $this->renderForm('account/transaction-create.html.twig', [
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
+            'modal' => [
+                'title' => 'Créer une nouvelle opération',
+            ],
         ]);
     }
 
@@ -165,8 +168,11 @@ class TransactionController extends BaseController
             return new Response('OK');
         }
 
-        return $this->renderForm('account/transaction-update.html.twig', [
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
+            'modal' => [
+                'title' => 'Modifier une opération',
+            ],
         ]);
     }
 
@@ -192,9 +198,9 @@ class TransactionController extends BaseController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-delete.html.twig', [
+        return $this->renderForm('@OlixBackOffice/Include/modal-content-delete.html.twig', [
             'form' => $form,
-            'element' => 'cette opération',
+            'element' => sprintf('cette opération de <b>%s</b>', $transaction),
         ]);
     }
 

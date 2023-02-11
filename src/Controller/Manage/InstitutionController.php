@@ -9,7 +9,7 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\Controller;
+namespace App\Controller\Manage;
 
 use App\Entity\Institution;
 use App\Form\InstitutionType;
@@ -27,7 +27,7 @@ use Symfony\Component\Routing\Annotation\Route;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class ManageInstitutionController extends AbstractController
+class InstitutionController extends AbstractController
 {
     /**
      * @Route("/manage/institution", name="manage_institution__index")
@@ -45,9 +45,7 @@ class ManageInstitutionController extends AbstractController
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $institution = new Institution();
-        $form = $this->createForm(InstitutionType::class, $institution, [
-            'action' => $this->generateUrl('manage_institution__create'),
-        ]);
+        $form = $this->createForm(InstitutionType::class, $institution);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -60,13 +58,16 @@ class ManageInstitutionController extends AbstractController
 
             $entityManager->persist($institution);
             $entityManager->flush();
-            $this->addFlash('success', 'La création de l\'organisme <strong>'.$institution->getName().'</strong> a bien été prise en compte');
+            $this->addFlash('success', 'La création de l\'organisme <strong>'.$institution.'</strong> a bien été prise en compte');
 
             return new Response('OK');
         }
 
-        return $this->renderForm('manage/institution-create.html.twig', [
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
+            'modal' => [
+                'title' => 'Créer une nouvelle institution',
+            ],
         ]);
     }
 
@@ -75,9 +76,7 @@ class ManageInstitutionController extends AbstractController
      */
     public function update(Request $request, Institution $institution, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(InstitutionType::class, $institution, [
-            'action' => $this->generateUrl('manage_institution__edit', ['id' => $institution->getId()]),
-        ]);
+        $form = $this->createForm(InstitutionType::class, $institution);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -89,13 +88,16 @@ class ManageInstitutionController extends AbstractController
             }
 
             $entityManager->flush();
-            $this->addFlash('success', 'La modification de l\'organisme <strong>'.$institution->getName().'</strong> a bien été prise en compte');
+            $this->addFlash('success', 'La modification de l\'organisme <strong>'.$institution.'</strong> a bien été prise en compte');
 
             return new Response('OK');
         }
 
-        return $this->renderForm('manage/institution-update.html.twig', [
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
+            'modal' => [
+                'title' => 'Modifier une institution',
+            ],
         ]);
     }
 

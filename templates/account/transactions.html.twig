@@ -36,8 +36,8 @@
                         <h3 class="card-title">{{ account.fullName }}</h3>
                         <div class="card-tools">
                         {% if not isReconcilied %}
-                            <a data-remote="{{ path('transaction__create', { 'id': account.id }) }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter une opération</span></a>
-                            <a data-remote="{{ path('transfer__create', { 'id': account.id }) }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalForm"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un virement</span></a>
+                            <a data-remote="{{ path('transaction__create', { 'id': account.id }) }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter une opération</span></a>
+                            <a data-remote="{{ path('transfer__create', { 'id': account.id }) }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un virement</span></a>
                             <a data-remote="{{ path('reconciliation_create', { 'id': account.id }) }}" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalRecon"><i class="fas fa-check-circle"></i> <span class="d-none d-md-inline">Rapprochement</span></a>
                         {% else %}
                             {{ form_start(form.valid) }}
@@ -99,8 +99,6 @@
         </div>
 
     </div>
-
-    {% include '@OlixBackOffice/Include/modal-delete.html.twig' with {'form': form.delete, 'element': 'cette opération'} %}
 
     {% include '@OlixBackOffice/Include/modal-form.html.twig' %}
 

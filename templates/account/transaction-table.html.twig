@@ -46,8 +46,8 @@
             <td>{{ item.memo }}</td>
             <td class="text-right align-middle">
                 {% if item.state != constant('STATE_RECONCILIED', item) %}
-                    <a href="{{ path('transaction__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
-                    <a href="{{ path('transaction__remove', {'id': item.id}) }}" class="btn btn-sm btn-danger" data-toggle="olix-modal" data-target="#modalForm"><i class="fas fa-trash"></i><span class="d-none d-md-inline">&nbsp;Supprimer<span></a>
+                    <a href="{{ path('transaction__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                    <a href="{{ path('transaction__remove', {'id': item.id}) }}" class="btn btn-sm btn-danger" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-trash"></i><span class="d-none d-md-inline">&nbsp;Supprimer<span></a>
                 {% endif %}
             </td>
         </tr>

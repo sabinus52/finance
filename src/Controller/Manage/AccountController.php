@@ -9,7 +9,7 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\Controller;
+namespace App\Controller\Manage;
 
 use App\Entity\Account;
 use App\Form\AccountType;
@@ -27,7 +27,7 @@ use Symfony\Component\Routing\Annotation\Route;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class ManageAccountController extends AbstractController
+class AccountController extends AbstractController
 {
     /**
      * @Route("/manage/account", name="manage_account__index")
@@ -69,13 +69,12 @@ class ManageAccountController extends AbstractController
             $entityManager->persist($account);
             $entityManager->flush();
 
-            $this->addFlash('success', 'La création du compte <strong>'.$account->getName().'</strong> a bien été prise en compte');
+            $this->addFlash('success', 'La création du compte <strong>'.$account.'</strong> a bien été prise en compte');
 
             return $this->redirectToRoute('manage_account__index');
         }
 
         return $this->renderForm('manage/account-edit.html.twig', [
-            'action' => 'create',
             'form' => $form,
         ]);
     }
@@ -92,13 +91,12 @@ class ManageAccountController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'La modification du compte <strong>'.$account->getName().'</strong> a bien été prise en compte');
+            $this->addFlash('success', 'La modification du compte <strong>'.$account.'</strong> a bien été prise en compte');
 
             return $this->redirectToRoute('manage_account__index');
         }
 
         return $this->renderForm('manage/account-edit.html.twig', [
-            'action' => 'update',
             'form' => $form,
         ]);
     }
@@ -111,7 +109,7 @@ class ManageAccountController extends AbstractController
         $helper = new Balance($entityManager);
         $result = $helper->updateBalanceAll($account);
 
-        $this->addFlash('success', sprintf('Le solde a été recalculé pour le compte <strong>%s</strong> sur <strong>%s</strong> opérations.', $account->getFullName(), $result));
+        $this->addFlash('success', sprintf('Le solde a été recalculé pour le compte <strong>%s</strong> sur <strong>%s</strong> opérations.', $account, $result));
 
         return $this->redirectToRoute('manage_account__index');
     }

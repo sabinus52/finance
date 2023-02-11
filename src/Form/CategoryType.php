@@ -36,10 +36,10 @@ class CategoryType extends AbstractType
             ])
             ->add('type', SwitchType::class, [
                 'label' => 'Dépenses / Revenus',
-                'ojs_on_text' => 'RECETTES',
-                'ojs_off_text' => 'DEPENSES',
-                'ojs_on_color' => 'success',
-                'ojs_off_color' => 'danger',
+                'js_on_text' => 'RECETTES',
+                'js_off_text' => 'DEPENSES',
+                'js_on_color' => 'success',
+                'js_off_color' => 'danger',
                 'required' => false,
             ])
         ;

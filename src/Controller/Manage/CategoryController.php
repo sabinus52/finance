@@ -9,7 +9,7 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\Controller;
+namespace App\Controller\Manage;
 
 use App\Entity\Category;
 use App\Form\CategoryType;
@@ -25,7 +25,7 @@ use Symfony\Component\Routing\Annotation\Route;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class ManageCategoryController extends AbstractController
+class CategoryController extends AbstractController
 {
     /**
      * @Route("/manage/category", name="manage_category__index")
@@ -46,21 +46,22 @@ class ManageCategoryController extends AbstractController
         $category = new Category();
         $type = (int) $request->get('type', 1);
         $category->setType((bool) $type);
-        $form = $this->createForm(CategoryType::class, $category, [
-            'action' => $this->generateUrl('manage_category__create1', ['type' => $type]),
-        ]);
+        $form = $this->createForm(CategoryType::class, $category);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($category);
             $entityManager->flush();
-            $this->addFlash('success', 'La création de la catégorie <strong>'.$category->getName().'</strong> a bien été prise en compte');
+            $this->addFlash('success', 'La création de la catégorie <strong>'.$category.'</strong> a bien été prise en compte');
 
             return new Response('OK');
         }
 
-        return $this->renderForm('manage/category-create.html.twig', [
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
+            'modal' => [
+                'title' => 'Créer une nouvelle catégorie',
+            ],
         ]);
     }
 
@@ -70,9 +71,7 @@ class ManageCategoryController extends AbstractController
     public function createSubCat(Request $request, Category $category, EntityManagerInterface $entityManager): Response
     {
         $subCategory = new Category();
-        $form = $this->createForm(CategoryType::class, $subCategory, [
-            'action' => $this->generateUrl('manage_category__create2', ['id' => $category->getId()]),
-        ]);
+        $form = $this->createForm(CategoryType::class, $subCategory);
         $form->remove('type');
 
         $form->handleRequest($request);
@@ -81,13 +80,16 @@ class ManageCategoryController extends AbstractController
             $subCategory->setParent($category);
             $entityManager->persist($subCategory);
             $entityManager->flush();
-            $this->addFlash('success', 'La création de la catégorie <strong>'.$subCategory->getName().'</strong> a bien été prise en compte');
+            $this->addFlash('success', 'La création de la catégorie <strong>'.$subCategory.'</strong> a bien été prise en compte');
 
             return new Response('OK');
         }
 
-        return $this->renderForm('manage/category-create.html.twig', [
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
+            'modal' => [
+                'title' => 'Créer une sous-catégorie',
+            ],
         ]);
     }
 
@@ -99,26 +101,26 @@ class ManageCategoryController extends AbstractController
         // Catégorie réservée pour les virements internes
         if (Category::VIREMENT === $category->getCode()) {
             return $this->renderForm('@OlixBackOffice/Include/modal-alert.html.twig', [
-                'message' => 'Cette catégorie <strong>'.$category->getFullName().'</strong> ne peut pas être modifiée.',
+                'message' => 'Cette catégorie <strong>'.$category.'</strong> ne peut pas être modifiée.',
             ]);
         }
 
-        $form = $this->createForm(CategoryType::class, $category, [
-            'action' => $this->generateUrl('manage_category__edit', ['id' => $category->getId()]),
-        ]);
+        $form = $this->createForm(CategoryType::class, $category);
         $form->remove('type');
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'La modification de la catégorie <strong>'.$category->getName().'</strong> a bien été prise en compte');
+            $this->addFlash('success', 'La modification de la catégorie <strong>'.$category.'</strong> a bien été prise en compte');
 
             return new Response('OK');
         }
 
-        return $this->renderForm('manage/category-update.html.twig', [
-            'category' => $category,
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
+            'modal' => [
+                'title' => 'Modifier une catégorie',
+            ],
         ]);
     }
 }

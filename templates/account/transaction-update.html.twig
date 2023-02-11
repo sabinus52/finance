@@ -1,8 +1,0 @@
-{% form_theme form '@OlixBackOffice/Twig/form-theme-horizontal-layout.html.twig' %}
-{{ form_start(form) }}
-    {% include '@OlixBackOffice/Include/modal-form-header.html.twig' with { title: "Modifier une opération"} %}
-    <div class="modal-body">
-        {{ form_rest(form) }}
-    </div>
-    {% include '@OlixBackOffice/Include/modal-form-footer-update.html.twig' %}
-{{ form_end(form) }}

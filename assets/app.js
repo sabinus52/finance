@@ -8,9 +8,13 @@
 // any CSS you import will output into a single css file (app.css in this case)
 import './styles/app.css';
 
+// start the Stimulus application
+import './bootstrap';
+
+import '/vendor/olix/backoffice-bundle/assets/olixbo.js';
+
+/*
 import Transaction from "./scripts/transaction";
 import Reconciliation from "./scripts/reconciliation";
 import OlixModal from "./scripts/modal";
-
-// start the Stimulus application
-import './bootstrap';
+*/

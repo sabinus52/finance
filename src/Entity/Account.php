@@ -220,6 +220,15 @@ class Account
         $this->transactions = new ArrayCollection();
     }
 
+    public function __toString()
+    {
+        if (!$this->name) {
+            return '';
+        }
+
+        return $this->getFullName();
+    }
+
     public function getId(): ?int
     {
         return $this->id;

@@ -149,6 +149,13 @@ class Transaction
         $this->type = new TransactionType(TransactionType::STANDARD);
     }
 
+    public function __toString()
+    {
+        if (!$this->getId())
+        return '';
+        return sprintf('%s € du %s pour %s', $this->getAmount(), $this->getDate()->format('d/m/Y'), $this->getRecipient()->getName());
+    }
+
     public function getId(): ?int
     {
         return $this->id;
