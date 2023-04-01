@@ -141,6 +141,15 @@ class Transaction
      */
     private $transfer;
 
+    /**
+     * Projet associé.
+     *
+     * @var Project
+     *
+     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="transactions")
+     */
+    private $project;
+
     public function __construct()
     {
         $this->balance = 0;
@@ -151,8 +160,10 @@ class Transaction
 
     public function __toString()
     {
-        if (!$this->getId())
-        return '';
+        if (!$this->getId()) {
+            return '';
+        }
+
         return sprintf('%s € du %s pour %s', $this->getAmount(), $this->getDate()->format('d/m/Y'), $this->getRecipient()->getName());
     }
 
@@ -289,6 +300,18 @@ class Transaction
     public function setTransfer(?self $transfer): self
     {
         $this->transfer = $transfer;
+
+        return $this;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
 
         return $this;
     }

@@ -91,9 +91,17 @@ class MemoParser
     public function parse(QifItem $item): bool
     {
         // Versement:[Compte] -> Versement
-        $operation = strstr($item->getMemo(), ':', true);
+        preg_match('/([A-za-z]+):\[(.*)\]/', $item->getMemo(), $matches);
+        if (!isset($matches[1])) {
+            $operation = strstr($item->getMemo(), ':', true);
+            if ($operation) {
+                throw new Exception('Memo est peut être incorrect');
+            }
 
-        switch ($operation) {
+            return true;
+        }
+
+        switch ($matches[1]) {
             case 'Versement':
                 $this->parseVersement($item);
 
@@ -112,6 +120,11 @@ class MemoParser
             case 'Virement':
                 return true;
 
+            case 'Projet':
+                $this->parseProject($item);
+
+                return false;
+
             default:
                 if (false !== strpos($item->getMemo(), ':')) {
                     throw new Exception('Memo est peut être incorrect');
@@ -129,7 +142,7 @@ class MemoParser
     private function parseVersement(QifItem $item): void
     {
         $memo = $item->getMemo();
-        $accountPlacement = $this->getPlacement($memo);
+        $accountPlacement = $this->getLabelMemo($memo);
         if (null === $accountPlacement) {
             throw new Exception('Compte de placement introuvable dans le memo');
         }
@@ -169,7 +182,7 @@ class MemoParser
     private function parseStockPosition(QifItem $item): void
     {
         $memo = $item->getMemo();
-        $stock = $this->getPlacement($memo);
+        $stock = $this->getLabelMemo($memo);
         if (null === $stock) {
             throw new Exception('Compte de placement introuvable dans le memo');
         }
@@ -205,7 +218,7 @@ class MemoParser
     private function parseStockDividende(QifItem $item): void
     {
         $memo = $item->getMemo();
-        $stock = $this->getPlacement($memo);
+        $stock = $this->getLabelMemo($memo);
         if (null === $stock) {
             throw new Exception('Compte de placement introuvable dans le memo');
         }
@@ -223,6 +236,25 @@ class MemoParser
             null
         );
         $operation->setTransaction($transaction);
+    }
+
+    /**
+     * Parse dans le cas d'un projet.
+     *
+     * @param QifItem $item
+     */
+    private function parseProject(QifItem $item): void
+    {
+        $memo = $item->getMemo();
+        $project = $this->getLabelMemo($memo);
+        if (null === $project) {
+            throw new Exception('Nom du projet introuvable dans le memo');
+        }
+        $project = $this->helper->assocDatas->getProject($project);
+
+        // Transaction standard
+        $transaction = $this->helper->createTransaction($item);
+        $transaction->setProject($project);
     }
 
     /**
@@ -272,7 +304,7 @@ class MemoParser
     }
 
     /**
-     * Retourne le compte de placement ou le nom du titre boursier.
+     * Retourne le compte de placement ou le nom du titre boursier ou autre.
      * Exemple :
      *  Versement:[Mon placement] -> Mon placement
      *  Stock:[Crédit Agricole SA] -> Crédit Agricole SA.
@@ -281,7 +313,7 @@ class MemoParser
      *
      * @return string|null
      */
-    private function getPlacement(string $memo): ?string
+    private function getLabelMemo(string $memo): ?string
     {
         preg_match('/:\[(.*)\]/', $memo, $matches);
         if (!isset($matches[1])) {

@@ -14,11 +14,13 @@ namespace App\Import;
 use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Institution;
+use App\Entity\Project;
 use App\Entity\Recipient;
 use App\Entity\Stock;
 use App\Repository\AccountRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\InstitutionRepository;
+use App\Repository\ProjectRepository;
 use App\Repository\RecipientRepository;
 use App\Repository\StockRepository;
 use App\Values\AccountType;
@@ -81,6 +83,13 @@ class AssocDatas
     public $stocks;
 
     /**
+     * Liste des projets.
+     *
+     * @var ArrayObject
+     */
+    public $projects;
+
+    /**
      * Liste des datas nouvellement crées.
      *
      * @var array<mixed>
@@ -129,6 +138,10 @@ class AssocDatas
         /** @var StockRepository $repositoryStock */
         $repositoryStock = $this->entityManager->getRepository(Stock::class);
         $this->stocks = new ArrayObject($repositoryStock->get4Import());
+
+        /** @var ProjectRepository $repositoryProject */
+        $repositoryProject = $this->entityManager->getRepository(Project::class);
+        $this->projects = new ArrayObject($repositoryProject->get4Import());
     }
 
     /**
@@ -367,6 +380,42 @@ class AssocDatas
         $this->newCreated[] = $stock;
 
         return $stock;
+    }
+
+    /**
+     * Retourne le projet à chercher sinon le crée.
+     *
+     * @param string $searchProject
+     *
+     * @return Project
+     */
+    public function getProject(string $searchProject): Project
+    {
+        if ($this->projects->offsetExists($searchProject)) {
+            return $this->projects->offsetGet($searchProject);
+        }
+
+        // Non trouvé alors on le crée
+        $project = $this->createProject($searchProject);
+        $this->projects->offsetSet($searchProject, $project);
+
+        return $project;
+    }
+
+    /**
+     * Créer un nouveau projet.
+     *
+     * @param string $strProject
+     *
+     * @return Project
+     */
+    public function createProject(string $strProject): Project
+    {
+        $project = new Project();
+        $project->setName($strProject);
+        $this->entityManager->persist($project);
+
+        return $project;
     }
 
     /**

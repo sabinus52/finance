@@ -13,10 +13,12 @@ namespace App\Form;
 
 use App\Entity\Account;
 use App\Entity\Category;
+use App\Entity\Project;
 use App\Entity\Recipient;
 use App\Entity\Transaction;
 use App\Repository\AccountRepository;
 use App\Repository\CategoryRepository;
+use App\Repository\ProjectRepository;
 use App\Repository\RecipientRepository;
 use App\Values\Payment;
 use App\Values\TransactionType;
@@ -107,6 +109,19 @@ class TransactionFormType extends AbstractType
             ->add('memo', TextType::class, [
                 'label' => 'Mémo',
                 'required' => false,
+            ])
+            ->add('project', EntityType::class, [
+                'label' => 'Projet',
+                'required' => false,
+                'class' => Project::class,
+                'choice_label' => 'name',
+                'query_builder' => function (ProjectRepository $er) {
+                    return $er->createQueryBuilder('pjt')
+                        ->where('pjt.state = 1')
+                        ->orderBy('pjt.name')
+                    ;
+                },
+                'empty_data' => null,
             ])
         ;
     }

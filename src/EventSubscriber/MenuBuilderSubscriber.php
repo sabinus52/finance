@@ -74,6 +74,11 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'manage_account__index',
             'icon' => 'fas fa-piggy-bank',
         ]));
+        $manage->addChild(new MenuItemModel('manage_project', [
+            'label' => 'Projets',
+            'route' => 'manage_project__index',
+            'icon' => 'fas fa-project-diagram',
+        ]));
         $manage->addChild(new MenuItemModel('manage_recipient', [
             'label' => 'Bénéficiaires',
             'route' => 'manage_recipient__index',

@@ -1,0 +1,173 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+{% block title %}{{ parent() }} - Gérer les projets{% endblock %}
+
+{% block content_title %}<i class="fas fa-project-diagram"></i> Gérer les projets{% endblock %}
+{% block content_subtitle %}(Travaux, voyages, ...){% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="row">
+
+            <div class="col-md-7">
+                <div class="card card-success card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Infos du projet</h3>
+                        <div class="card-tools"><a href="{{ path('manage_project__edit', {'id': project.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i> <span class="d-none d-md-inline">Modifier</span></a></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row my-3">
+                            <div class="col-4">Nom</div>
+                            <div class="col-8 h3">{{ project.name }}</div>
+                        </div>
+                        <div class="row my-3">
+                            <div class="col-4">Catégorie</div>
+                            <div class="col-8">{{ project.category.label }}</div>
+                        </div>
+                        <div class="row my-3">
+                            <div class="col-4">Dates</div>
+                            <div class="col-8">Du <b>{{ project.startedAt|date('d/m/Y') }}</b> au <b>{{ project.finishAt|date('d/m/Y') }}</b></div>
+                        </div>
+                        <div class="row my-3">
+                            <div class="col-4">Nombre de transactions</div>
+                            <div class="col-8">{{ project.transactions|length }}</div>
+                        </div>
+                        <div class="row my-3">
+                            <div class="col-4">Coût total</div>
+                            <div class="col-8 h5 text-primary">{{ mymacro.money(project.totalCost, 'EUR', false) }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Liste des opérations</h3>
+                        <div class="card-tools"><a href="{{ path('manage_project__create') }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalProject"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Affecter une opération</span></a></div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-sm table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Date</th>
+                                    <th></th>
+                                    <th>Bénéficiaire</th>
+                                    <th>Catégories</th>
+                                    <th class="text-right">Montant</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in project.transactions %}
+                                <tr>
+                                    <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
+                                    <td><img src="{{ asset(item.payment.pathImage) }}" width="24"></td>
+                                    <td>{{ item.recipient.name }}</td>
+                                    <td>{{ item.category.fullName }}</td>
+                                    <td class="text-right {% if item.amount < 0 %}text-red{% else %}text-green{% endif %}">{{ mymacro.money(item.amount, 'EUR', false) }}</td>
+                                    <td class="text-right"><a href="{{ path('manage_project__deltrt', { id: project.id, transaction: item.id }) }}" class="btn btn-sm btn-warning" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-minus"></i></a></td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="3">Aucune opérations trouvées</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card card-purple card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Dépenses par catégorie</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart">{{ render_chart(chart) }}</div>
+                        <table class="table table-sm table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Catégorie</th>
+                                    <th class="text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in categories %}
+                                <tr>
+                                    <td>{{ item.datas.fullName }}</td>
+                                    <td class="text-right">{{ mymacro.money(item.total|abs, 'EUR', false) }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {% include '@OlixBackOffice/Include/modal.html.twig' with { title: "Chargement du formulaire" } %}
+
+    <div class="modal fade" id="modalProject" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="modalProjectLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <form action="{{ path('manage_project__addtrt', { id: project.id }) }}" method="post">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalProjectLabel">Affecter une nouvelle opération</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th class="text-center">Date</th>
+                                <th></th>
+                                <th>Bénéficiaire</th>
+                                <th>Catégories</th>
+                                <th class="text-right">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in transactions %}
+                            <tr>
+                                <td>
+                                    <div class="icheck-orange">
+                                        <input type="checkbox" id="trt{{ item.id }}" name="transaction[]" value="{{ item.id }}">
+                                        <label for="trt{{ item.id }}"></label>
+                                    </div>
+                                </td>
+                                <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
+                                <td><img src="{{ asset(item.payment.pathImage) }}" width="24"></td>
+                                <td>{{ item.recipient.name }}</td>
+                                <td>{{ item.category.fullName }}</td>
+                                <td class="text-right {% if item.amount < 0 %}text-red{% else %}text-green{% endif %}">{{ mymacro.money(item.amount, 'EUR', false) }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="3">Aucune opérations trouvées</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Affecter</button>
+                </div>
+            </div>
+        <form>
+        </div>
+    </div>
+
+{% endblock %}
