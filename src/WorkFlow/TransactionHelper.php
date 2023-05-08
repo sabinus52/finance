@@ -132,7 +132,7 @@ class TransactionHelper
         $this->transaction = $this->createInternal();
         $this->transaction
             ->setType(new TransactionType(TransactionType::RACHAT))
-            ->setCategory($this->getCategoryByCode(true, Category::CAPITALISATION))
+            ->setCategory($this->getCategoryByCode(true, Category::REPURCHASE))
         ;
 
         return $this->transaction;

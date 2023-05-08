@@ -296,13 +296,13 @@ class QifParser
         $item->setType(TransactionType::VIREMENT);
 
         // Virement source
-        $item->setCategoryWithCode(Category::VIREMENT);
+        $item->setCategory(Category::VIREMENT);
         $transactionSource = $this->helper->createTransaction($item);
 
         // Virement cible
         $item->setAccount($accountTarget);
         $item->setAmount($item->getAmount() * -1);
-        $item->setCategoryWithCode(Category::VIREMENT);
+        $item->setCategory(Category::VIREMENT);
         $transactionTarget = $this->helper->createTransaction($item);
 
         // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions

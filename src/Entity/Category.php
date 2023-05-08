@@ -15,7 +15,6 @@ use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Exception;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -30,31 +29,44 @@ class Category
 {
     public const RECETTES = true;
     public const DEPENSES = false;
-    public const VIREMENT = 'VIRT';
-    public const INVESTMENT = 'INVS';
-    public const CAPITALISATION = 'CAPT';
-    public const REVALUATION = 'EVAL';
-    public const STOCKOPERT = 'OPST';
-    public const DIVIDENDES = 'DIVD';
-    public const PRIMARY_LABEL = 'Finance';
 
     /**
-     * Listes des catégories à créer.
+     * Constantes des catégories de mouvements internes.
+     */
+    public const MOVEMENT = 'MVT';
+    public const BALANCE = 'BLCE';
+    public const VIREMENT = 'VIRT';
+    public const INVESTMENT = 'INVS';
+    public const REPURCHASE = 'RCHA';
+    public const REVALUATION = 'EVAL';
+    public const STOCKTRANSAC = 'OPST';
+
+    public const DIVIDENDES = 'DIVD';
+    public const CARBURANT = 'FUEL';
+    public const VEHICULEREPAIR = 'VRPR';
+
+    /**
+     * Listes des catégories de niveau 1 de mouvements internes.
      *
      * @var array<mixed>
      */
-    public static $baseCategories = [
-        'VIRT+' => ['type' => self::RECETTES, 'code' => self::VIREMENT, 'label' => 'Virement reçu'],
-        'VIRT-' => ['type' => self::DEPENSES, 'code' => self::VIREMENT, 'label' => 'Virement émis'],
-        'CAPT+' => ['type' => self::RECETTES, 'code' => self::CAPITALISATION, 'label' => 'Versement'],
-        'CAPT-' => ['type' => self::DEPENSES, 'code' => self::CAPITALISATION, 'label' => 'Rachat'],
-        'INVS+' => ['type' => self::RECETTES, 'code' => self::INVESTMENT, 'label' => 'Capital'],
-        'INVS-' => ['type' => self::DEPENSES, 'code' => self::INVESTMENT, 'label' => 'Investissement'],
-        'EVAL+' => ['type' => self::RECETTES, 'code' => self::REVALUATION, 'label' => 'Révaluation bénéficiaire'],
-        'EVAL-' => ['type' => self::DEPENSES, 'code' => self::REVALUATION, 'label' => 'Révaluation déficitaire'],
-        'OPST+' => ['type' => self::RECETTES, 'code' => self::STOCKOPERT, 'label' => 'Achat titres'],
-        'OPST-' => ['type' => self::DEPENSES, 'code' => self::STOCKOPERT, 'label' => 'Vente titres'],
-        'DIVD+' => ['type' => self::RECETTES, 'code' => self::DIVIDENDES, 'label' => 'Dividendes'],
+    public static $movementsLevel1 = [
+        self::DEPENSES => 'Mouvements débiteurs',
+        self::RECETTES => 'Mouvements créditeurs',
+    ];
+
+    /**
+     * Listes des catégories obligatoires de mouvements internes à créer.
+     *
+     * @var array<mixed>
+     */
+    public static $movements = [
+        self::BALANCE => ['Balance négative', 'Balance positive'], // Equilibrage de la balance
+        self::VIREMENT => ['Virement émis', 'Virement reçus'], // Virement interne
+        self::INVESTMENT => ['Investissement', 'Versement'], // Investissement sur un placement (ass vie, ...)
+        self::REPURCHASE => ['Rachat capital', 'Versement capital'], // Rachat du capital d'un placement
+        self::REVALUATION => ['Réévaluation déficitaire', 'Réévaluation bénéficiaire'], // Réévaluation mensuelle d'un placement
+        self::STOCKTRANSAC => ['Achat titres', 'Vente titres'], // Achat et vente titres boursiers
     ];
 
     /**
@@ -295,27 +307,6 @@ class Category
     public function getTypeSymbol(): string
     {
         return ($this->type) ? '+' : '-';
-    }
-
-    /**
-     * @return array<string>
-     */
-    public static function getBaseCategory(string $key): array
-    {
-        if (!array_key_exists($key, self::$baseCategories)) {
-            throw new Exception('La clé "%s" n\'existe pas dans la table Category::$baseCategories');
-        }
-
-        return self::$baseCategories[$key];
-    }
-
-    public static function getBaseCategoryLabel(string $key): string
-    {
-        if (!array_key_exists($key, self::$baseCategories)) {
-            throw new Exception('La clé "%s" n\'existe pas dans la table Category::$baseCategories');
-        }
-
-        return sprintf('%s:%s', self::PRIMARY_LABEL, self::$baseCategories[$key]['label']);
     }
 
     /**

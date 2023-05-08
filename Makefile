@@ -134,9 +134,8 @@ recovery-datas:
 	@cp ${PATH_DATAS_SOURCE}/olivier.csv ./var/
 	@cp ${PATH_DATAS_SOURCE}/joint.csv ./var/
 	@echo
-	./bin/console doctrine:schema:drop --force
-	./bin/console doctrine:schema:create
-	./bin/console doctrine:fixtures:load --quiet
+	./bin/console app:initialize --with-categories --force
+	./bin/console doctrine:fixtures:load --quiet --append
 	./bin/console app:importqif var/olivier.qif var/joint.qif -v --force --parse-memo
 	./bin/console app:import:homebank var/olivier.csv var/joint.csv -v
 	./bin/console app:import:finish -v

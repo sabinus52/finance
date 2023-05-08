@@ -35,14 +35,14 @@ class Transfer
             Category::DEPENSES => Category::VIREMENT,
         ],
         TransactionType::INVESTMENT => [
-            Category::RECETTES => Category::CAPITALISATION,
+            Category::RECETTES => Category::INVESTMENT,
             Category::DEPENSES => Category::INVESTMENT,
         ],
         TransactionType::RACHAT => [
             Category::RECETTES => Category::INVESTMENT,
-            Category::DEPENSES => Category::CAPITALISATION,
+            Category::DEPENSES => Category::REPURCHASE,
         ],
-    ];
+    ]; // TODO plus besoin de faire une correspondance à définir dans l'obejt transaction
 
     /**
      * @var EntityManagerInterface

@@ -17,7 +17,6 @@ use App\Entity\Recipient;
 use App\Values\Payment;
 use App\Values\TransactionType;
 use DateTime;
-use Exception;
 
 /**
  * Element trouvé à importer.
@@ -141,28 +140,6 @@ class QifItem
     public function setCategory(string $category): self
     {
         $this->category = $category;
-
-        return $this;
-    }
-
-    /**
-     * Affecte une catégorie avec son code court (VIRT, INVT).
-     *
-     * @param string $code (VIRT, INVT)
-     *
-     * @return self
-     */
-    public function setCategoryWithCode(string $code): self
-    {
-        if (null === $this->amount) {
-            throw new Exception('Le montant doit être renseigné avant d\'utiliser un code de catégorie');
-        }
-
-        if ($this->amount > 0) {
-            $this->setCategory(Category::getBaseCategoryLabel($code.'+'));
-        } else {
-            $this->setCategory(Category::getBaseCategoryLabel($code.'-'));
-        }
 
         return $this;
     }

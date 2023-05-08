@@ -154,14 +154,14 @@ class MemoParser
         $item->setType(TransactionType::INVESTMENT);
 
         // Toujours compte débiteur = Compte courant où se fait le prélèvement
-        $item->setCategoryWithCode(Category::INVESTMENT);
+        $item->setCategory(Category::INVESTMENT);
         $transactionSource = $this->helper->createTransaction($item);
 
         // Toujours versement sur le placement
         $item->setAccount($accountPlacement);
         $item->setAmount($amountPlacement);
         $item->setState('');
-        $item->setCategoryWithCode(Category::CAPITALISATION);
+        $item->setCategory(Category::INVESTMENT);
         $transactionTarget = $this->helper->createTransaction($item);
 
         // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions

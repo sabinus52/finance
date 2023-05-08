@@ -330,6 +330,7 @@ class AssocDatas
             $parent->setLevel(1);
             $parent->setType(('+' === $strCat1[0]) ? Category::RECETTES : Category::DEPENSES);
             $this->entityManager->persist($parent);
+            $this->newCreated[] = $parent;
             $this->catLevel1->offsetSet($strCat1, $parent);
         }
 
@@ -340,6 +341,7 @@ class AssocDatas
         $category->setLevel(2);
         $category->setType($parent->getType());
         $this->entityManager->persist($category);
+        $this->newCreated[] = $category;
 
         return $category;
     }
@@ -414,6 +416,7 @@ class AssocDatas
         $project = new Project();
         $project->setName($strProject);
         $this->entityManager->persist($project);
+        $this->newCreated[] = $project;
 
         return $project;
     }
@@ -433,6 +436,10 @@ class AssocDatas
                 $rows[] = [$item->getFullName(), 'Compte'];
             } elseif ($item instanceof Stock) {
                 $rows[] = [$item->getName(), 'Titre'];
+            } elseif ($item instanceof Category) {
+                $rows[] = [$item->getFullName(), 'Categorie'];
+            }elseif ($item instanceof Project) {
+                $rows[] = [$item->getName(), 'Projet'];
             }
         }
 

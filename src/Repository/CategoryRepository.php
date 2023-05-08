@@ -32,6 +32,31 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
+     * Créer une nouvelle catégorie.
+     *
+     * @param bool          $type   Recettes ou dépenses (true|false)
+     * @param string        $name   Nom de la catégorie
+     * @param Category|null $parent Catégorie de niveu 1
+     * @param string|null   $code   Code de la catégorie
+     *
+     * @return Category
+     */
+    public function create(bool $type, string $name, ?Category $parent = null, ?string $code = null): Category
+    {
+        $category = new Category();
+
+        // Level créer automatiquement
+        $category->setName($name)
+            ->setType($type)
+            ->setCode($code)
+            ->setParent($parent)
+        ;
+        $this->_em->persist($category);
+
+        return $category;
+    }
+
+    /**
      * Retourne les catégories par type de niveau 1.
      *
      * @return Category[]
@@ -45,29 +70,6 @@ class CategoryRepository extends ServiceEntityRepository
             ->addOrderBy('c.name', 'ASC')
             ->getQuery()
             ->getResult()
-        ;
-    }
-
-    /**
-     * Retourne la catégorie en fonction de son code complet.
-     *
-     * @param string $code (CODE+|-)
-     *
-     * @return Category|null
-     */
-    public function findByCode(string $code): ?Category
-    {
-        $cat = Category::getBaseCategory($code);
-
-        return $this->createQueryBuilder('cat')
-            ->andWhere('cat.type = :val')
-            ->setParameter('val', $cat['type'])
-            ->andWhere('cat.code = :code')
-            ->setParameter('code', $cat['code'])
-            ->andWhere('cat.level = 2')
-            ->addOrderBy('cat.name', 'ASC')
-            ->getQuery()
-            ->getOneOrNullResult()
         ;
     }
 
@@ -115,7 +117,9 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Retoune un tableau associatif des catégories de niveau 2 [+/-Level1:Level2] => Category.
+     * Retoune un tableau associatif des catégories de niveau 2
+     *  [+/-Level1:Level2] => Category
+     *  [+/-code] => Category.
      *
      * @return Category[]
      */
@@ -131,6 +135,10 @@ class CategoryRepository extends ServiceEntityRepository
         /** @var Category $category */
         foreach ($query->getResult() as $category) {
             $result[$category->getTypeSymbol().$category->getFullName()] = $category;
+            // Association aussi des codes [+/-code] => Category
+            if ($category->getCode()) {
+                $result[$category->getTypeSymbol().$category->getCode()] = $category;
+            }
         }
 
         return $result;
