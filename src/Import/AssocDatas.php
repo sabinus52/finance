@@ -17,12 +17,14 @@ use App\Entity\Institution;
 use App\Entity\Project;
 use App\Entity\Recipient;
 use App\Entity\Stock;
+use App\Entity\Vehicle;
 use App\Repository\AccountRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\InstitutionRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\RecipientRepository;
 use App\Repository\StockRepository;
+use App\Repository\VehicleRepository;
 use App\Values\AccountType;
 use ArrayObject;
 use DateTime;
@@ -90,6 +92,13 @@ class AssocDatas
     public $projects;
 
     /**
+     * Liste des véhicules.
+     *
+     * @var ArrayObject
+     */
+    public $vehicles;
+
+    /**
      * Liste des datas nouvellement crées.
      *
      * @var array<mixed>
@@ -142,6 +151,10 @@ class AssocDatas
         /** @var ProjectRepository $repositoryProject */
         $repositoryProject = $this->entityManager->getRepository(Project::class);
         $this->projects = new ArrayObject($repositoryProject->get4Import());
+
+        /** @var VehicleRepository $repositoryVehicle */
+        $repositoryVehicle = $this->entityManager->getRepository(Vehicle::class);
+        $this->vehicles = new ArrayObject($repositoryVehicle->get4Import());
     }
 
     /**
@@ -422,6 +435,22 @@ class AssocDatas
     }
 
     /**
+     * Retourne le véhicule à chercher sinon le crée.
+     *
+     * @param string $searchVehicle
+     *
+     * @return Vehicle|null
+     */
+    public function getVehicle(string $searchVehicle): ?Vehicle
+    {
+        if ($this->vehicles->offsetExists($searchVehicle)) {
+            return $this->vehicles->offsetGet($searchVehicle);
+        }
+
+        return null;
+    }
+
+    /**
      * Retoune la liste des nouveaux éléments créés.
      *
      * @return array<mixed>
@@ -438,7 +467,7 @@ class AssocDatas
                 $rows[] = [$item->getName(), 'Titre'];
             } elseif ($item instanceof Category) {
                 $rows[] = [$item->getFullName(), 'Categorie'];
-            }elseif ($item instanceof Project) {
+            } elseif ($item instanceof Project) {
                 $rows[] = [$item->getName(), 'Projet'];
             }
         }

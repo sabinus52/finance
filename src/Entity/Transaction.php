@@ -150,6 +150,16 @@ class Transaction
      */
     private $project;
 
+    /**
+     * Transaction du véhicule associé (kilométrage).
+     *
+     * @var TransactionVehicle
+     *
+     * @ORM\OneToOne(targetEntity=TransactionVehicle::class, mappedBy="transaction", cascade={"persist", "remove"})
+     * @Assert\Valid
+     */
+    private $transactionVehicle;
+
     public function __construct()
     {
         $this->balance = 0;
@@ -312,6 +322,23 @@ class Transaction
     public function setProject(?Project $project): self
     {
         $this->project = $project;
+
+        return $this;
+    }
+
+    public function getTransactionVehicle(): ?TransactionVehicle
+    {
+        return $this->transactionVehicle;
+    }
+
+    public function setTransactionVehicle(TransactionVehicle $transactionVehicle): self
+    {
+        // set the owning side of the relation if necessary
+        if ($transactionVehicle->getTransaction() !== $this) {
+            $transactionVehicle->setTransaction($this);
+        }
+
+        $this->transactionVehicle = $transactionVehicle;
 
         return $this;
     }

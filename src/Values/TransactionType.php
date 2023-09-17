@@ -12,6 +12,9 @@ declare(strict_types=1);
 namespace App\Values;
 
 use App\Form\TransactionFormType;
+use App\Form\TransactionVhFuelFormType;
+use App\Form\TransactionVhMaintFormType;
+use App\Form\TransactionVhOtherFormType;
 use App\Form\TransferFormType;
 use App\Form\ValorisationFormType;
 use Exception;
@@ -28,9 +31,12 @@ class TransactionType
      */
     public const STANDARD = 0;
     public const VIREMENT = 1;
-    public const INVESTMENT = 2;
-    public const RACHAT = 10;
-    public const REVALUATION = 11;
+    public const INVESTMENT = 10;
+    public const RACHAT = 11;
+    public const REVALUATION = 12;
+    public const VH_OTHER = 20;
+    public const VH_MAINT = 21;
+    public const VH_FUEL = 22;
 
     /**
      * Liste des types de transaction.
@@ -43,6 +49,9 @@ class TransactionType
         self::INVESTMENT => ['form' => TransferFormType::class, 'label' => '', 'code' => '', 'msg' => 'de l\'investissement'],
         self::RACHAT => ['form' => TransferFormType::class, 'label' => '', 'code' => '', 'msg' => 'du rachat'],
         self::REVALUATION => ['form' => ValorisationFormType::class, 'label' => '', 'code' => '', 'msg' => 'de la valorisation'],
+        self::VH_OTHER => ['form' => TransactionVhOtherFormType::class, 'label' => '', 'code' => '', 'msg' => 'de frais de véhicule'],
+        self::VH_MAINT => ['form' => TransactionVhMaintFormType::class, 'label' => '', 'code' => '', 'msg' => 'd\'entretien/réparation'],
+        self::VH_FUEL => ['form' => TransactionVhFuelFormType::class, 'label' => '', 'code' => '', 'msg' => 'de carburant'],
     ];
 
     /**

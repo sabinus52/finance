@@ -108,6 +108,21 @@ class TransactionController extends BaseController
     }
 
     /**
+     * Création d'une transaction de frais de véhicule.
+     *
+     * @Route("/account/{id}/transacvehicule/create/{type}", name="transacvehicle__create", methods={"GET", "POST"})
+     */
+    public function createTransactionVehicle(Request $request, Account $account, EntityManagerInterface $entityManager): Response
+    {
+        $helper = new TransactionHelper($entityManager);
+
+        $transaction = $helper->createTransactionVehicle((int) ($request->get('type')));
+        $transaction->setAccount($account);
+
+        return $this->create($entityManager, $request, $transaction);
+    }
+
+    /**
      * Création d'une transaction.
      *
      * @param EntityManagerInterface $entityManager

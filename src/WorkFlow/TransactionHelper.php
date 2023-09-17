@@ -153,6 +153,20 @@ class TransactionHelper
     }
 
     /**
+     * Création d'une transaction de frais sur les véhicules.
+     *
+     * @param int $type
+     *
+     * @return Transaction
+     */
+    public function createTransactionVehicle(int $type): Transaction
+    {
+        $this->transaction->setType(new TransactionType($type));
+
+        return $this->transaction;
+    }
+
+    /**
      * Retourne la catégorie à utiliser.
      *
      * @param bool   $type
