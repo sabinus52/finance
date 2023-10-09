@@ -11,12 +11,8 @@ declare(strict_types=1);
 
 namespace App\Form;
 
-use App\Entity\Account;
 use App\Entity\Transaction;
-use App\Repository\AccountRepository;
-use App\Values\TransactionType;
 use Olix\BackOfficeBundle\Form\Type\DatePickerType;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -29,7 +25,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  *
  * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
-class ValorisationFormType extends AbstractType
+class ReValuationFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -45,36 +41,6 @@ class ValorisationFormType extends AbstractType
                 'required' => false,
                 'help' => 'Mettre la valorisation totale. La variation sera calculée automatiquement.',
             ])
-            ->add('account', EntityType::class, [
-                'label' => 'Compte',
-                'disabled' => true,
-                'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) {
-                    return $er->createQueryBuilder('acc')
-                        ->addSelect('ist')
-                        ->innerJoin('acc.institution', 'ist')
-                        ->where('acc.type >= 50')
-                        ->orderBy('ist.name')
-                        ->addOrderBy('acc.name')
-                    ;
-                },
-                'choice_label' => function (Account $choice) {
-                    $result = $choice->getFullName();
-                    if (null !== $choice->getClosedAt()) {
-                        $result .= ' (fermé)';
-                    }
-
-                    return $result;
-                },
-                'choice_attr' => function (Account $choice) {
-                    if (null !== $choice->getClosedAt()) {
-                        return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
-                    }
-
-                    return [];
-                },
-                'empty_data' => null,
-            ])
         ;
     }
 
@@ -82,7 +48,8 @@ class ValorisationFormType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Transaction::class,
-            'transaction_type' => TransactionType::REVALUATION,
+            'isNew' => false,
+            'filter' => [],
         ]);
     }
 }

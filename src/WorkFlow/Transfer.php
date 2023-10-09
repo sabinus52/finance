@@ -14,7 +14,6 @@ namespace App\WorkFlow;
 use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
-use App\Values\TransactionType;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -25,24 +24,15 @@ use Doctrine\ORM\EntityManagerInterface;
 class Transfer
 {
     /**
-     * Correspondance des catégories en fonction du type e virement.
+     * Liste des catégories des transferts.
      *
      * @var array<mixed>
      */
-    private static $matches = [
-        TransactionType::VIREMENT => [
-            Category::RECETTES => Category::VIREMENT,
-            Category::DEPENSES => Category::VIREMENT,
-        ],
-        TransactionType::INVESTMENT => [
-            Category::RECETTES => Category::INVESTMENT,
-            Category::DEPENSES => Category::INVESTMENT,
-        ],
-        TransactionType::RACHAT => [
-            Category::RECETTES => Category::INVESTMENT,
-            Category::DEPENSES => Category::REPURCHASE,
-        ],
-    ]; // TODO plus besoin de faire une correspondance à définir dans l'obejt transaction
+    private static $categories = [
+        Category::VIREMENT,
+        Category::INVESTMENT,
+        Category::REPURCHASE,
+    ];
 
     /**
      * @var EntityManagerInterface
@@ -106,6 +96,9 @@ class Transfer
         $this->entityManager->remove($this->debit);
         $this->entityManager->remove($this->credit);
         $this->entityManager->flush();
+
+        // Pour le calcul de la balance
+        $this->credit->setTransfer($this->debit);
     }
 
     /**
@@ -166,7 +159,7 @@ class Transfer
     private function createCredit(Transaction $transaction): void
     {
         $this->credit = $transaction;
-        $this->credit->setCategory($this->getCategory(Category::RECETTES));
+        $this->credit->setCategory($this->getCategory(Category::INCOME, $transaction->getCategory()->getCode()));
     }
 
     /**
@@ -175,7 +168,7 @@ class Transfer
     private function createDebit(): void
     {
         $this->debit = clone $this->credit;
-        $this->debit->setCategory($this->getCategory(Category::DEPENSES));
+        $this->debit->setCategory($this->getCategory(Category::EXPENSE, $this->credit->getCategory()->getCode()));
     }
 
     /**
@@ -196,14 +189,24 @@ class Transfer
     /**
      * Retourne la catégorie à utiliser.
      *
-     * @param bool $type
+     * @param bool   $type
+     * @param string $code
      *
      * @return Category
      */
-    private function getCategory(bool $type): Category
+    private function getCategory(bool $type, string $code): Category
     {
-        $code = self::$matches[$this->credit->getType()->getValue()][$type];
         /** @phpstan-ignore-next-line */
         return $this->entityManager->getRepository(Category::class)->findOneByCode($type, $code);
+    }
+
+    /**
+     * Retourne la liste des catégories des transferts.
+     *
+     * @return array<mixed>
+     */
+    public static function getCategoryValues(): array
+    {
+        return self::$categories;
     }
 }

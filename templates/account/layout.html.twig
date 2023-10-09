@@ -41,30 +41,8 @@
 
     <div class="container-fluid">
 
-        <div class="row">
-            {% block content_header %}
-                <div class="col-md-8">
-                </div>
-            {% endblock %}
-            
-            <div class="col-md-4">
-                <div class="p-2 text-right">
-                    {% block operation_button %}
-                        <div class="btn-group">
-                            <a href="{{ path('transaction__create', { 'id': account.id }) }}" class="btn btn-md bg-gradient-success" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">&nbsp;Ajouter une opération</span></a>
-                            <a href="#" class="btn bg-gradient-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></a>
-                            <div class="dropdown-menu" role="menu" style="">
-                                <a class="dropdown-item" href="{{ path('transfer__create', { 'id': account.id }) }}" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-exchange-alt"></i> &nbsp;Faire un virement</a>
-                                <a class="dropdown-item" href="{{ path('invest__create', { 'id': account.id }) }}" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-hand-holding-usd"></i> &nbsp;Faire un investissement</a>
-                            </div>
-                        </div>
-                    {% endblock %}
-                    &nbsp;
-                    {% block recon_button %}
-                        <a href="{{ path('reconciliation_create', { 'id': account.id }) }}" class="btn btn-md bg-gradient-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> <span class="d-none d-md-inline">&nbsp;Rapprochement</span></a>
-                    {% endblock %}
-                </div>
-            </div>
+        <div class="row p-2">
+            {% block operation_button %}{% endblock %}
         </div>
 
         {% block content_account %}{% endblock %}

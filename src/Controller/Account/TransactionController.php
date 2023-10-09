@@ -14,8 +14,8 @@ namespace App\Controller\Account;
 use App\Entity\Account;
 use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
-use App\WorkFlow\TransactionHelper;
-use App\WorkFlow\TransactionWorkFlow;
+use App\Transaction\TransactionModelInterface;
+use App\Transaction\TransactionModelRouter;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,74 +25,48 @@ use Symfony\Component\Routing\Annotation\Route;
 class TransactionController extends BaseController
 {
     /**
-     * Création d'une transaction.
+     * Création d'une transaction standard par type (recette ou dépense).
      *
-     * @Route("/account/{id}/transactions/create", name="transaction__create", methods={"GET", "POST"})
+     * @Route("/account/{id}/create/transaction/bytype/{type}", name="transaction_create_bytype", methods={"GET", "POST"})
      */
-    public function createTransaction(Request $request, Account $account, EntityManagerInterface $entityManager): Response
+    public function createTransactionByType(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
-        $helper = new TransactionHelper($entityManager);
+        $router = new TransactionModelRouter($entityManager, $account);
 
-        $transaction = $helper->createStandard();
-        $transaction->setAccount($account);
+        return $this->create($request, $router->createStandardByType((bool) $type));
+    }
 
-        return $this->create($entityManager, $request, $transaction);
+    /**
+     * Création d'une transaction standard par catégorie (interet, etc).
+     *
+     * @Route("/account/{id}/create/transaction/bycat/{codecat}", name="transaction_create_bycat", methods={"GET", "POST"})
+     */
+    public function createTransactionByCategory(Request $request, Account $account, string $codecat, EntityManagerInterface $entityManager): Response
+    {
+        $router = new TransactionModelRouter($entityManager, $account);
+
+        return $this->create($request, $router->createStandardByCategory($codecat));
     }
 
     /**
      * Création d'un virement.
      *
-     * @Route("/account/{id}/transfer/create", name="transfer__create", methods={"GET", "POST"})
+     * @Route("/account/{id}/create/transfer/{type}", name="transfer_create", methods={"GET", "POST"})
      */
-    public function createVirement(Request $request, Account $account, EntityManagerInterface $entityManager): Response
+    public function createTransfer(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
-        $helper = new TransactionHelper($entityManager);
+        $router = new TransactionModelRouter($entityManager, $account);
 
-        $transaction = $helper->createVirement();
-        $transaction->setAccount($account);
-
-        return $this->create($entityManager, $request, $transaction);
-    }
-
-    /**
-     * Création d'un investissement.
-     *
-     * @Route("/account/{id}/invest/create", name="invest__create", methods={"GET", "POST"})
-     */
-    public function createInvestment(Request $request, Account $account, EntityManagerInterface $entityManager): Response
-    {
-        $helper = new TransactionHelper($entityManager);
-
-        $transaction = $helper->createInvestment();
-        $transaction->setAccount($account);
-
-        return $this->create($entityManager, $request, $transaction);
-    }
-
-    /**
-     * Création d'un rachat d'investissement.
-     *
-     * @Route("/account/{id}/rachat/create", name="rachat__create", methods={"GET", "POST"})
-     */
-    public function createWithdrawal(Request $request, Account $account, EntityManagerInterface $entityManager): Response
-    {
-        $helper = new TransactionHelper($entityManager);
-
-        $transaction = $helper->createWithdrawal();
-        $transaction->setAccount($account);
-
-        return $this->create($entityManager, $request, $transaction);
+        return $this->create($request, $router->createTransferByCategory($type));
     }
 
     /**
      * Création d'une valorisation sur un placement.
      *
-     * @Route("/account/{id}/capital/create", name="capital__create", methods={"GET", "POST"})
+     * @Route("/account/{id}/create/capital", name="capital_create", methods={"GET", "POST"})
      */
     public function createValorisation(Request $request, Account $account, EntityManagerInterface $entityManager, TransactionRepository $repository): Response
     {
-        $helper = new TransactionHelper($entityManager);
-
         // Recherche la dernière transaction de valorisation
         $last = $repository->findOneLastValorisation($account);
         $date = new DateTime();
@@ -100,50 +74,43 @@ class TransactionController extends BaseController
             $date = clone $last->getDate()->modify('+ 15 days');
         }
 
-        $transaction = $helper->createValorisation();
-        $transaction->setAccount($account);
-        $transaction->setDate($date->modify('last day of this month'));
+        $router = new TransactionModelRouter($entityManager, $account);
 
-        return $this->create($entityManager, $request, $transaction);
+        return $this->create($request, $router->createRevaluation($date));
     }
 
     /**
      * Création d'une transaction de frais de véhicule.
      *
-     * @Route("/account/{id}/transacvehicule/create/{type}", name="transacvehicle__create", methods={"GET", "POST"})
+     * @Route("/account/{id}/create/transaction/vehicle/{type}", name="transaction_create_vehicle", methods={"GET", "POST"})
      */
-    public function createTransactionVehicle(Request $request, Account $account, EntityManagerInterface $entityManager): Response
+    public function createTransactionVehicle(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
-        $helper = new TransactionHelper($entityManager);
+        $router = new TransactionModelRouter($entityManager, $account);
 
-        $transaction = $helper->createTransactionVehicle((int) ($request->get('type')));
-        $transaction->setAccount($account);
-
-        return $this->create($entityManager, $request, $transaction);
+        return $this->create($request, $router->createVehicle($type));
     }
 
     /**
      * Création d'une transaction.
      *
-     * @param EntityManagerInterface $entityManager
-     * @param Request                $request
-     * @param Transaction            $transaction
+     * @param Request                   $request
+     * @param TransactionModelInterface $modelTransaction
      *
      * @return Response
      */
-    private function create(EntityManagerInterface $entityManager, Request $request, Transaction $transaction): Response
+    private function create(Request $request, TransactionModelInterface $modelTransaction): Response
     {
-        $workflow = new TransactionWorkFlow($entityManager, $transaction);
-        $transaction = $workflow->getTransaction();
-        $form = $this->createForm($workflow->getForm(), $transaction, ['transaction_type' => $workflow->getType()]);
-        if ($workflow->isTransfer()) {
+        $transaction = $modelTransaction->getTransaction();
+        $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions() + ['isNew' => true]);
+        if ($modelTransaction->isTransfer()) {
             $form->get('source')->setData($transaction->getAccount());
         }
 
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid() && $workflow->checkForm($form)) {
-            $workflow->add($form);
-            $this->addFlash('success', sprintf('La création %s a bien été prise en compte', $transaction->getType()->getMessage()));
+        if ($form->isSubmitted() && $form->isValid() && $modelTransaction->checkForm($form)) {
+            $modelTransaction->add($form);
+            $this->addFlash('success', sprintf('La création %s a bien été prise en compte', $modelTransaction->getMessage()));
 
             return new Response('OK');
         }
@@ -151,7 +118,7 @@ class TransactionController extends BaseController
         return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
-                'title' => 'Créer une nouvelle opération',
+                'title' => sprintf('Créer %s', $modelTransaction->getFormTitle()),
             ],
         ]);
     }
@@ -167,18 +134,20 @@ class TransactionController extends BaseController
             return $this->checkUpdate($transaction);
         }
 
-        $workflow = new TransactionWorkFlow($entityManager, $transaction);
-        $transaction = $workflow->getTransaction();
-        $form = $this->createForm($workflow->getForm(), $transaction, ['transaction_type' => $workflow->getType()]);
-        if ($workflow->isTransfer()) {
+        $router = new TransactionModelRouter($entityManager);
+        $modelTransaction = $router->create($transaction);
+        $transaction = $modelTransaction->getTransaction();
+
+        $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions());
+        if ($modelTransaction->isTransfer()) {
             $form->get('source')->setData($transaction->getTransfer()->getAccount()); // Compte débiteur
             $form->get('target')->setData($transaction->getAccount()); // Compte créditeur
         }
 
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid() && $workflow->checkForm($form)) {
-            $workflow->update($form);
-            $this->addFlash('success', sprintf('La modification %s a bien été prise en compte', $transaction->getType()->getMessage()));
+        if ($form->isSubmitted() && $form->isValid() && $modelTransaction->checkForm($form)) {
+            $modelTransaction->update($form);
+            $this->addFlash('success', sprintf('La modification %s a bien été prise en compte', $modelTransaction->getMessage()));
 
             return new Response('OK');
         }
@@ -186,7 +155,7 @@ class TransactionController extends BaseController
         return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
-                'title' => 'Modifier une opération',
+                'title' => sprintf('Modifier %s', $modelTransaction->getFormTitle()),
             ],
         ]);
     }
@@ -206,9 +175,10 @@ class TransactionController extends BaseController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $workflow = new TransactionWorkFlow($entityManager, $transaction);
-            $workflow->remove();
-            $this->addFlash('success', sprintf('La suppression %s a bien été prise en compte', $transaction->getType()->getMessage()));
+            $router = new TransactionModelRouter($entityManager);
+            $modelTransaction = $router->create($transaction);
+            $modelTransaction->remove();
+            $this->addFlash('success', sprintf('La suppression %s a bien été prise en compte', $modelTransaction->getMessage()));
 
             return new Response('OK');
         }

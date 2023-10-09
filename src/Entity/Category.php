@@ -29,6 +29,8 @@ class Category
 {
     public const RECETTES = true;
     public const DEPENSES = false;
+    public const INCOME = true;
+    public const EXPENSE = false;
 
     /**
      * Constantes des catégories de mouvements internes.
@@ -44,6 +46,8 @@ class Category
     public const DIVIDENDES = 'DIVD';
     public const CARBURANT = 'FUEL';
     public const VEHICULEREPAIR = 'VRPR';
+    public const INTERET = 'INTR';
+    public const TAXE = 'TAXE';
 
     /**
      * Listes des catégories de niveau 1 de mouvements internes.

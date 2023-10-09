@@ -242,6 +242,13 @@ class Transaction
         return $this;
     }
 
+    public function setTypeValue(int $type): self
+    {
+        $this->type = new TransactionType($type);
+
+        return $this;
+    }
+
     public function getPayment(): ?Payment
     {
         return $this->payment;
@@ -250,6 +257,13 @@ class Transaction
     public function setPayment(?Payment $payment): self
     {
         $this->payment = $payment;
+
+        return $this;
+    }
+
+    public function setPaymentValue(int $payment): self
+    {
+        $this->payment = new Payment($payment);
 
         return $this;
     }

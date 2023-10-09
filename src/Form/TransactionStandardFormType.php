@@ -11,17 +11,14 @@ declare(strict_types=1);
 
 namespace App\Form;
 
-use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Project;
 use App\Entity\Recipient;
 use App\Entity\Transaction;
-use App\Repository\AccountRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\RecipientRepository;
 use App\Values\Payment;
-use App\Values\TransactionType;
 use Olix\BackOfficeBundle\Form\Type\DatePickerType;
 use Olix\BackOfficeBundle\Form\Type\Select2EntityType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -37,11 +34,10 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  * @SuppressWarnings(PHPMD.StaticAccess)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class TransactionFormType extends AbstractType
+class TransactionStandardFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -54,21 +50,6 @@ class TransactionFormType extends AbstractType
             ->add('amount', MoneyType::class, [
                 'label' => 'Montant',
                 'required' => false,
-            ])
-            ->add('account', EntityType::class, [
-                'label' => 'Compte',
-                'required' => false,
-                'class' => Account::class,
-                'choice_label' => 'fullname',
-                'query_builder' => function (AccountRepository $er) {
-                    return $er->createQueryBuilder('acc')
-                        ->addSelect('ist')
-                        ->innerJoin('acc.institution', 'ist')
-                        ->orderBy('ist.name')
-                        ->addOrderBy('acc.name')
-                    ; // TODO uniquement que les comptes ouverts
-                },
-                'empty_data' => null,
             ])
             ->add('payment', ChoiceType::class, [
                 'label' => 'Paiement',
@@ -95,13 +76,18 @@ class TransactionFormType extends AbstractType
                 'required' => false,
                 'class' => Category::class,
                 'choice_label' => 'fullname',
-                'query_builder' => function (CategoryRepository $er) {
-                    return $er->createQueryBuilder('cat')
+                'query_builder' => function (CategoryRepository $er) use ($options) {
+                    $query = $er->createQueryBuilder('cat')
                         ->addSelect('cat1')
                         ->innerJoin('cat.parent', 'cat1')
                         ->orderBy('cat1.name')
                         ->addOrderBy('cat.name')
                     ;
+                    if (isset($options['filter']['category'])) {
+                        $query->where($options['filter']['category']);
+                    }
+
+                    return $query;
                 },
                 'group_by' => fn (Category $category) => $category->getParent()->getName(),
                 'empty_data' => null,
@@ -115,22 +101,34 @@ class TransactionFormType extends AbstractType
                 'required' => false,
                 'class' => Project::class,
                 'choice_label' => 'name',
-                'query_builder' => function (ProjectRepository $er) {
-                    return $er->createQueryBuilder('pjt')
-                        ->where('pjt.state = 1')
+                'query_builder' => function (ProjectRepository $er) use ($options) {
+                    $query = $er->createQueryBuilder('pjt')
                         ->orderBy('pjt.name')
                     ;
+                    if ($options['isNew']) {
+                        $query->where('pjt.state = 1');
+                    }
+
+                    return $query;
                 },
                 'empty_data' => null,
             ])
         ;
+
+        // Suppression des champs du formulaire principal
+        if (isset($options['filter']['!fields'])) {
+            foreach ($options['filter']['!fields'] as $field) {
+                $builder->remove($field);
+            }
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Transaction::class,
-            'transaction_type' => TransactionType::STANDARD,
+            'isNew' => false,
+            'filter' => [],
         ]);
     }
 }

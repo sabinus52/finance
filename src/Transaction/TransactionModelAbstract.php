@@ -9,22 +9,27 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\WorkFlow;
+namespace App\Transaction;
 
 use App\Entity\Category;
+use App\Entity\Recipient;
 use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
+use App\Values\Payment;
 use App\Values\TransactionType;
+use App\WorkFlow\Balance;
+use App\WorkFlow\Transfer;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 
 /**
- * WorkFlow des transactions.
+ * Abstraction des modèles de transactions.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
-class TransactionWorkFlow
+abstract class TransactionModelAbstract
 {
     /**
      * @var EntityManagerInterface
@@ -34,14 +39,14 @@ class TransactionWorkFlow
     /**
      * @var TransactionRepository
      */
-    private $repository;
+    protected $repository;
 
     /**
      * Transaction en cours et valider par le formulaire.
      *
      * @var Transaction
      */
-    private $transaction;
+    protected $transaction;
 
     /**
      * Transaction avant la validation du formulaire.
@@ -65,7 +70,6 @@ class TransactionWorkFlow
     {
         $this->entityManager = $manager;
         $this->repository = $this->entityManager->getRepository(Transaction::class); /** @phpstan-ignore-line */
-        $this->before = clone $transaction;
         $this->balanceHelper = new Balance($this->entityManager);
 
         $this->transaction = $transaction;
@@ -75,6 +79,19 @@ class TransactionWorkFlow
                 $this->transaction = $transaction->getTransfer();
             }
         }
+
+        $this->before = clone $this->transaction;
+    }
+
+    /**
+     * Initialise la transaction lors de sa création.
+     */
+    public function initTransaction(): void
+    {
+        $this->transaction->setType($this->getTransactionType());
+        $this->transaction->setCategory($this->getCategory());
+        $this->transaction->setPayment($this->getPayment());
+        $this->transaction->setRecipient($this->getRecipient());
     }
 
     /**
@@ -84,12 +101,12 @@ class TransactionWorkFlow
      */
     public function add(?FormInterface $form = null): void
     {
-        // TODO verifier les données pour chaque type de transaction
         if ($this->isTransfer()) {
             $transfer = new Transfer($this->entityManager, $this->transaction);
             $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
             $transfer->persist();
         } else {
+            $this->correctAmount();
             $this->entityManager->persist($this->transaction);
             $this->entityManager->flush();
         }
@@ -103,12 +120,12 @@ class TransactionWorkFlow
      */
     public function update(?FormInterface $form = null): void
     {
-        // TODO verifier les données pour chaque type de transaction
         if ($this->isTransfer()) {
             $transfer = new Transfer($this->entityManager, $this->transaction);
             $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
             $transfer->update();
         } else {
+            $this->correctAmount();
             $this->entityManager->flush();
         }
         $this->calculateBalance();
@@ -131,18 +148,7 @@ class TransactionWorkFlow
     }
 
     /**
-     * Recalcule les soldes.
-     */
-    private function calculateBalance(): void
-    {
-        if ($this->transaction->getTransfer()) {
-            $this->balanceHelper->updateBalanceAfter($this->transaction->getTransfer(), $this->before->getDate());
-        }
-        $this->balanceHelper->updateBalanceAfter($this->transaction, $this->before->getDate());
-    }
-
-    /**
-     * Retourne la transaction en cours.
+     * Retourne la transaction.
      *
      * @return Transaction
      */
@@ -152,23 +158,15 @@ class TransactionWorkFlow
     }
 
     /**
-     * Retourne la valeur du type de la transaction.
+     * Vérifie le formulaire.
      *
-     * @return int
-     */
-    public function getType(): int
-    {
-        return $this->transaction->getType()->getValue();
-    }
-
-    /**
-     * Retourne le formulaire à utiliser.
+     * @param FormInterface $form
      *
-     * @return string
+     * @return bool
      */
-    public function getForm(): string
+    public function checkForm(FormInterface $form): bool
     {
-        return $this->transaction->getType()->getForm();
+        return true;
     }
 
     /**
@@ -178,64 +176,95 @@ class TransactionWorkFlow
      */
     public function isTransfer(): bool
     {
-        return TransactionType::VIREMENT === $this->getType() || TransactionType::INVESTMENT === $this->getType() || TransactionType::RACHAT === $this->getType();
+        return TransactionType::TRANSFER === $this->transaction->getType()->getValue();
     }
 
     /**
-     * Vérifie les données du formulaire validé.
+     * Retourne le type de transaction par défaut.
      *
-     * @param FormInterface $form
-     *
-     * @return bool
+     * @return TransactionType
      */
-    public function checkForm(FormInterface $form): bool
+    protected function getTransactionType(): TransactionType
     {
-        if (TransactionType::REVALUATION === $this->transaction->getType()->getValue()) {
-            return $this->checkFormValorisation($form);
-        }
-
-        return $this->checkFormStandard($form);
+        return new TransactionType(TransactionType::STANDARD);
     }
 
     /**
-     * Vérifie la validation du formulaire d'une transaction standard.
+     * Retourne la catégorie par défaut.
      *
-     * @return bool
+     * @return Category|null
      */
-    private function checkFormStandard(FormInterface $form): bool
+    protected function getCategory(): ?Category
     {
-        if ($this->transaction->getAmount() > 0 && Category::DEPENSES === $this->transaction->getCategory()->getType()) {
-            $form->get('category')->addError(new FormError(''));
-            $form->get('amount')->addError(new FormError(''));
-
-            return false;
-        }
-        if ($this->transaction->getAmount() < 0 && Category::RECETTES === $this->transaction->getCategory()->getType()) {
-            $form->get('category')->addError(new FormError(''));
-            $form->get('amount')->addError(new FormError(''));
-
-            return false;
-        }
-
-        return true;
+        return null;
     }
 
     /**
-     * Vérifie la validation du formulaire d'une transaction de valorisation de placement.
+     * Retourne le type de paiement par défaut.
      *
-     * @return bool
+     * @return Payment|null
      */
-    private function checkFormValorisation(FormInterface $form): bool
+    protected function getPayment(): ?Payment
     {
-        // Recherche si une transaction existe déjà
-        $trt = $this->repository->findOneValorisation($this->transaction);
+        return null;
+    }
 
-        if (null !== $trt) {
-            $form->get('date')->addError(new FormError('Déjà existant'));
+    /**
+     * Retourne le bénéficiare par défaut.
+     *
+     * @return Recipient|null
+     */
+    protected function getRecipient(): ?Recipient
+    {
+        return null;
+    }
 
-            return false;
+    /**
+     * Corrige le montant en fonction si c'est une recette ou une dépense.
+     */
+    private function correctAmount(): void
+    {
+        $amount = $this->transaction->getAmount();
+        if (Category::RECETTES === $this->transaction->getCategory()->getType()) {
+            $this->transaction->setAmount(abs($amount));
+        } else {
+            $this->transaction->setAmount(abs($amount) * -1);
         }
+    }
 
-        return true;
+    /**
+     * Recalcule les soldes.
+     */
+    private function calculateBalance(): void
+    {
+        if ($this->isTransfer()) {
+            $this->balanceHelper->updateBalanceAfter($this->transaction->getTransfer(), $this->before->getDate());
+        }
+        $this->balanceHelper->updateBalanceAfter($this->transaction, $this->before->getDate());
+    }
+
+    /**
+     * Retourne la catégorie à utiliser.
+     *
+     * @param bool   $type
+     * @param string $code
+     *
+     * @return Category
+     */
+    protected function getCategoryByCode(bool $type, string $code): Category
+    {
+        /** @phpstan-ignore-next-line */
+        return $this->entityManager->getRepository(Category::class)->findOneByCode($type, $code);
+    }
+
+    /**
+     * Retourne le bénéficiare interne (Moi-même).
+     *
+     * @return Recipient
+     */
+    protected function findRecipientInternal(): Recipient
+    {
+        /** @phpstan-ignore-next-line */
+        return $this->entityManager->getRepository(Recipient::class)->findInternal();
     }
 }

@@ -11,12 +11,7 @@ declare(strict_types=1);
 
 namespace App\Values;
 
-use App\Form\TransactionFormType;
-use App\Form\TransactionVhFuelFormType;
-use App\Form\TransactionVhMaintFormType;
-use App\Form\TransactionVhOtherFormType;
-use App\Form\TransferFormType;
-use App\Form\ValorisationFormType;
+use App\Entity\Transaction;
 use Exception;
 
 /**
@@ -30,10 +25,15 @@ class TransactionType
      * Constantes des types de transactions.
      */
     public const STANDARD = 0;
-    public const VIREMENT = 1;
+    public const VEHICLE = 5;
+    public const TRANSFER = 9;
+    public const REVALUATION = 12;
+
+    public const INCOME = 1;
+    public const EXPENSE = 2;
+    public const VIREMENT = 9;
     public const INVESTMENT = 10;
     public const RACHAT = 11;
-    public const REVALUATION = 12;
     public const VH_OTHER = 20;
     public const VH_MAINT = 21;
     public const VH_FUEL = 22;
@@ -43,16 +43,7 @@ class TransactionType
      *
      * @var array<mixed>
      */
-    private static $values = [
-        self::STANDARD => ['form' => TransactionFormType::class, 'label' => '', 'code' => '', 'msg' => 'de la transaction'],
-        self::VIREMENT => ['form' => TransferFormType::class, 'label' => '', 'code' => '', 'msg' => 'du virement'],
-        self::INVESTMENT => ['form' => TransferFormType::class, 'label' => '', 'code' => '', 'msg' => 'de l\'investissement'],
-        self::RACHAT => ['form' => TransferFormType::class, 'label' => '', 'code' => '', 'msg' => 'du rachat'],
-        self::REVALUATION => ['form' => ValorisationFormType::class, 'label' => '', 'code' => '', 'msg' => 'de la valorisation'],
-        self::VH_OTHER => ['form' => TransactionVhOtherFormType::class, 'label' => '', 'code' => '', 'msg' => 'de frais de véhicule'],
-        self::VH_MAINT => ['form' => TransactionVhMaintFormType::class, 'label' => '', 'code' => '', 'msg' => 'd\'entretien/réparation'],
-        self::VH_FUEL => ['form' => TransactionVhFuelFormType::class, 'label' => '', 'code' => '', 'msg' => 'de carburant'],
-    ];
+    private static $values = [self::STANDARD, self::VEHICLE, self::TRANSFER, self::REVALUATION, 1, 2, 10, 11, 12, 20, 21, 22];
 
     /**
      * @var int
@@ -66,8 +57,11 @@ class TransactionType
      */
     public function __construct(int $value)
     {
-        if (!array_key_exists($value, self::$values)) {
+        /*if (!array_key_exists($value, self::$values)) {
             throw new Exception('La valeur "'.$value.'" est inconue, Valeur possible : '.implode(',', array_keys(self::$values)));
+        }*/
+        if (!in_array($value, self::$values, true)) {
+            throw new Exception('La valeur "'.$value.'" est inconue, Valeur possible : '.implode(',', self::$values));
         }
         $this->value = $value;
     }
@@ -93,34 +87,44 @@ class TransactionType
     }
 
     /**
+     * Retourne le type (dépenses ou recettes ou null = virement).
+     *
+     * @return bool|null
+     */
+    /*public function getType(): ?bool
+    {
+        return self::$values[$this->value]['type'];
+    }*/
+
+    /**
      * Retourne le label.
      *
      * @return string
      */
-    public function getLabel(): string
+    /*public function getLabel(): string
     {
         return self::$values[$this->value]['label'];
-    }
+    }*/
 
     /**
      * Retourne le formulaire.
      *
      * @return string
      */
-    public function getForm(): string
+    /*public function getForm(): string
     {
         return self::$values[$this->value]['form'];
-    }
+    }*/
 
     /**
      * Retourne le libellé pour les messages.
      *
      * @return string
      */
-    public function getMessage(): string
+    /*public function getMessage(): string
     {
         return self::$values[$this->value]['msg'];
-    }
+    }*/
 
     /**
      * Retourne la liste des valeurs.
