@@ -27,23 +27,14 @@ class TransactionType
     public const STANDARD = 0;
     public const VEHICLE = 5;
     public const TRANSFER = 9;
-    public const REVALUATION = 12;
-
-    public const INCOME = 1;
-    public const EXPENSE = 2;
-    public const VIREMENT = 9;
-    public const INVESTMENT = 10;
-    public const RACHAT = 11;
-    public const VH_OTHER = 20;
-    public const VH_MAINT = 21;
-    public const VH_FUEL = 22;
+    public const REVALUATION = 7;
 
     /**
      * Liste des types de transaction.
      *
      * @var array<mixed>
      */
-    private static $values = [self::STANDARD, self::VEHICLE, self::TRANSFER, self::REVALUATION, 1, 2, 10, 11, 12, 20, 21, 22];
+    private static $values = [self::STANDARD, self::VEHICLE, self::TRANSFER, self::REVALUATION];
 
     /**
      * @var int
@@ -85,46 +76,6 @@ class TransactionType
     {
         return $this->value;
     }
-
-    /**
-     * Retourne le type (dépenses ou recettes ou null = virement).
-     *
-     * @return bool|null
-     */
-    /*public function getType(): ?bool
-    {
-        return self::$values[$this->value]['type'];
-    }*/
-
-    /**
-     * Retourne le label.
-     *
-     * @return string
-     */
-    /*public function getLabel(): string
-    {
-        return self::$values[$this->value]['label'];
-    }*/
-
-    /**
-     * Retourne le formulaire.
-     *
-     * @return string
-     */
-    /*public function getForm(): string
-    {
-        return self::$values[$this->value]['form'];
-    }*/
-
-    /**
-     * Retourne le libellé pour les messages.
-     *
-     * @return string
-     */
-    /*public function getMessage(): string
-    {
-        return self::$values[$this->value]['msg'];
-    }*/
 
     /**
      * Retourne la liste des valeurs.

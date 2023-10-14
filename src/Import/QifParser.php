@@ -293,7 +293,7 @@ class QifParser
     {
         $item->setRecipient(Recipient::VIRT_NAME);
         $item->setPayment(Payment::INTERNAL);
-        $item->setType(TransactionType::VIREMENT);
+        $item->setType(TransactionType::TRANSFER);
 
         // Virement source
         $item->setCategory(Category::VIREMENT);

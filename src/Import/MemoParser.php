@@ -151,7 +151,7 @@ class MemoParser
         // Valeurs communes
         $item->setRecipient(Recipient::VIRT_NAME);
         $item->setPayment(Payment::INTERNAL);
-        $item->setType(TransactionType::INVESTMENT);
+        $item->setType(TransactionType::TRANSFER);
 
         // Toujours compte débiteur = Compte courant où se fait le prélèvement
         $item->setCategory(Category::INVESTMENT);

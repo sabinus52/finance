@@ -24,7 +24,7 @@
 2;-;Pensions;
 2;-;Restauration scolaire;
 1;-;Impôts et taxes;
-2;-;Autres impôts;
+2;-;Autres impôts;TAXE
 2;-;Contributions sociales;
 2;-;Impôt sur la fortune;
 2;-;Impôts sur revenu;
@@ -56,7 +56,7 @@
 2;+;Frais vie quotidienne;
 1;+;Revenus de placement;
 2;+;Crypto monnaies;
-2;+;Revenus épargne bancaire;
+2;+;Revenus épargne bancaire;INTR
 2;+;Revenus épargne financière;
 2;+;Revenus placement boursier;DIVD
 2;+;Revenus placement immobiliers;

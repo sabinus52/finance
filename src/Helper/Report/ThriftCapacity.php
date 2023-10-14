@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace App\Helper\Report;
 
+use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Values\AccountType;
 use App\Values\TransactionType;
@@ -80,7 +81,7 @@ class ThriftCapacity
             $this->results[$period] = new ThriftItem($transaction->getDate());
         }
 
-        if (TransactionType::VIREMENT === $transaction->getType()->getValue()) {
+        if (TransactionType::TRANSFER === $transaction->getType()->getValue()) {
             $virement = $transaction->getTransfer();
             if ($virement->getAccount()->getUnit() !== $unit) {
                 $this->results[$period]->addAmount($transaction->getAmount());
@@ -91,7 +92,7 @@ class ThriftCapacity
                     $this->results[$period]->addThrift($transaction->getAmount());
                 }
             }
-        } elseif (TransactionType::INVESTMENT === $transaction->getType()->getValue()) {
+        } elseif (Category::INVESTMENT === $transaction->getCategory()->getCode()) {
             // Si l'investissement est différent de la sommme réellement versé ( frais par exemple )
             $versement = $transaction->getTransfer();
             $this->results[$period]->addInvest($versement->getAmount());

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Helper;
 
 use App\Entity\Account;
+use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
 use App\Values\TransactionType;
@@ -105,7 +106,7 @@ class Performance
             }
 
             // On a insvesti durant la période
-            if (TransactionType::INVESTMENT === $transaction->getType()->getValue()) {
+            if ($transaction->getCategory() && Category::INVESTMENT === $transaction->getCategory()->getCode()) {
                 $cumulInvest += $transaction->getAmount();
                 $results[$period]->addInvest($transaction->getAmount());
             }

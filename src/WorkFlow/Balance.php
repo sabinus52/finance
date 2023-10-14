@@ -106,7 +106,7 @@ class Balance
             if (Transaction::STATE_RECONCILIED === $item->getState()) {
                 $reconcilied += $item->getAmount();
             }
-            if (TransactionType::INVESTMENT === $item->getType()->getValue()) {
+            if (Category::INVESTMENT === $item->getCategory()->getCode()) {
                 $invested += $item->getAmount();
             }
         }
