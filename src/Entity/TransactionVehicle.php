@@ -32,10 +32,10 @@ class TransactionVehicle
      *
      * @var Transaction
      *
-     * @ORM\OneToOne(targetEntity=Transaction::class, inversedBy="transactionVehicle", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
+     * ORM\OneToOne(targetEntity=Transaction::class, inversedBy="transactionVehicle", cascade={"persist", "remove"})
+     * ORM\JoinColumn(nullable=false)
      */
-    private $transaction;
+    // private $transaction;
 
     /**
      * Véhicule associé.
@@ -69,18 +69,6 @@ class TransactionVehicle
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getTransaction(): ?Transaction
-    {
-        return $this->transaction;
-    }
-
-    public function setTransaction(Transaction $transaction): self
-    {
-        $this->transaction = $transaction;
-
-        return $this;
     }
 
     public function getVehicle(): ?Vehicle

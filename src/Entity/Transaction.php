@@ -155,7 +155,7 @@ class Transaction
      *
      * @var TransactionVehicle
      *
-     * @ORM\OneToOne(targetEntity=TransactionVehicle::class, mappedBy="transaction", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity=TransactionVehicle::class, cascade={"persist", "remove"})
      * @Assert\Valid
      */
     private $transactionVehicle;
@@ -345,13 +345,8 @@ class Transaction
         return $this->transactionVehicle;
     }
 
-    public function setTransactionVehicle(TransactionVehicle $transactionVehicle): self
+    public function setTransactionVehicle(?TransactionVehicle $transactionVehicle): self
     {
-        // set the owning side of the relation if necessary
-        if ($transactionVehicle->getTransaction() !== $this) {
-            $transactionVehicle->setTransaction($this);
-        }
-
         $this->transactionVehicle = $transactionVehicle;
 
         return $this;
