@@ -96,6 +96,16 @@ class Vehicle
     private $registeredAt;
 
     /**
+     * Kilométrage d'achat.
+     *
+     * @var int
+     *
+     * @ORM\Column(type="integer", options={"default": 0})
+     * @Assert\NotBlank
+     */
+    private $kilometer;
+
+    /**
      * Date d'achat.
      *
      * @var DateTime
@@ -125,6 +135,7 @@ class Vehicle
 
     public function __construct()
     {
+        $this->kilometer = 0;
         $this->transactionVehicles = new ArrayCollection();
     }
 
@@ -210,6 +221,18 @@ class Vehicle
     public function setRegisteredAt(?DateTime $registeredAt): self
     {
         $this->registeredAt = $registeredAt;
+
+        return $this;
+    }
+
+    public function getKilometer(): ?int
+    {
+        return $this->kilometer;
+    }
+
+    public function setKilometer(int $kilometer): self
+    {
+        $this->kilometer = $kilometer;
 
         return $this;
     }

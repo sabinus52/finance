@@ -59,6 +59,11 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'report_capacity',
             'icon' => 'fas fa-piggy-bank',
         ]));
+        $report->addChild(new MenuItemModel('report_vehicle', [
+            'label' => 'Coût des véhicules',
+            'route' => 'report_vehicle__index',
+            'icon' => 'fas fa-car',
+        ]));
 
         $manage = new MenuItemModel('manage', [
             'label' => 'Gerer ses finances',

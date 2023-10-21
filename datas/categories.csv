@@ -10,7 +10,7 @@
 2;-;Carburant;FUEL
 2;-;Contraventions;
 2;-;Entretien / Réparation;VRPR
-2;-;Financement;
+2;-;Financement;VFDG
 2;-;Parking;
 2;-;Péages;
 1;-;Education et famille;
@@ -70,7 +70,7 @@
 2;+;Gains jeux;
 2;+;Héritages et dons;
 2;+;Internet;
-2;+;Vente occasion;
+2;+;Vente occasion;RSAL
 1;-;Santé et prévoyance;
 2;-;Complémentaire santé;
 2;-;Cotisation prévoyance;

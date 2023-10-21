@@ -17,6 +17,7 @@ use App\Values\VehicleType;
 use Olix\BackOfficeBundle\Form\Type\DatePickerType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -56,6 +57,10 @@ class VehicleFormType extends AbstractType
             ])
             ->add('matriculation', TextType::class, [
                 'label' => 'Immatriculation',
+                'required' => false,
+            ])
+            ->add('kilometer', IntegerType::class, [
+                'label' => 'Kilométrage d\'achat',
                 'required' => false,
             ])
             ->add('registeredAt', DatePickerType::class, [

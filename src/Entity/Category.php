@@ -46,6 +46,8 @@ class Category
     public const DIVIDENDES = 'DIVD';
     public const CARBURANT = 'FUEL';
     public const VEHICULEREPAIR = 'VRPR';
+    public const VEHICULEFUNDING = 'VFDG';
+    public const RESALE = 'RSAL';
     public const INTERET = 'INTR';
     public const TAXE = 'TAXE';
 
