@@ -11,9 +11,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Manage;
 
+use App\Entity\Category;
 use App\Entity\Vehicle;
 use App\Form\VehicleFormType;
 use App\Repository\VehicleRepository;
+use App\Transaction\TransactionModelInterface;
+use App\Transaction\TransactionModelRouter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,6 +37,9 @@ class VehicleController extends AbstractController
     {
         return $this->render('manage/vehicle-index.html.twig', [
             'vehicles' => $repository->findAll(),
+            'modal' => [
+                'class' => 'modal-lg',
+            ],
         ]);
     }
 
@@ -54,7 +60,7 @@ class VehicleController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer un nouveau véhicule',
@@ -77,10 +83,69 @@ class VehicleController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier un véhicule',
+            ],
+        ]);
+    }
+
+    /**
+     * Création d'une transaction de financement de véhicule.
+     *
+     * @Route("/manage/vehicle/buy/{id}", name="manage_vehicle__buy", methods={"GET", "POST"})
+     */
+    public function buy(Request $request, Vehicle $vehicle, EntityManagerInterface $entityManager): Response
+    {
+        $router = new TransactionModelRouter($entityManager);
+
+        return $this->createTransaction($request, $vehicle, $router->createVehicle(Category::VEHICULEFUNDING));
+    }
+
+    /**
+     * Création d'une transaction de revente de véhicule.
+     *
+     * @Route("/manage/vehicle/sale/{id}", name="manage_vehicle__sale", methods={"GET", "POST"})
+     */
+    public function sale(Request $request, Vehicle $vehicle, EntityManagerInterface $entityManager): Response
+    {
+        $router = new TransactionModelRouter($entityManager);
+
+        return $this->createTransaction($request, $vehicle, $router->createVehicle(Category::RESALE));
+    }
+
+    /**
+     * Création du formulaire de la transaction.
+     *
+     * @param Request                   $request
+     * @param Vehicle                   $vehicle
+     * @param TransactionModelInterface $modelTransaction
+     *
+     * @return Response
+     */
+    private function createTransaction(Request $request, Vehicle $vehicle, TransactionModelInterface $modelTransaction): Response
+    {
+        $modelTransaction->init()->setVehicle($vehicle);
+
+        $transaction = $modelTransaction->getTransaction();
+        $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions() + ['isNew' => true]);
+        if ($modelTransaction->isTransfer()) {
+            $form->get('source')->setData($transaction->getAccount());
+        }
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid() && $modelTransaction->checkForm($form)) {
+            $modelTransaction->add($form);
+            $this->addFlash('success', sprintf('La création %s a bien été prise en compte', $modelTransaction->getMessage()));
+
+            return new Response('OK');
+        }
+
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+            'form' => $form,
+            'modal' => [
+                'title' => sprintf('Créer %s', $modelTransaction->getFormTitle()),
             ],
         ]);
     }

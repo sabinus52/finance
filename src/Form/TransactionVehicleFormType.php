@@ -28,18 +28,18 @@ class TransactionVehicleFormType extends TransactionStandardFormType
             'required' => true,
         ]);
 
-        // Suppression des champs du formulaire principal
-        if (isset($options['filter']['!fields'])) {
-            foreach ($options['filter']['!fields'] as $field) {
-                $builder->remove($field);
-            }
-        }
-
         // Suppression des champs du formulaire du véhicule
         $subForm = $builder->get('transactionVehicle');
         if (isset($options['filter']['!fieldsvh'])) {
             foreach ($options['filter']['!fieldsvh'] as $field) {
                 $subForm->remove($field);
+            }
+        }
+
+        // Suppression des champs du formulaire principal
+        if (isset($options['filter']['!fields'])) {
+            foreach ($options['filter']['!fields'] as $field) {
+                $builder->remove($field);
             }
         }
     }

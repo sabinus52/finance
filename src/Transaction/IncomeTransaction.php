@@ -13,6 +13,7 @@ namespace App\Transaction;
 
 use App\Entity\Category;
 use App\Form\TransactionStandardFormType;
+use App\Values\AccountType;
 
 /**
  * Modèle de transaction des recettes.
@@ -30,7 +31,9 @@ final class IncomeTransaction extends TransactionModelAbstract implements Transa
     {
         return [
             'filter' => [
+                'account' => sprintf('acc.type <= %s', AccountType::COURANT * 10 + 9),
                 'category' => sprintf('cat.type = %s', (int) (Category::INCOME)),
+                '!fields' => ['account'],
             ],
         ];
     }

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Transaction;
 
 use App\Form\TransactionVehicleFormType;
+use App\Values\AccountType;
 use App\Values\TransactionType;
 
 /**
@@ -30,8 +31,9 @@ final class VehicleOtherTransaction extends TransactionModelAbstract implements 
     {
         return [
             'filter' => [
+                'account' => sprintf('acc.type <= %s', AccountType::COURANT * 10 + 9),
                 'category' => 'cat1.name IN (\'Auto / Moto\')',
-                '!fields' => [],
+                '!fields' => ['account'],
                 '!fieldsvh' => ['distance', 'volume'],
             ],
         ];

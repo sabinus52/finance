@@ -11,9 +11,12 @@ declare(strict_types=1);
 
 namespace App\Transaction;
 
+use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Recipient;
 use App\Entity\Transaction;
+use App\Entity\TransactionVehicle;
+use App\Entity\Vehicle;
 use App\Repository\TransactionRepository;
 use App\Values\Payment;
 use App\Values\TransactionType;
@@ -28,8 +31,9 @@ use Symfony\Component\Form\FormInterface;
  * @author Sabinus52 <sabinus52@gmail.com>
  *
  * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-abstract class TransactionModelAbstract
+abstract class TransactionModelAbstract implements TransactionModelInterface
 {
     /**
      * @var EntityManagerInterface
@@ -85,13 +89,47 @@ abstract class TransactionModelAbstract
 
     /**
      * Initialise la transaction lors de sa création.
+     *
+     * @return TransactionModelInterface
      */
-    public function initTransaction(): void
+    public function init(): TransactionModelInterface
     {
         $this->transaction->setType($this->getTransactionType());
         $this->transaction->setCategory($this->getCategory());
         $this->transaction->setPayment($this->getPayment());
         $this->transaction->setRecipient($this->getRecipient());
+
+        return $this;
+    }
+
+    /**
+     * Affecte un compte à la transaction.
+     *
+     * @param Account $account
+     *
+     * @return TransactionModelInterface
+     */
+    public function setAccount(Account $account): TransactionModelInterface
+    {
+        $this->transaction->setAccount($account);
+
+        return $this;
+    }
+
+    /**
+     * Affecte un véhicule à la transaction.
+     *
+     * @param Vehicle $vehicle
+     *
+     * @return TransactionModelInterface
+     */
+    public function setVehicle(Vehicle $vehicle): TransactionModelInterface
+    {
+        $transacVeh = new TransactionVehicle();
+        $transacVeh->setVehicle($vehicle);
+        $this->transaction->setTransactionVehicle($transacVeh);
+
+        return $this;
     }
 
     /**

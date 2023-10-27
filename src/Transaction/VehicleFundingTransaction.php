@@ -12,19 +12,20 @@ declare(strict_types=1);
 namespace App\Transaction;
 
 use App\Entity\Category;
-use App\Form\TransactionStandardFormType;
+use App\Form\TransactionVehicleFormType;
 use App\Values\AccountType;
+use App\Values\TransactionType;
 
 /**
- * Modèle de transaction des dépenses.
+ * Modèle de transaction d'un financement d'un véhicule.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-final class ExpenseTransaction extends TransactionModelAbstract implements TransactionModelInterface
+final class VehicleFundingTransaction extends TransactionModelAbstract implements TransactionModelInterface
 {
     public function getFormClass(): string
     {
-        return TransactionStandardFormType::class;
+        return TransactionVehicleFormType::class;
     }
 
     public function getFormOptions(): array
@@ -32,19 +33,29 @@ final class ExpenseTransaction extends TransactionModelAbstract implements Trans
         return [
             'filter' => [
                 'account' => sprintf('acc.type <= %s', AccountType::COURANT * 10 + 9),
-                'category' => sprintf('cat.type = %s', (int) (Category::EXPENSE)),
-                '!fields' => ['account'],
+                '!fields' => ['category', 'project', 'transactionVehicle'],
+                '!fieldsvh' => [],
             ],
         ];
     }
 
     public function getFormTitle(): string
     {
-        return 'une dépense';
+        return 'un financement véhicule';
+    }
+
+    public function getTransactionType(): TransactionType
+    {
+        return new TransactionType(TransactionType::VEHICLE);
+    }
+
+    public function getCategory(): ?Category
+    {
+        return $this->getCategoryByCode(Category::EXPENSE, Category::VEHICULEFUNDING);
     }
 
     public function getMessage(): string
     {
-        return 'de débit';
+        return 'du financement de véhicule';
     }
 }

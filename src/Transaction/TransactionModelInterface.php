@@ -11,7 +11,9 @@ declare(strict_types=1);
 
 namespace App\Transaction;
 
+use App\Entity\Account;
 use App\Entity\Transaction;
+use App\Entity\Vehicle;
 use Symfony\Component\Form\FormInterface;
 
 /**
@@ -71,6 +73,31 @@ interface TransactionModelInterface
      * @return bool
      */
     public function isTransfer(): bool;
+
+    /**
+     * Initialisation des données de la transaction.
+     *
+     * @return TransactionModelInterface
+     */
+    public function init(): self;
+
+    /**
+     * Affecte un compte à la transaction.
+     *
+     * @param Account $account
+     *
+     * @return TransactionModelInterface
+     */
+    public function setAccount(Account $account): self;
+
+    /**
+     * Affecte un véhicule à la transaction.
+     *
+     * @param Vehicle $vehicle
+     *
+     * @return TransactionModelInterface
+     */
+    public function setVehicle(Vehicle $vehicle): self;
 
     /**
      * Ajoute la transaction en base.

@@ -13,6 +13,7 @@ namespace App\Transaction;
 
 use App\Entity\Category;
 use App\Form\TransactionStandardFormType;
+use App\Values\AccountType;
 use App\Values\Payment;
 
 /**
@@ -31,7 +32,8 @@ final class InterestTransaction extends TransactionModelAbstract implements Tran
     {
         return [
             'filter' => [
-                '!fields' => ['category', 'payment', 'memo', 'project'],
+                'account' => sprintf('acc.type >= %s AND acc.type <= %s', AccountType::EPARGNE_LIQUIDE, AccountType::EPARGNE_A_TERME * 10 + 9),
+                '!fields' => ['account', 'category', 'payment', 'memo', 'project'],
             ],
         ];
     }

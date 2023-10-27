@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace App\Transaction;
 
-use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Values\TransactionType;
@@ -43,29 +42,18 @@ final class TransactionModelRouter
     private $transaction;
 
     /**
-     * Si nouvelle transaction pour son initialisation sinon récupération depuis la base.
-     *
-     * @var bool
-     */
-    private $isNew;
-
-    /**
      * Constructeur.
      *
      * @param EntityManagerInterface $manager
-     * @param Account|null           $account
      */
-    public function __construct(EntityManagerInterface $manager, ?Account $account = null)
+    public function __construct(EntityManagerInterface $manager)
     {
         $this->entityManager = $manager;
         $this->transaction = new Transaction();
-        $this->transaction->setAccount($account);
-        // Si le compte n'est pas renseigné alors on se ne trouve pas dans le cas de la création d'une transaction
-        $this->isNew = (null === $account) ? false : true;
     }
 
     /**
-     * Crée le modèle de transaction en fonction des données de la transaction.
+     * Crée le modèle de transaction en fonction des données de la transaction (mode UPDATE).
      *
      * @param Transaction $transaction
      *
@@ -108,10 +96,6 @@ final class TransactionModelRouter
             $model = new ExpenseTransaction($this->entityManager, $this->transaction);
         }
 
-        if ($this->isNew) {
-            $model->initTransaction();
-        }
-
         return $model;
     }
 
@@ -135,10 +119,6 @@ final class TransactionModelRouter
                 throw new Exception(sprintf('Type de catégorie inconnu : %s.', $codeCat));
         }
 
-        if ($this->isNew) {
-            $model->initTransaction();
-        }
-
         return $model;
     }
 
@@ -158,13 +138,15 @@ final class TransactionModelRouter
             case Category::VEHICULEREPAIR:
                 $model = new VehicleRepairTransaction($this->entityManager, $this->transaction);
                 break;
+            case Category::VEHICULEFUNDING:
+                $model = new VehicleFundingTransaction($this->entityManager, $this->transaction);
+                break;
+            case Category::RESALE:
+                   $model = new VehicleResaleTransaction($this->entityManager, $this->transaction);
+                break;
             default:
                 $model = new VehicleOtherTransaction($this->entityManager, $this->transaction);
                 break;
-        }
-
-        if ($this->isNew) {
-            $model->initTransaction();
         }
 
         return $model;
@@ -193,10 +175,6 @@ final class TransactionModelRouter
                 throw new Exception(sprintf('Type de catégorie du transfert inconnu : %s. Valeurs possibles (%s)', $codeCat, implode(', ', Transfer::getCategoryValues())));
         }
 
-        if ($this->isNew) {
-            $model->initTransaction();
-        }
-
         return $model;
     }
 
@@ -214,12 +192,6 @@ final class TransactionModelRouter
             $this->transaction->setAmount(0);
         }
 
-        $model = new ReValuationTransaction($this->entityManager, $this->transaction);
-
-        if ($this->isNew) {
-            $model->initTransaction();
-        }
-
-        return $model;
+        return new ReValuationTransaction($this->entityManager, $this->transaction);
     }
 }

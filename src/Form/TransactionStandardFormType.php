@@ -11,10 +11,12 @@ declare(strict_types=1);
 
 namespace App\Form;
 
+use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Project;
 use App\Entity\Recipient;
 use App\Entity\Transaction;
+use App\Repository\AccountRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\RecipientRepository;
@@ -46,6 +48,21 @@ class TransactionStandardFormType extends AbstractType
                 'label' => 'Date',
                 'format' => 'dd/MM/yyyy',
                 'required' => false,
+            ])
+            ->add('account', EntityType::class, [
+                'label' => 'Compte bancaire',
+                'required' => false,
+                'class' => Account::class,
+                'query_builder' => function (AccountRepository $er) use ($options) {
+                    return $er->createQueryBuilder('acc')
+                        ->addSelect('ist')
+                        ->innerJoin('acc.institution', 'ist')
+                        ->where($options['filter']['account'])
+                        ->orderBy('ist.name')
+                        ->addOrderBy('acc.name')
+                    ;
+                },
+                'empty_data' => null,
             ])
             ->add('amount', MoneyType::class, [
                 'label' => 'Montant',

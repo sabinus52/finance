@@ -31,9 +31,9 @@ class TransactionController extends BaseController
      */
     public function createTransactionByType(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
-        $router = new TransactionModelRouter($entityManager, $account);
+        $router = new TransactionModelRouter($entityManager);
 
-        return $this->create($request, $router->createStandardByType((bool) $type));
+        return $this->create($request, $account, $router->createStandardByType((bool) $type));
     }
 
     /**
@@ -43,9 +43,9 @@ class TransactionController extends BaseController
      */
     public function createTransactionByCategory(Request $request, Account $account, string $codecat, EntityManagerInterface $entityManager): Response
     {
-        $router = new TransactionModelRouter($entityManager, $account);
+        $router = new TransactionModelRouter($entityManager);
 
-        return $this->create($request, $router->createStandardByCategory($codecat));
+        return $this->create($request, $account, $router->createStandardByCategory($codecat));
     }
 
     /**
@@ -55,9 +55,9 @@ class TransactionController extends BaseController
      */
     public function createTransfer(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
-        $router = new TransactionModelRouter($entityManager, $account);
+        $router = new TransactionModelRouter($entityManager);
 
-        return $this->create($request, $router->createTransferByCategory($type));
+        return $this->create($request, $account, $router->createTransferByCategory($type));
     }
 
     /**
@@ -74,9 +74,9 @@ class TransactionController extends BaseController
             $date = clone $last->getDate()->modify('+ 15 days');
         }
 
-        $router = new TransactionModelRouter($entityManager, $account);
+        $router = new TransactionModelRouter($entityManager);
 
-        return $this->create($request, $router->createRevaluation($date));
+        return $this->create($request, $account, $router->createRevaluation($date));
     }
 
     /**
@@ -86,9 +86,9 @@ class TransactionController extends BaseController
      */
     public function createTransactionVehicle(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
-        $router = new TransactionModelRouter($entityManager, $account);
+        $router = new TransactionModelRouter($entityManager);
 
-        return $this->create($request, $router->createVehicle($type));
+        return $this->create($request, $account, $router->createVehicle($type));
     }
 
     /**
@@ -99,9 +99,11 @@ class TransactionController extends BaseController
      *
      * @return Response
      */
-    private function create(Request $request, TransactionModelInterface $modelTransaction): Response
+    private function create(Request $request, Account $account, TransactionModelInterface $modelTransaction): Response
     {
+        $modelTransaction->init()->setAccount($account);
         $transaction = $modelTransaction->getTransaction();
+
         $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions() + ['isNew' => true]);
         if ($modelTransaction->isTransfer()) {
             $form->get('source')->setData($transaction->getAccount());

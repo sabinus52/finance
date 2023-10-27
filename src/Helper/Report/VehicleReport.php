@@ -389,8 +389,8 @@ class VehicleReport
     private function fetchFundingStatistic(): array
     {
         return $this->getQueryBase()
-            ->andWhere('cat.code = :cat')
-            ->setParameter('cat', Category::VEHICULEFUNDING)
+            ->andWhere('cat.code IN (:cat)')
+            ->setParameter('cat', [Category::VEHICULEFUNDING, Category::RESALE])
             ->getQuery()
             ->getOneOrNullResult()
         ;

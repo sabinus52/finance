@@ -13,6 +13,7 @@ namespace App\Transaction;
 
 use App\Entity\Category;
 use App\Form\TransactionVehicleFormType;
+use App\Values\AccountType;
 use App\Values\TransactionType;
 
 /**
@@ -31,7 +32,8 @@ final class VehicleRepairTransaction extends TransactionModelAbstract implements
     {
         return [
             'filter' => [
-                '!fields' => ['category'],
+                'account' => sprintf('acc.type <= %s', AccountType::COURANT * 10 + 9),
+                '!fields' => ['account', 'category'],
                 '!fieldsvh' => ['volume'],
             ],
         ];
