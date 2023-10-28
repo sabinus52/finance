@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Stock;
 use App\Entity\StockPrice;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -28,5 +29,25 @@ class StockPriceRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, StockPrice::class);
+    }
+
+    /**
+     * Dernière cotation boursière.
+     *
+     * @param Stock $stock
+     *
+     * @return StockPrice|null
+     */
+    public function findOneLastPrice(Stock $stock): ?StockPrice
+    {
+        return $this->createQueryBuilder('sp')
+            ->where('sp.stock = :stock')
+            ->setParameter('stock', $stock)
+            ->orderBy('sp.date', 'DESC')
+            ->addOrderBy('sp.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
     }
 }

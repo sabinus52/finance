@@ -14,6 +14,7 @@ namespace App\Entity;
 use App\Repository\StockPriceRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Entité de la classe StockPrice (Cours des actions boursières).
@@ -46,6 +47,7 @@ class StockPrice
      * @var float
      *
      * @ORM\Column(type="float")
+     * @Assert\NotBlank
      */
     private $price;
 
@@ -81,7 +83,7 @@ class StockPrice
         return $this->price;
     }
 
-    public function setPrice(float $price): self
+    public function setPrice(?float $price): self
     {
         $this->price = $price;
 

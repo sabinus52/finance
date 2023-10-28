@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+{% block title %}{{ parent() }} - Gérer les cotations boursières{% endblock %}
+
+{% block content_title %}<i class="fas fa-landmark"></i> Gérer les cotations boursières{% endblock %}
+{% block content_subtitle %}(actions, SICAV, FCP, ...){% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-12">
+
+                <div class="card card-success card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Liste des actions boursières</h3>
+                        <div class="card-tools"><a href="{{ path('manage_stock__create') }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter une action</span></a></div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Nom</th>
+                                    <th class="text-center">Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in stocks %}
+                                <tr>
+                                    <td>{{ item.codeISIN }}</td>
+                                    <td><b>{{ item.name }}</b></td>
+                                    <td class="align-middle text-center">{{ item.getStatusBadge|raw }}</td>
+                                    <td class="text-right">
+                                        <a href="{{ path('manage_stock__prices', {'id': item.id}) }}" class="btn btn-sm btn-primary"r ole="button"><b><i class="fas fa-chart-line"></i><span class="d-none d-md-inline">&nbsp;Voir les cotations<span></b></a>
+                                        <a href="{{ path('manage_stock__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" role="button" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="3">Aucun éléments dans la table</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    {% include '@OlixBackOffice/Include/modal.html.twig' with { title: "Chargement du formulaire" } %}
+
+{% endblock %}

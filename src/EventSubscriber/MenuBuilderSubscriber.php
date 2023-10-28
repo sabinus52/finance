@@ -99,6 +99,11 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'manage_category__index',
             'icon' => 'fas fa-layer-group',
         ]));
+        $manage->addChild(new MenuItemModel('manage_stock', [
+            'label' => 'Cotations boursières',
+            'route' => 'manage_stock__index',
+            'icon' => 'fas fa-landmark',
+        ]));
 
         $event
             ->addItem($report)

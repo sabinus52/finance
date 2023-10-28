@@ -12,9 +12,11 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\StockRepository;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Entité de la classe Stock (Actions boursières).
@@ -38,6 +40,7 @@ class Stock
      * @var string
      *
      * @ORM\Column(type="string", length=12, unique=true)
+     * @Assert\NotBlank
      */
     private $codeISIN;
 
@@ -47,8 +50,18 @@ class Stock
      * @var string
      *
      * @ORM\Column(type="string", length=100, unique=true)
+     * @Assert\NotBlank
      */
     private $name;
+
+    /**
+     * Date de la fermeture.
+     *
+     * @var DateTimeInterface
+     *
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $closedAt;
 
     /**
      * @var ArrayCollection
@@ -70,6 +83,15 @@ class Stock
         $this->stockPortfolios = new ArrayCollection();
     }
 
+    public function __toString()
+    {
+        if (!$this->name) {
+            return '';
+        }
+
+        return $this->getName();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -80,7 +102,7 @@ class Stock
         return $this->codeISIN;
     }
 
-    public function setCodeISIN(string $codeISIN): self
+    public function setCodeISIN(?string $codeISIN): self
     {
         $this->codeISIN = $codeISIN;
 
@@ -92,9 +114,21 @@ class Stock
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(?string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getClosedAt(): ?DateTimeInterface
+    {
+        return $this->closedAt;
+    }
+
+    public function setClosedAt(?DateTimeInterface $closedAt): self
+    {
+        $this->closedAt = $closedAt;
 
         return $this;
     }
@@ -157,5 +191,19 @@ class Stock
         }
 
         return $this;
+    }
+
+    /**
+     * Affiche le badge du statut de l'action.
+     *
+     * @return string
+     */
+    public function getStatusBadge(): string
+    {
+        if (null !== $this->closedAt) {
+            return '<span class="badge bg-danger text-uppercase">fermé</span>';
+        }
+
+        return '<span class="badge bg-secondary text-uppercase">ouvert</span>';
     }
 }
