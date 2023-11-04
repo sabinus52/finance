@@ -36,6 +36,7 @@ final class TransferTransaction extends TransactionModelAbstract implements Tran
             'filter' => [
                 'source' => sprintf('acc.type <= 39 AND acc.type <> %s', AccountType::PEA_CAISSE),
                 'target' => sprintf('acc.type <= 39 AND acc.type <> %s', AccountType::PEA_CAISSE),
+                '!fields' => ['invest'],
             ],
         ];
     }

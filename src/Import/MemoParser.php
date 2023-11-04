@@ -131,9 +131,9 @@ class MemoParser
         if (null === $accountPlacement) {
             throw new Exception('Compte de placement introuvable dans le memo');
         }
-        $amountPlacement = $memo->getAmountVersement($item->getAmount()); // FIXME
+        $amountPlacement = $memo->getAmountVersement($item->getAmount());
 
-        $this->helper->createTransactionTransfer($item, Category::INVESTMENT, $accountPlacement);
+        $this->helper->createTransactionTransfer($item, Category::INVESTMENT, $accountPlacement, $amountPlacement);
 
         // Change le type de placement trouvé
         $this->setAccountType($accountPlacement);

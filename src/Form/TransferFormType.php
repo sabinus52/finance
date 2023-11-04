@@ -42,6 +42,11 @@ class TransferFormType extends AbstractType
                 'label' => 'Montant',
                 'required' => false,
             ])
+            ->add('invest', MoneyType::class, [
+                'label' => 'Montant investi',
+                'required' => false,
+                'mapped' => false,
+            ])
             ->add('source', EntityType::class, [
                 'label' => 'De',
                 'required' => false,
@@ -121,6 +126,13 @@ class TransferFormType extends AbstractType
                 'required' => false,
             ])
         ;
+
+        // Suppression des champs du formulaire principal
+        if (isset($options['filter']['!fields'])) {
+            foreach ($options['filter']['!fields'] as $field) {
+                $builder->remove($field);
+            }
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void

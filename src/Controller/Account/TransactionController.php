@@ -156,7 +156,11 @@ class TransactionController extends BaseController
         $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions());
         if ($modelTransaction->isTransfer()) {
             $form->get('source')->setData($transaction->getTransfer()->getAccount()); // Compte débiteur
+            $form->get('amount')->setData(abs($transaction->getTransfer()->getAmount()));
             $form->get('target')->setData($transaction->getAccount()); // Compte créditeur
+            if ($form->has('invest')) {
+                $form->get('invest')->setData($transaction->getAmount());
+            }
         }
 
         $form->handleRequest($request);

@@ -93,12 +93,16 @@ class Helper
     /**
      * Création et insère dans la base un transfert (virement ou investissement).
      *
-     * @param QifItem $item
-     * @param string  $type   Virement ou investissement
-     * @param string  $target Compte cible
+     * @param QifItem    $item
+     * @param string     $type         Virement ou investissement
+     * @param string     $target       Compte cible
+     * @param float|null $amountInvest Montant invsti sur le compte de placement
      */
-    public function createTransactionTransfer(QifItem $item, string $type, string $target): void
+    public function createTransactionTransfer(QifItem $item, string $type, string $target, ?float $amountInvest = null): void
     {
+        if (null === $amountInvest) {
+            $amountInvest = abs($item->getAmount());
+        }
         $modelTransac = $this->router->createTransferByCategory($type);
         $modelTransac->setDatas([
             'date' => $item->getDate(),
@@ -108,6 +112,7 @@ class Helper
         ])->insertModeImport([
             'source' => $item->getAccount(),
             'target' => $this->assocDatas->getAccount($target),
+            'invest' => $amountInvest,
         ])
         ;
         $this->statistic->incTransaction($modelTransac->getTransaction());

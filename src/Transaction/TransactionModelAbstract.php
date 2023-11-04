@@ -194,7 +194,11 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
     {
         if ($this->isTransfer()) {
             $transfer = new Transfer($this->entityManager, $this->transaction);
-            $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
+            if ($form->has('invest')) {
+                $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData(), $form->get('invest')->getData());
+            } else {
+                $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
+            }
             $transfer->persist();
             $this->entityManager->flush();
         } else {
@@ -214,7 +218,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
     {
         if ($this->isTransfer()) {
             $transfer = new Transfer($this->entityManager, $this->transaction);
-            $transfer->makeTransfer($datas['source'], $datas['target']);
+            $transfer->makeTransfer($datas['source'], $datas['target'], $datas['invest']);
             $transfer->persist();
         } else {
             $this->correctAmount();
@@ -231,7 +235,11 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
     {
         if ($this->isTransfer()) {
             $transfer = new Transfer($this->entityManager, $this->transaction);
-            $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
+            if ($form->has('invest')) {
+                $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData(), $form->get('invest')->getData());
+            } else {
+                $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
+            }
             $this->entityManager->flush();
         } else {
             $this->correctAmount();

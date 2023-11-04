@@ -165,16 +165,20 @@ class Transfer
     /**
      * Effectue le virement.
      *
-     * @param Account $source
-     * @param Account $target
+     * @param Account    $source
+     * @param Account    $target
+     * @param float|null $amountTarget Montant investi pour les placements
      */
-    public function makeTransfer(Account $source, Account $target): void
+    public function makeTransfer(Account $source, Account $target, ?float $amountTarget = null): void
     {
+        if (null === $amountTarget) {
+            $amountTarget = abs($this->credit->getAmount());
+        }
         $this->debit->setAccount($source);
         $this->debit->setAmount($this->credit->getAmount() * -1);
         $this->debit->setDate($this->credit->getDate());
         $this->credit->setAccount($target);
-        $this->credit->setAmount(abs($this->credit->getAmount()));
+        $this->credit->setAmount(abs($amountTarget));
     }
 
     /**
