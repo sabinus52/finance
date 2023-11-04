@@ -28,16 +28,6 @@ class TransactionVehicle
     private $id; /** @phpstan-ignore-line */
 
     /**
-     * Transaction associée.
-     *
-     * @var Transaction
-     *
-     * ORM\OneToOne(targetEntity=Transaction::class, inversedBy="transactionVehicle", cascade={"persist", "remove"})
-     * ORM\JoinColumn(nullable=false)
-     */
-    // private $transaction;
-
-    /**
      * Véhicule associé.
      *
      * @var Vehicle

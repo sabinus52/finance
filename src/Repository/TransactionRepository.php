@@ -187,4 +187,33 @@ class TransactionRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+
+    /**
+     * Retourne les transactions d'un portefeuille.
+     *
+     * @param Account $account
+     *
+     * @return Transaction[]
+     */
+    public function findAllByWallet(Account $account): array
+    {
+        return $this->createQueryBuilder('trt')
+            ->addSelect('rcp')
+            ->addSelect('cat')
+            ->addSelect('prt')
+            ->addSelect('sck')
+            ->addSelect('wal')
+            ->innerJoin('trt.recipient', 'rcp')
+            ->innerJoin('trt.category', 'cat')
+            ->innerJoin('cat.parent', 'prt')
+            ->innerJoin('trt.transactionStock', 'wal')
+            ->innerJoin('wal.stock', 'sck')
+            ->andWhere('wal.account = :account')
+            ->setParameter('account', $account)
+            ->orderBy('trt.date', 'ASC')
+            ->addOrderBy('trt.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

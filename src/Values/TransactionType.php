@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace App\Values;
 
-use App\Entity\Transaction;
 use Exception;
 
 /**
@@ -25,6 +24,7 @@ class TransactionType
      * Constantes des types de transactions.
      */
     public const STANDARD = 0;
+    public const STOCKEXCHANGE = 4;
     public const VEHICLE = 5;
     public const TRANSFER = 9;
     public const REVALUATION = 7;
@@ -34,7 +34,7 @@ class TransactionType
      *
      * @var array<mixed>
      */
-    private static $values = [self::STANDARD, self::VEHICLE, self::TRANSFER, self::REVALUATION];
+    private static $values = [self::STANDARD, self::STOCKEXCHANGE, self::VEHICLE, self::TRANSFER, self::REVALUATION];
 
     /**
      * @var int

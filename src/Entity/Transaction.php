@@ -160,6 +160,18 @@ class Transaction
      */
     private $transactionVehicle;
 
+    /**
+     * Transaction de l'opération boursière.
+     *
+     * @var TransactionStock
+     *
+     * @ORM\ManyToOne(targetEntity=TransactionStock::class, cascade={"persist", "remove"})
+     */
+    private $transactionStock;
+
+    /**
+     * Constructeur.
+     */
     public function __construct()
     {
         $this->balance = 0;
@@ -348,6 +360,18 @@ class Transaction
     public function setTransactionVehicle(?TransactionVehicle $transactionVehicle): self
     {
         $this->transactionVehicle = $transactionVehicle;
+
+        return $this;
+    }
+
+    public function getTransactionStock(): ?TransactionStock
+    {
+        return $this->transactionStock;
+    }
+
+    public function setTransactionStock(?TransactionStock $transactionStock): self
+    {
+        $this->transactionStock = $transactionStock;
 
         return $this;
     }

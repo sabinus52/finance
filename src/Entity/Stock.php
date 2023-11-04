@@ -73,14 +73,25 @@ class Stock
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity=StockPortfolio::class, mappedBy="stock")
+     * @ORM\OneToMany(targetEntity=StockWallet::class, mappedBy="stock", orphanRemoval=true)
      */
-    private $stockPortfolios;
+    private $stockWallets;
 
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity=TransactionStock::class, mappedBy="stock")
+     */
+    private $transactionStocks;
+
+    /**
+     * Constructeur.
+     */
     public function __construct()
     {
         $this->stockPrices = new ArrayCollection();
-        $this->stockPortfolios = new ArrayCollection();
+        $this->stockWallets = new ArrayCollection();
+        $this->transactionStocks = new ArrayCollection();
     }
 
     public function __toString()
@@ -164,36 +175,6 @@ class Stock
     }
 
     /**
-     * @return Collection<int, StockPortfolio>
-     */
-    public function getStockPortfolios(): Collection
-    {
-        return $this->stockPortfolios;
-    }
-
-    public function addStockPortfolio(StockPortfolio $stockPortfolio): self
-    {
-        if (!$this->stockPortfolios->contains($stockPortfolio)) {
-            $this->stockPortfolios[] = $stockPortfolio;
-            $stockPortfolio->setStock($this);
-        }
-
-        return $this;
-    }
-
-    public function removeStockPortfolio(StockPortfolio $stockPortfolio): self
-    {
-        if ($this->stockPortfolios->removeElement($stockPortfolio)) {
-            // set the owning side to null (unless already changed)
-            if ($stockPortfolio->getStock() === $this) {
-                $stockPortfolio->setStock(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * Affiche le badge du statut de l'action.
      *
      * @return string
@@ -205,5 +186,65 @@ class Stock
         }
 
         return '<span class="badge bg-secondary text-uppercase">ouvert</span>';
+    }
+
+    /**
+     * @return Collection<int, StockWallet>
+     */
+    public function getStockWallets(): Collection
+    {
+        return $this->stockWallets;
+    }
+
+    public function addStockWallet(StockWallet $stockWallet): self
+    {
+        if (!$this->stockWallets->contains($stockWallet)) {
+            $this->stockWallets[] = $stockWallet;
+            $stockWallet->setStock($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStockWallet(StockWallet $stockWallet): self
+    {
+        if ($this->stockWallets->removeElement($stockWallet)) {
+            // set the owning side to null (unless already changed)
+            if ($stockWallet->getStock() === $this) {
+                $stockWallet->setStock(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransactionStock>
+     */
+    public function getTransactionStocks(): Collection
+    {
+        return $this->transactionStocks;
+    }
+
+    public function addTransactionStock(TransactionStock $transactionStock): self
+    {
+        if (!$this->transactionStocks->contains($transactionStock)) {
+            $this->transactionStocks[] = $transactionStock;
+            $transactionStock->setStock($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransactionStock(TransactionStock $transactionStock): self
+    {
+        if ($this->transactionStocks->removeElement($transactionStock)) {
+            // set the owning side to null (unless already changed)
+            if ($transactionStock->getStock() === $this) {
+                $transactionStock->setStock(null);
+            }
+        }
+
+        return $this;
     }
 }
