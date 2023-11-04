@@ -11,6 +11,10 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Entity\Transaction;
+use App\Entity\TransactionStock;
+use App\Entity\TransactionVehicle;
+use App\Helper\DoctrineHelper;
 use App\Import\Helper;
 use App\Import\QifParser;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,8 +45,9 @@ class ImportQIFCommand extends Command
      * @var array<string>
      */
     protected static $tables = [
-        'stock_portfolio',
-        'transaction',
+        Transaction::class,
+        TransactionStock::class,
+        TransactionVehicle::class,
     ];
 
     /**
@@ -154,10 +159,6 @@ class ImportQIFCommand extends Command
             // Parse le fichier QIF
             $parser->parse();
             $this->entityManager->flush();
-
-            // Fait les associations entre les transactions des virements internes
-            $parser->setAssocTransfer();
-            $this->entityManager->flush();
         }
 
         // Calcul des soldes
@@ -186,9 +187,10 @@ class ImportQIFCommand extends Command
     {
         $rows = [];
         $isError = false;
+        $helper = new DoctrineHelper($this->entityManager);
 
         foreach (self::$tables as $table) {
-            $return = $this->helper->truncate($table);
+            $return = $helper->truncate($table);
             if (null === $return) {
                 $rows[] = ['Vidage de la table '.$table, '<info>OK</info>'];
             } else {

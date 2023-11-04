@@ -13,13 +13,8 @@ namespace App\Import;
 
 use App\Entity\Account;
 use App\Entity\Category;
-use App\Entity\Recipient;
-use App\Entity\Transaction;
 use App\Values\AccountType;
-use App\Values\Payment;
 use App\Values\StockPosition;
-use App\Values\TransactionType;
-use ArrayObject;
 use Exception;
 
 /**
@@ -27,8 +22,6 @@ use Exception;
  * pour la prise en compte des investissements boursiers et de capitalisation.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @SuppressWarnings(PHPMD.StaticAccess)
  */
 class MemoParser
 {
@@ -38,13 +31,6 @@ class MemoParser
      * @var Helper
      */
     private $helper;
-
-    /**
-     * Liste des inverstissement à créer et à affecter sur une assurance vie.
-     *
-     * @var ArrayObject
-     */
-    private $investments;
 
     /**
      * @var Account
@@ -69,7 +55,6 @@ class MemoParser
     public function __construct(Helper $helper)
     {
         $this->helper = $helper;
-        $this->investments = new ArrayObject();
 
         // Si on parse le champs mémo, alors on utilise les comptes Titres
         $this->accountTitres = $this->helper->assocDatas->getAccountSpecial(AccountType::ACC_TITRES);
@@ -141,34 +126,14 @@ class MemoParser
      */
     private function parseVersement(QifItem $item): void
     {
-        $memo = $item->getMemo();
-        $accountPlacement = $this->getLabelMemo($memo);
+        $memo = new MemoHelper($item->getMemo());
+        $accountPlacement = $memo->getLabelMemo();
         if (null === $accountPlacement) {
             throw new Exception('Compte de placement introuvable dans le memo');
         }
-        $amountPlacement = $this->getAmountVersement($memo, $item->getAmount());
+        $amountPlacement = $memo->getAmountVersement($item->getAmount()); // FIXME
 
-        // Valeurs communes
-        $item->setRecipient(Recipient::VIRT_NAME);
-        $item->setPayment(Payment::INTERNAL);
-        $item->setType(TransactionType::TRANSFER);
-
-        // Toujours compte débiteur = Compte courant où se fait le prélèvement
-        $item->setCategory(Category::INVESTMENT);
-        $transactionSource = $this->helper->createTransaction($item);
-
-        // Toujours versement sur le placement
-        $item->setAccount($accountPlacement);
-        $item->setAmount($amountPlacement);
-        $item->setState('');
-        $item->setCategory(Category::INVESTMENT);
-        $transactionTarget = $this->helper->createTransaction($item);
-
-        // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions
-        $this->investments[] = [
-            'source' => $transactionSource,
-            'target' => $transactionTarget,
-        ];
+        $this->helper->createTransactionTransfer($item, Category::INVESTMENT, $accountPlacement);
 
         // Change le type de placement trouvé
         $this->setAccountType($accountPlacement);
@@ -181,33 +146,22 @@ class MemoParser
      */
     private function parseStockPosition(QifItem $item): void
     {
-        $memo = $item->getMemo();
-        $stock = $this->getLabelMemo($memo);
+        $memo = new MemoHelper($item->getMemo());
+        $stock = $memo->getLabelMemo();
         if (null === $stock) {
             throw new Exception('Compte de placement introuvable dans le memo');
         }
-        $volume = $this->getStockVolume($memo);
+        $volume = $memo->getStockVolume();
         if (null === $volume) {
             throw new Exception('Volume de titre (v=*) introuvable dans le memo');
         }
-        $price = $this->getStockPrice($memo);
+        $price = $memo->getStockPrice();
         if (null === $price) {
             throw new Exception('Prix du titre (p=*) introuvable dans le memo');
         }
 
-        // Transaction standard
-        $transaction = $this->helper->createTransaction($item);
-
-        // Opération boursière
-        $operation = $this->helper->createStockPortfolio(
-            $item,
-            $this->getWallet($item),
-            $stock,
-            ($item->getAmount() < 0) ? new StockPosition(StockPosition::BUYING) : new StockPosition(StockPosition::SELLING),
-            $volume,
-            $price
-        );
-        $operation->setTransaction($transaction);
+        $position = ($item->getAmount() < 0) ? StockPosition::BUYING : StockPosition::SELLING;
+        $this->helper->createTransationStockPosition($item, $this->getWallet($item), $position, $stock, $volume, $price);
     }
 
     /**
@@ -217,25 +171,13 @@ class MemoParser
      */
     private function parseStockDividende(QifItem $item): void
     {
-        $memo = $item->getMemo();
-        $stock = $this->getLabelMemo($memo);
+        $memo = new MemoHelper($item->getMemo());
+        $stock = $memo->getLabelMemo();
         if (null === $stock) {
             throw new Exception('Compte de placement introuvable dans le memo');
         }
 
-        // Transaction standard
-        $transaction = $this->helper->createTransaction($item);
-
-        // Opération boursière
-        $operation = $this->helper->createStockPortfolio(
-            $item,
-            $this->getWallet($item),
-            $stock,
-            new StockPosition(StockPosition::DIVIDEND),
-            null,
-            null
-        );
-        $operation->setTransaction($transaction);
+        $this->helper->createTransationStockPosition($item, $this->getWallet($item), StockPosition::DIVIDEND, $stock, null, null);
     }
 
     /**
@@ -245,16 +187,12 @@ class MemoParser
      */
     private function parseProject(QifItem $item): void
     {
-        $memo = $item->getMemo();
-        $project = $this->getLabelMemo($memo);
+        $memo = new MemoHelper($item->getMemo());
+        $project = $memo->getLabelMemo();
         if (null === $project) {
             throw new Exception('Nom du projet introuvable dans le memo');
         }
-        $project = $this->helper->assocDatas->getProject($project);
-
-        // Transaction standard
-        $transaction = $this->helper->createTransaction($item);
-        $transaction->setProject($project);
+        $this->helper->createTransationStandard($item, $project);
     }
 
     /**
@@ -285,99 +223,5 @@ class MemoParser
     {
         $account = $this->helper->assocDatas->getAccount($account);
         $account->setType(new AccountType(51));
-    }
-
-    /**
-     * Affecte les associations des transactions pour les placements.
-     */
-    public function setAssocInvestment(): void
-    {
-        foreach ($this->investments as $investment) {
-            /** @var Transaction $transactionSource */
-            $transactionSource = $investment['source'];
-            /** @var Transaction $transactionTarget */
-            $transactionTarget = $investment['target'];
-
-            $transactionSource->setTransfer($transactionTarget);
-            $transactionTarget->setTransfer($transactionSource);
-        }
-    }
-
-    /**
-     * Retourne le compte de placement ou le nom du titre boursier ou autre.
-     * Exemple :
-     *  Versement:[Mon placement] -> Mon placement
-     *  Stock:[Crédit Agricole SA] -> Crédit Agricole SA.
-     *
-     * @param string $memo
-     *
-     * @return string|null
-     */
-    private function getLabelMemo(string $memo): ?string
-    {
-        preg_match('/:\[(.*)\]/', $memo, $matches);
-        if (!isset($matches[1])) {
-            return null;
-        }
-
-        return $matches[1];
-    }
-
-    /**
-     * Retourne le montant du placement sur les comptes de capitalisation si renseigné
-     * ( <> montant débité sur le compte courant)
-     * Exemple : Versement:[Mon placement] €1000 -> 1000.
-     *
-     * @param string $memo
-     * @param float  $amount
-     *
-     * @return float
-     */
-    private function getAmountVersement(string $memo, float $amount): float
-    {
-        $amount = $amount * -1;
-
-        preg_match('/€([0-9]*[.]?[0-9]+)/', $memo, $matches);
-        if (isset($matches[1])) {
-            $amount = (float) $matches[1];
-        }
-
-        return $amount;
-    }
-
-    /**
-     * Retourne le volume en achat ou vente de titres
-     * Exemple : Stock:[Crédit Agricole SA] v=10 p=12.34 -> 10.
-     *
-     * @param string $memo
-     *
-     * @return float|null
-     */
-    private function getStockVolume(string $memo): ?float
-    {
-        preg_match('/v=([0-9]*[.]?[0-9]+)/', $memo, $matches);
-        if (!isset($matches[1])) {
-            return null;
-        }
-
-        return (float) $matches[1];
-    }
-
-    /**
-     * Retourne le prix du titre lors de l'achat ou la vente
-     * Exemple : Stock:[Crédit Agricole SA] v=10 p=12.34 -> 12.34.
-     *
-     * @param string $memo
-     *
-     * @return float|null
-     */
-    private function getStockPrice(string $memo): ?float
-    {
-        preg_match('/p=([0-9]*[.]?[0-9]+)/', $memo, $matches);
-        if (!isset($matches[1])) {
-            return null;
-        }
-
-        return (float) $matches[1];
     }
 }

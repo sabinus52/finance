@@ -12,22 +12,17 @@ declare(strict_types=1);
 namespace App\Import;
 
 use App\Entity\Account;
-use App\Entity\Stock;
-use App\Entity\StockPortfolio;
-use App\Entity\Transaction;
 use App\Repository\AccountRepository;
+use App\Transaction\TransactionModelRouter;
 use App\Values\StockPosition;
 use App\WorkFlow\Balance;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 
 /**
  * Classe d'aide pour l'omport des transactions venant d'un programme extérieur.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @SuppressWarnings(PHPMD.StaticAccess)
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Helper
 {
@@ -35,6 +30,11 @@ class Helper
      * @var EntityManagerInterface
      */
     public $entityManager;
+
+    /**
+     * @var TransactionModelRouter
+     */
+    private $router;
 
     /**
      * Statistiques de l'import.
@@ -58,95 +58,120 @@ class Helper
     public function __construct(EntityManagerInterface $manager)
     {
         $this->entityManager = $manager;
+        $this->router = new TransactionModelRouter($manager);
         $this->statistic = new Statistic();
         $this->assocDatas = new AssocDatas($manager);
     }
 
     /**
-     * Purge la table.
+     * Création et insère dans la base une transaction standard.
      *
-     * @param string $table
-     *
-     * @return string|null
+     * @param QifItem     $item
+     * @param string|null $project
      */
-    public function truncate(string $table): ?string
+    public function createTransationStandard(QifItem $item, ?string $project = null): void
     {
-        $connection = $this->entityManager->getConnection();
-        $platform = $connection->getDatabasePlatform();
-        try {
-            $connection->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
-            $connection->executeStatement($platform->getTruncateTableSQL($table, false /* whether to cascade */));
-            $connection->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
-        } catch (Exception $e) {
-            return $e->getMessage();
+        $modelTransac = $this->router->createStandardByType(($item->getAmount() > 0));
+        $modelTransac->setAccount($item->getAccount())
+            ->setDatas([
+                'date' => $item->getDate(),
+                'amount' => $item->getAmount(),
+                'recipient' => $item->getRecipient(),
+                'category' => $item->getCategory(),
+                'payment' => $item->getPayment(),
+                'state' => $item->getState(),
+                'memo' => $item->getMemo(),
+            ])
+        ;
+        if (null !== $project) {
+            $modelTransac->setDatas(['project' => $this->assocDatas->getProject($project)]);
         }
-
-        return null;
+        $modelTransac->insertModeImport();
+        $this->statistic->incTransaction($modelTransac->getTransaction());
     }
 
     /**
-     * Création d'une transaction.
+     * Création et insère dans la base un transfert (virement ou investissement).
      *
      * @param QifItem $item
-     *
-     * @return Transaction
+     * @param string  $type   Virement ou investissement
+     * @param string  $target Compte cible
      */
-    public function createTransaction(QifItem $item): Transaction
+    public function createTransactionTransfer(QifItem $item, string $type, string $target): void
     {
-        $transaction = new Transaction();
-        $transaction->setAccount($item->getAccount());
-        $transaction->setType($item->getType());
-        $transaction->setDate($item->getDate());
-        $transaction->setRecipient($item->getRecipient());
-        $transaction->setMemo($item->getMemo());
-        $transaction->setAmount($item->getAmount());
-        $transaction->setState($item->getState());
-        $transaction->setPayment($item->getPayment());
-        $transaction->setCategory($item->getCategory());
-
-        $this->statistic->incTransaction($transaction);
-        $this->entityManager->persist($transaction);
-
-        return $transaction;
+        $modelTransac = $this->router->createTransferByCategory($type);
+        $modelTransac->setDatas([
+            'date' => $item->getDate(),
+            'amount' => abs($item->getAmount()),
+            'state' => $item->getState(),
+            'memo' => $item->getMemo(),
+        ])->insertModeImport([
+            'source' => $item->getAccount(),
+            'target' => $this->assocDatas->getAccount($target),
+        ])
+        ;
+        $this->statistic->incTransaction($modelTransac->getTransaction());
     }
 
     /**
-     * Création d'une ligne d'opération boursière.
+     * Création et insère dans la base une transaction boursière.
      *
-     * @param QifItem        $item
-     * @param Account|string $wallet
-     * @param Stock|string   $stock
-     * @param StockPosition  $operation
-     * @param float|null     $volume
-     * @param float|null     $price
-     *
-     * @return StockPortfolio
+     * @param QifItem    $item
+     * @param Account    $wallet
+     * @param int        $position
+     * @param string     $stock
+     * @param float|null $volume
+     * @param float|null $price
      */
-    public function createStockPortfolio(QifItem $item, $wallet, $stock, StockPosition $operation, ?float $volume, ?float $price): StockPortfolio
+    public function createTransationStockPosition(QifItem $item, Account $wallet, int $position, string $stock, ?float $volume, ?float $price): void
     {
-        if (!$wallet instanceof Account) {
-            $wallet = $this->assocDatas->getAccount($wallet, $item->getDate());
+        $position = new StockPosition($position);
+
+        $modelTransac = $this->router->createStock($position);
+        $modelTransac->setDatas([
+            'account' => $item->getAccount(),
+            'date' => $item->getDate(),
+            'amount' => $item->getAmount(),
+            'state' => $item->getState(),
+            'memo' => $item->getMemo(),
+            'transactionStock' => [
+                'account' => $wallet,
+                'stock' => $this->assocDatas->getStock($stock),
+                'volume' => $volume,
+                'price' => $price,
+            ],
+        ])
+        ;
+
+        // Si dividendes
+        if (null !== $volume) {
+            $modelTransac->setDatas([
+                'transactionStock' => [
+                    'volume' => $volume,
+                    'price' => $price,
+                ],
+            ]);
         }
-        if (!$stock instanceof Stock) {
-            $stock = $this->assocDatas->getStock($stock);
-        }
-        // Calcul de la commission
-        $fee = (null === $volume || null === $price) ? null : abs($item->getAmount()) - ($volume * $price);
 
-        // Création de l'opération boursière
-        $portfolio = new StockPortfolio();
-        $portfolio->setDate($item->getDate());
-        $portfolio->setPosition($operation);
-        $portfolio->setVolume($volume);
-        $portfolio->setPrice($price);
-        $portfolio->setFee($fee);
-        $portfolio->setTotal($item->getAmount());
-        $portfolio->setStock($stock);
-        $portfolio->setAccount($wallet);
+        $modelTransac->insertModeImport();
+    }
 
-        $this->entityManager->persist($portfolio);
-
-        return $portfolio;
+    /**
+     * Création et insère dans la base une réévaluation.
+     *
+     * @param Account  $account
+     * @param DateTime $date
+     * @param float    $amount
+     */
+    public function createRevaluation(Account $account, DateTime $date, float $amount): void
+    {
+        $modelTransac = $this->router->createRevaluation($date);
+        $modelTransac->setDatas([
+            'account' => $account,
+            'balance' => $amount,
+        ])
+            ->insertModeImport()
+        ;
     }
 
     /**

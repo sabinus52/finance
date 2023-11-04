@@ -11,12 +11,7 @@ declare(strict_types=1);
 
 namespace App\Import;
 
-use App\Entity\Account;
 use App\Entity\Category;
-use App\Entity\Recipient;
-use App\Entity\Transaction;
-use App\Values\Payment;
-use App\Values\TransactionType;
 use ArrayObject;
 use SplFileObject;
 use Throwable;
@@ -72,13 +67,6 @@ class QifParser
     private $mode;
 
     /**
-     * Liste des virements à créer et à affecter sur le compte créditeur.
-     *
-     * @var ArrayObject
-     */
-    private $transfers;
-
-    /**
      * Compte en cours d'importation.
      *
      * @var ArrayObject
@@ -99,7 +87,6 @@ class QifParser
         $this->isParseMemo = $isParseMemo;
         $this->memoParser = new MemoParser($helper);
         $this->account = new ArrayObject();
-        $this->transfers = new ArrayObject();
     }
 
     /**
@@ -263,7 +250,7 @@ class QifParser
             /**
              * Détection d'un virement.
              */
-            $this->createTransfer($itemFound, substr($category, 1, -1));
+            $this->helper->createTransactionTransfer($itemFound, Category::VIREMENT, substr($category, 1, -1));
             $isTransactStandard = false;
         } elseif (true === $this->isParseMemo && null !== $itemFound->getMemo()) {
             /**
@@ -279,56 +266,7 @@ class QifParser
             /**
              * Transaction standard.
              */
-            $this->helper->createTransaction($itemFound);
-        }
-    }
-
-    /**
-     * Créer les 2 transactions lors d'un virement.
-     *
-     * @param QifItem $item          Transaction trouvée
-     * @param string  $accountTarget Compte cible du virement
-     */
-    private function createTransfer(QifItem $item, string $accountTarget): void
-    {
-        $item->setRecipient(Recipient::VIRT_NAME);
-        $item->setPayment(Payment::INTERNAL);
-        $item->setType(TransactionType::TRANSFER);
-
-        // Virement source
-        $item->setCategory(Category::VIREMENT);
-        $transactionSource = $this->helper->createTransaction($item);
-
-        // Virement cible
-        $item->setAccount($accountTarget);
-        $item->setAmount($item->getAmount() * -1);
-        $item->setCategory(Category::VIREMENT);
-        $transactionTarget = $this->helper->createTransaction($item);
-
-        // Sauvegarde du virements pour assoaciations des clés entre les 2 transactions
-        $this->transfers[] = [
-            'source' => $transactionSource,
-            'target' => $transactionTarget,
-        ];
-    }
-
-    /**
-     * Affecte les associations des transactions pour les virements internes.
-     */
-    public function setAssocTransfer(): void
-    {
-        foreach ($this->transfers as $transfer) {
-            /** @var Transaction $transactionSource */
-            $transactionSource = $transfer['source'];
-            /** @var Transaction $transactionTarget */
-            $transactionTarget = $transfer['target'];
-
-            $transactionSource->setTransfer($transactionTarget);
-            $transactionTarget->setTransfer($transactionSource);
-        }
-
-        if (true === $this->isParseMemo) {
-            $this->memoParser->setAssocInvestment();
+            $this->helper->createTransationStandard($itemFound);
         }
     }
 }
