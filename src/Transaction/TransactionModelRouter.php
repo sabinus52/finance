@@ -154,7 +154,27 @@ final class TransactionModelRouter
         $modelTransac->init();
 
         return $modelTransac;
-        return $model;
+    }
+
+    public function createStock(?StockPosition $position): TransactionModelInterface
+    {
+        switch ($position->getValue()) {
+            case StockPosition::BUYING:
+                $modelTransac = new StockBuyingTransaction($this->entityManager);
+                break;
+            case StockPosition::SELLING:
+                $modelTransac = new StockSellingTransaction($this->entityManager);
+                break;
+            case StockPosition::DIVIDEND:
+                $modelTransac = new StockDividendTransaction($this->entityManager);
+                break;
+
+            default:
+                throw new Exception(sprintf('Position bouorsière inconnu : %s.', $position));
+        }
+        $modelTransac->init();
+
+        return $modelTransac;
     }
 
     /**
