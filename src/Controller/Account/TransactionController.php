@@ -16,6 +16,7 @@ use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
 use App\Transaction\TransactionModelInterface;
 use App\Transaction\TransactionModelRouter;
+use App\Values\StockPosition;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -92,6 +93,18 @@ class TransactionController extends BaseController
     }
 
     /**
+     * Création d'une transaction d'une opération boursière.
+     *
+     * @Route("/account/{id}/create/transaction/stock/{type}", name="transaction_create_wallet", methods={"GET", "POST"})
+     */
+    public function createTransactionStock(Request $request, Account $account, int $type, EntityManagerInterface $entityManager): Response
+    {
+        $router = new TransactionModelRouter($entityManager);
+
+        return $this->create($request, $account, $router->createStock(new StockPosition($type)));
+    }
+
+    /**
      * Création d'une transaction.
      *
      * @param Request                   $request
@@ -101,7 +114,7 @@ class TransactionController extends BaseController
      */
     private function create(Request $request, Account $account, TransactionModelInterface $modelTransaction): Response
     {
-        $modelTransaction->init()->setAccount($account);
+        $modelTransaction->setAccount($account);
         $transaction = $modelTransaction->getTransaction();
 
         $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions() + ['isNew' => true]);
@@ -111,7 +124,7 @@ class TransactionController extends BaseController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid() && $modelTransaction->checkForm($form)) {
-            $modelTransaction->add($form);
+            $modelTransaction->insert($form);
             $this->addFlash('success', sprintf('La création %s a bien été prise en compte', $modelTransaction->getMessage()));
 
             return new Response('OK');
@@ -137,7 +150,7 @@ class TransactionController extends BaseController
         }
 
         $router = new TransactionModelRouter($entityManager);
-        $modelTransaction = $router->create($transaction);
+        $modelTransaction = $router->load($transaction);
         $transaction = $modelTransaction->getTransaction();
 
         $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions());
@@ -178,8 +191,8 @@ class TransactionController extends BaseController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $router = new TransactionModelRouter($entityManager);
-            $modelTransaction = $router->create($transaction);
-            $modelTransaction->remove();
+            $modelTransaction = $router->load($transaction);
+            $modelTransaction->delete();
             $this->addFlash('success', sprintf('La suppression %s a bien été prise en compte', $modelTransaction->getMessage()));
 
             return new Response('OK');

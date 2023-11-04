@@ -73,15 +73,6 @@ class Transfer
     {
         $this->entityManager->persist($this->debit);
         $this->entityManager->persist($this->credit);
-        $this->entityManager->flush();
-    }
-
-    /**
-     * Met à jour les transactions.
-     */
-    public function update(): void
-    {
-        $this->entityManager->flush();
     }
 
     /**

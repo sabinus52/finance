@@ -13,7 +13,6 @@ namespace App\Transaction;
 
 use App\Entity\Account;
 use App\Entity\Transaction;
-use App\Entity\Vehicle;
 use Symfony\Component\Form\FormInterface;
 
 /**
@@ -82,6 +81,15 @@ interface TransactionModelInterface
     public function init(): self;
 
     /**
+     * Affecte la transaction.
+     *
+     * @param Transaction $transaction
+     *
+     * @return TransactionModelInterface
+     */
+    public function setTransaction(Transaction $transaction): self;
+
+    /**
      * Affecte un compte à la transaction.
      *
      * @param Account $account
@@ -91,20 +99,27 @@ interface TransactionModelInterface
     public function setAccount(Account $account): self;
 
     /**
-     * Affecte un véhicule à la transaction.
+     * Affecte des données à la transaction.
      *
-     * @param Vehicle $vehicle
+     * @param array<mixed> $datas
      *
      * @return TransactionModelInterface
      */
-    public function setVehicle(Vehicle $vehicle): self;
+    public function setDatas(array $datas): self;
 
     /**
      * Ajoute la transaction en base.
      *
      * @param FormInterface|null $form
      */
-    public function add(?FormInterface $form = null): void;
+    public function insert(?FormInterface $form = null): void;
+
+    /**
+     * Ajoute la transacion en base lors d'un import.
+     *
+     * @param array<mixed>|null $datas
+     */
+    public function insertModeImport(?array $datas = null): void;
 
     /**
      * Mets à jour une transaction.
@@ -116,5 +131,5 @@ interface TransactionModelInterface
     /**
      * Supprime une transaction.
      */
-    public function remove(): void;
+    public function delete(): void;
 }

@@ -126,7 +126,11 @@ class VehicleController extends AbstractController
      */
     private function createTransaction(Request $request, Vehicle $vehicle, TransactionModelInterface $modelTransaction): Response
     {
-        $modelTransaction->init()->setVehicle($vehicle);
+        $modelTransaction->setDatas([
+            'transactionVehicle' => [
+                'vehicle' => $vehicle,
+            ],
+        ]);
 
         $transaction = $modelTransaction->getTransaction();
         $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions() + ['isNew' => true]);
@@ -136,7 +140,7 @@ class VehicleController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid() && $modelTransaction->checkForm($form)) {
-            $modelTransaction->add($form);
+            $modelTransaction->insert($form);
             $this->addFlash('success', sprintf('La création %s a bien été prise en compte', $modelTransaction->getMessage()));
 
             return new Response('OK');
