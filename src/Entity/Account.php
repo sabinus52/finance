@@ -238,6 +238,11 @@ class Account
         return $this;
     }
 
+    public function getTypeCode(): int
+    {
+        return $this->type->getTypeCode();
+    }
+
     public function getNumber(): ?string
     {
         return $this->number;

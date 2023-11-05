@@ -13,7 +13,9 @@ namespace App\WorkFlow;
 
 use App\Entity\Account;
 use App\Entity\Category;
+use App\Entity\StockWallet;
 use App\Entity\Transaction;
+use App\Values\AccountType;
 use App\Values\TransactionType;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -87,11 +89,28 @@ class Balance
      */
     public function updateBalanceAll(Account $account): int
     {
+        if (AccountType::EPARGNE_FINANCIERE === $account->getTypeCode()) {
+            return $this->updateBalanceAllWallet($account);
+        }
+
+        return $this->updateBalanceAllAccount($account);
+    }
+
+    /**
+     * Mets à jour le solde d'un compte standard.
+     *
+     * @param Account $account
+     *
+     * @return int
+     */
+    private function updateBalanceAllAccount(Account $account): int
+    {
         $balance = $account->getInitial();
         $reconcilied = $account->getInitial();
         $invested = $account->getInitial();
 
-        $results = $this->findAll($account);
+        // Liste des transactions par compte
+        $results = $this->entityManager->getRepository(Transaction::class)->findBy(['account' => $account], ['date' => 'ASC', 'id' => 'ASC']);
         foreach ($results as $item) {
             if (TransactionType::REVALUATION === $item->getType()->getValue()) {
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
@@ -106,7 +125,7 @@ class Balance
             if (Transaction::STATE_RECONCILIED === $item->getState()) {
                 $reconcilied += $item->getAmount();
             }
-            if (Category::INVESTMENT === $item->getCategory()->getCode()) {
+            if (Category::INVESTMENT === $item->getCategory()->getCode() && $item->getAmount() > 0) {
                 $invested += $item->getAmount();
             }
         }
@@ -114,6 +133,29 @@ class Balance
         $account->setBalance($balance);
         $account->setReconBalance($reconcilied);
         $account->setInvested($invested);
+        $this->entityManager->flush();
+
+        return count($results);
+    }
+
+    /**
+     * Mets à jour le solde d'un portefeuille.
+     *
+     * @param Account $account
+     *
+     * @return int
+     */
+    private function updateBalanceAllWallet(Account $account): int
+    {
+        $balance = 0.0;
+        /** @var StockWallet[] $results */
+        $results = $this->entityManager->getRepository(StockWallet::class)->findByAccount($account); /* @phpstan-ignore-line */
+        foreach ($results as $item) {
+            $balance += $item->getVolume() * $item->getPrice();
+        }
+
+        $account->setBalance(round($balance, 2));
+        // $account->setInvested($invested); TODO à rajouter avec un nouveau champs
         $this->entityManager->flush();
 
         return count($results);
@@ -177,27 +219,6 @@ class Balance
             ->andWhere('trt.date >= :date')
             ->setParameter('account', $transaction->getAccount())
             ->setParameter('date', $date->format('Y-m-d'))
-            ->addOrderBy('trt.date', 'ASC')
-            ->addOrderBy('trt.id', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-
-    /**
-     * Recherche toutes les transactions d'un compte.
-     *
-     * @param Account $account
-     *
-     * @return Transaction[]
-     */
-    private function findAll(Account $account): array
-    {
-        return $this->entityManager->createQueryBuilder()
-            ->select('trt')
-            ->from(Transaction::class, 'trt')
-            ->andWhere('trt.account = :account')
-            ->setParameter('account', $account)
             ->addOrderBy('trt.date', 'ASC')
             ->addOrderBy('trt.id', 'ASC')
             ->getQuery()

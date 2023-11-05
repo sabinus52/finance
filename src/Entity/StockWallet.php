@@ -31,15 +31,6 @@ class StockWallet
     private $id; /** @phpstan-ignore-line */
 
     /**
-     * Nombre d'actions contenus dans le portefeuille.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float")
-     */
-    private $volume;
-
-    /**
      * Action boursière du portefeuille.
      *
      * @var Stock
@@ -59,9 +50,51 @@ class StockWallet
      */
     private $account;
 
+    /**
+     * Nombre d'actions contenus dans le portefeuille.
+     *
+     * @var float
+     *
+     * @ORM\Column(type="float")
+     */
+    private $volume;
+
+    /**
+     * Dernier cours en date de l'action.
+     *
+     * @var float
+     *
+     * @ORM\Column(type="float")
+     */
+    private $price;
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getStock(): ?Stock
+    {
+        return $this->stock;
+    }
+
+    public function setStock(?Stock $stock): self
+    {
+        $this->stock = $stock;
+
+        return $this;
+    }
+
+    public function getAccount(): ?Account
+    {
+        return $this->account;
+    }
+
+    public function setAccount(?Account $account): self
+    {
+        $this->account = $account;
+
+        return $this;
     }
 
     public function getVolume(): ?float
@@ -90,26 +123,14 @@ class StockWallet
         return $this;
     }
 
-    public function getStock(): ?Stock
+    public function getPrice(): ?float
     {
-        return $this->stock;
+        return $this->price;
     }
 
-    public function setStock(?Stock $stock): self
+    public function setPrice(float $price): self
     {
-        $this->stock = $stock;
-
-        return $this;
-    }
-
-    public function getAccount(): ?Account
-    {
-        return $this->account;
-    }
-
-    public function setAccount(?Account $account): self
-    {
-        $this->account = $account;
+        $this->price = $price;
 
         return $this;
     }
