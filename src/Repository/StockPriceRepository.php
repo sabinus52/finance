@@ -32,6 +32,22 @@ class StockPriceRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les prices des titres par titres et date.
+     *
+     * @return array<array<float>>
+     */
+    public function findGroupByStockDate(): array
+    {
+        $results = [];
+        $prices = $this->findAll();
+        foreach ($prices as $price) {
+            $results[$price->getStock()->getId()][$price->getDate()->format('Y-m-d')] = $price->getPrice();
+        }
+
+        return $results;
+    }
+
+    /**
      * Dernière cotation boursière.
      *
      * @param Stock $stock

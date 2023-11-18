@@ -12,19 +12,13 @@ declare(strict_types=1);
 namespace App\WorkFlow;
 
 use App\Entity\Account;
+use App\Entity\Category;
 use App\Entity\StockPrice;
 use App\Entity\StockWallet;
 use App\Entity\Transaction;
-use App\Repository\StockPriceRepository;
-use App\Values\StockPosition;
+use App\Values\TransactionType;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-
-/**
- *  This file is part of My Finance Application.
- *  (c) Sabinus52 <sabinus52@gmail.com>
- *  For the full copyright and license information, please view the LICENSE
- *  file that was distributed with this source code.
- */
 
 /**
  * Workflow de la destion des portefeuilles boursiers.
@@ -43,79 +37,213 @@ class Wallet
      */
     private $account;
 
+    /**
+     * Historique du portefeuille.
+     *
+     * @var WalletHistory[]
+     */
+    private $histories;
+
     public function __construct(EntityManagerInterface $manager, Account $account)
     {
         $this->entityManager = $manager;
         $this->account = $account;
+        $this->histories = [];
+    }
+
+    /**
+     * Retourne le portefeuille courant.
+     *
+     * @return StockWallet[]
+     */
+    public function getWallet(): array
+    {
+        return $this->entityManager->getRepository(StockWallet::class)->findBy(['account' => $this->account]);
+    }
+
+    /**
+     * Retourne les opérations booursières.
+     *
+     * @return Transaction[]
+     */
+    public function getTransactions(): array
+    {
+        /** @phpstan-ignore-next-line */
+        return $this->entityManager->getRepository(Transaction::class)->findAllByWallet($this->account);
+    }
+
+    /**
+     * Retourne les transactions de versement et de réévaluations.
+     *
+     * @return Transaction[]
+     */
+    public function getTransactionHistories(): array
+    {
+        if (empty($this->histories)) {
+            $this->buildWallets();
+        }
+
+        $transactions = [];
+        $lastBalance = $lastInvest = 0.0;
+        $category = $this->entityManager->getRepository(Category::class)->findOneByCode(Category::INCOME, Category::INVESTMENT); /** @phpstan-ignore-line */
+
+        // Pour chaque portefeuille
+        foreach ($this->histories as $item) {
+            $invest = $item->getAmountInvest();
+            if ($invest !== $lastInvest) {
+                $transaction = new Transaction();
+                $transaction
+                    ->setDate($item->getDate())
+                    ->setTypeValue(TransactionType::STANDARD)
+                    ->setAmount($invest - $lastInvest)
+                    ->setCategory($category)
+                ;
+                $lastInvest = $invest;
+                $transactions[] = $transaction;
+            }
+
+            $balance = $item->getValorisation();
+            if ($balance > 0.0) {
+                // Ne sauvegarde pas les valorisation à 0
+                $transaction = new Transaction();
+                $transaction
+                    ->setDate($item->getDate())
+                    ->setTypeValue(TransactionType::REVALUATION)
+                    ->setAmount($balance - $lastBalance)
+                    ->setBalance($balance)
+                ;
+                $lastBalance = $balance;
+                $transactions[] = $transaction;
+            }
+        }
+
+        return $transactions;
     }
 
     /**
      * Reconstruit le portefeuille à partir des transactions.
      *
-     * @return StockWallet[]
+     * @return WalletHistory[]
      */
-    public function reBuild(): array
+    public function buidAndSaveWallet(): array
     {
-        // Portefeuille provisoire
-        /** @var StockWallet[] $walletStocks */
-        $walletStocks = [];
-        // Liste des transactions sur les opérations boursières
-        /** @var Transaction[] $transactions */
-        $transactions = $this->entityManager->getRepository(Transaction::class)->findAllByWallet($this->account); /** @phpstan-ignore-line */
+        $this->buildWallets();
 
-        // Construit le nouveau portefeuille
-        foreach ($transactions as $transaction) {
-            $id = $transaction->getTransactionStock()->getStock()->getId();
-            if (!isset($walletStocks[$id])) {
-                $walletStocks[$id] = new StockWallet();
-                $walletStocks[$id]->setStock($transaction->getTransactionStock()->getStock());
-                $walletStocks[$id]->setAccount($this->account);
-            }
-            if (StockPosition::BUYING === $transaction->getTransactionStock()->getPosition()->getValue()) {
-                $walletStocks[$id]->addVolume($transaction->getTransactionStock()->getVolume());
-            } elseif (StockPosition::SELLING === $transaction->getTransactionStock()->getPosition()->getValue()) {
-                $walletStocks[$id]->subVolume($transaction->getTransactionStock()->getVolume());
-            } elseif (StockPosition::FUSION_SALE === $transaction->getTransactionStock()->getPosition()->getValue()) {
-                $walletStocks[$id]->subVolume($transaction->getTransactionStock()->getVolume());
-            } elseif (StockPosition::FUSION_BUY === $transaction->getTransactionStock()->getPosition()->getValue()) {
-                $walletStocks[$id]->addVolume($transaction->getTransactionStock()->getVolume());
-            }
+        $wallet = end($this->histories);
+        if ($wallet) {
+            $this->saveCurrentWallet($wallet);
         }
 
-        // Efface l'ancien portefeuille
-        $this->entityManager->getRepository(StockWallet::class)->removeByAccount($this->account); /** @phpstan-ignore-line */
-
-        // Sauvegarde le nouveau portefeuille
-        foreach ($walletStocks as $id => $stock) {
-            if ($stock->getVolume() <= 0) {
-                unset($walletStocks[$id]);
-                continue;
-            }
-
-            $stock->setPrice($this->getLastPrice($stock));
-            $this->entityManager->persist($stock);
-        }
-        $this->entityManager->flush();
-
-        return $walletStocks;
+        return $this->histories;
     }
 
     /**
-     * Retourne le dernier cours trouvé du titre boursier.
-     *
-     * @param StockWallet $stock
-     *
-     * @return float
+     * Reconstruit le portefeuille à partir des transactions.
      */
-    private function getLastPrice(StockWallet $stock): float
+    private function buildWallets(): void
     {
-        /** @var StockPriceRepository $repo */
-        $repo = $this->entityManager->getRepository(StockPrice::class);
-        $lastPrice = $repo->findOneLastPrice($stock->getStock());
-        if (null === $lastPrice) {
-            return 0;
+        // Liste des transactions sur les opérations boursières
+        $transactions = $this->getTransactions();
+        /** @var DateTime $lastDate */
+        $lastDate = null;
+
+        // Construit les portefeuilles par mois en fonction des transactions
+        foreach ($transactions as $transaction) {
+            $month = $transaction->getDate()->format('Y-m');
+
+            // Premier Portefeuille
+            if (null === $lastDate) {
+                $this->histories[$month] = new WalletHistory();
+                $this->histories[$month]->setDate(clone $transaction->getDate());
+                $lastDate = $transaction->getDate();
+            }
+
+            // Créé les portefeuilles intermédiaires où il n'y a pas eu de transaction
+            $this->addIntermediateHistories(clone $lastDate, $transaction->getDate());
+
+            // Nouveau portefeuille trouvé à créer
+            if (!isset($this->histories[$month])) {
+                $this->createWalletHistory($transaction->getDate(), $this->histories[$lastDate->format('Y-m')]);
+            }
+
+            // Traite la transaction en cours
+            $this->histories[$month]->addPosition($transaction);
+
+            $lastDate = $transaction->getDate();
         }
 
-        return $lastPrice->getPrice();
+        $this->setAllPriceWallet();
+    }
+
+    /**
+     * Créé des portefeuille intermédiare entre 2 dates avec comme portefeuille de référence la date de début.
+     *
+     * @param DateTime $start
+     * @param DateTime $end
+     */
+    private function addIntermediateHistories(DateTime $start, DateTime $end): void
+    {
+        $start->modify('first day of this month');
+        $refDate = clone $start;
+        $start->modify('+ 1 month');
+        while ($start->format('Y-m') < $end->format('Y-m')) {
+            $this->createWalletHistory($start, $this->histories[$refDate->format('Y-m')]);
+            $start->modify('+ 1 month');
+        }
+    }
+
+    /**
+     * Créé un nouveau portefeuille d'une date donnée à partir d'un autre portefeuille.
+     *
+     * @param DateTime      $date      Date du nouveau portefeuille
+     * @param WalletHistory $refWallet Porefeuille de référence à partir duquel le nouveau sera créé
+     *
+     * @return WalletHistory
+     */
+    private function createWalletHistory(DateTime $date, WalletHistory $refWallet): WalletHistory
+    {
+        $month = $date->format('Y-m');
+        $this->histories[$month] = clone $refWallet;
+        $this->histories[$month]->setDate(clone $date);
+
+        return $this->histories[$month];
+    }
+
+    /**
+     * Sauvegarde en base le dernier portefeuille en cours.
+     *
+     * @param WalletHistory $wallet
+     */
+    private function saveCurrentWallet(WalletHistory $wallet): void
+    {
+        // Efface l'ancien portefeuille
+        $this->entityManager->getRepository(StockWallet::class)->removeByAccount($this->account); /** @phpstan-ignore-line */
+        foreach ($wallet as $item) {
+            $this->entityManager->persist($item);
+        }
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Affecte le cours de chaque titre sur toutes l'historique des portefeuilles.
+     */
+    private function setAllPriceWallet(): void
+    {
+        $pricesByStockByMonth = $this->entityManager->getRepository(StockPrice::class)->findGroupByStockDate(); /** @phpstan-ignore-line */
+
+        // Pour chaque portefeuille
+        foreach ($this->histories as $wallet) {
+            // Pour chaque titre du portefeuille
+            foreach ($wallet as $item) {
+                $date = $wallet->getDate()->format('Y-m-d');
+                $stockId = $item->getStock()->getId();
+                // Vérifie si un cours existe à cette date pour ce titre
+                if (isset($pricesByStockByMonth[$stockId][$date])) {
+                    $item->setPrice($pricesByStockByMonth[$stockId][$date]);
+                } else {
+                    $item->setPrice(0.0);
+                }
+            }
+        }
     }
 }

@@ -17,9 +17,11 @@ use App\Helper\DoctrineHelper;
 use App\Values\AccountType;
 use App\WorkFlow\Balance;
 use App\WorkFlow\Wallet;
+use App\WorkFlow\WalletHistory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -62,6 +64,17 @@ class ReCalculateCommand extends Command
     }
 
     /**
+     * Configuration de la commande.
+     */
+    protected function configure(): void
+    {
+        $this
+            ->addOption('year', null, InputOption::VALUE_IS_ARRAY + InputOption::VALUE_OPTIONAL, 'Affiche les années de l\'historique des portefeuilles')
+            ->setHelp('Recalcule les soldes de tous les comptes bancaires et portefeuille boursier')
+        ;
+    }
+
+    /**
      * Execute la commande.
      *
      * @param InputInterface  $input
@@ -76,7 +89,7 @@ class ReCalculateCommand extends Command
 
         $this->accounts = $this->entityManager->getRepository(Account::class)->findAll();
 
-        $this->calculateWallet();
+        $this->calculateWallet($input);
         $this->calculateBalance();
 
         return Command::SUCCESS;
@@ -123,8 +136,10 @@ class ReCalculateCommand extends Command
 
     /**
      * Construction des portefeuilles boursiers.
+     *
+     * @param InputInterface $input
      */
-    private function calculateWallet(): void
+    private function calculateWallet(InputInterface $input): void
     {
         $this->inOut->section('Calcul des portefeuilles boursiers');
 
@@ -137,8 +152,20 @@ class ReCalculateCommand extends Command
             }
 
             $helper = new Wallet($this->entityManager, $account);
-            $results = $helper->reBuild();
-            $this->printWallet($account, $results);
+            $results = $helper->buidAndSaveWallet();
+
+            // Affiche les portefeuilles désirés avec l'option "year"
+            foreach ($results as $month => $wallet) {
+                $year = substr($month, 0, 4);
+                if (in_array($year, $input->getOption('year'), true) || in_array('all', $input->getOption('year'), true)) {
+                    $this->printWallet($account, $wallet);
+                }
+            }
+
+            // Affiche le portefeuille courant
+            /** @var WalletHistory $wallet */
+            $wallet = end($results);
+            $this->printWallet($account, $wallet);
         }
     }
 
@@ -146,19 +173,20 @@ class ReCalculateCommand extends Command
      * Affiche le portefeuille.
      *
      * @param Account       $account
-     * @param StockWallet[] $wallet
+     * @param WalletHistory $wallet
      */
-    private function printWallet(Account $account, array $wallet): void
+    private function printWallet(Account $account, WalletHistory $wallet): void
     {
-        $this->inOut->writeln($account->getFullName());
+        $this->inOut->writeln(sprintf('%s (%s)', $account->getFullName(), $wallet->getDate()->format('Y-m')));
         $output = [];
         foreach ($wallet as $item) {
             $output[] = [
                 $item->getStock(),
                 $item->getVolume(),
                 $item->getPrice().' €',
+                $item->getInvest().' €',
             ];
         }
-        $this->inOut->table(['Stock', 'Volume', 'Cours'], $output);
+        $this->inOut->table(['Stock', 'Volume', 'Cours', 'Invest'], $output);
     }
 }

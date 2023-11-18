@@ -19,7 +19,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Entité de la classe Stock (Actions boursières).
+ * Entité de la classe Stock (Titre boursier).
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  *
@@ -62,6 +62,24 @@ class Stock
      * @ORM\Column(type="date", nullable=true)
      */
     private $closedAt;
+
+    /**
+     * Titre d'avant qui a été fusionné.
+     *
+     * @var Stock
+     *
+     * @ORM\OneToOne(targetEntity=Stock::class, inversedBy="fusionTo", cascade={"persist", "remove"})
+     */
+    private $fusionFrom;
+
+    /**
+     * Vers le nouveau titre fusionné.
+     *
+     * @var Stock
+     *
+     * @ORM\OneToOne(targetEntity=Stock::class, mappedBy="fusionFrom", cascade={"persist", "remove"})
+     */
+    private $fusionTo;
 
     /**
      * @var ArrayCollection
@@ -144,6 +162,40 @@ class Stock
         return $this;
     }
 
+    public function getFusionFrom(): ?self
+    {
+        return $this->fusionFrom;
+    }
+
+    public function setFusionFrom(?self $fusionFrom): self
+    {
+        $this->fusionFrom = $fusionFrom;
+
+        return $this;
+    }
+
+    public function getFusionTo(): ?self
+    {
+        return $this->fusionTo;
+    }
+
+    public function setFusionTo(?self $fusionTo): self
+    {
+        // unset the owning side of the relation if necessary
+        if (null === $fusionTo && null !== $this->fusionTo) {
+            $this->fusionTo->setFusionFrom(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if (null !== $fusionTo && $fusionTo->getFusionFrom() !== $this) {
+            $fusionTo->setFusionFrom($this);
+        }
+
+        $this->fusionTo = $fusionTo;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, StockPrice>
      */
@@ -172,20 +224,6 @@ class Stock
         }
 
         return $this;
-    }
-
-    /**
-     * Affiche le badge du statut de l'action.
-     *
-     * @return string
-     */
-    public function getStatusBadge(): string
-    {
-        if (null !== $this->closedAt) {
-            return '<span class="badge bg-danger text-uppercase">fermé</span>';
-        }
-
-        return '<span class="badge bg-secondary text-uppercase">ouvert</span>';
     }
 
     /**
@@ -246,5 +284,19 @@ class Stock
         }
 
         return $this;
+    }
+
+    /**
+     * Affiche le badge du statut de l'action.
+     *
+     * @return string
+     */
+    public function getStatusBadge(): string
+    {
+        if (null !== $this->closedAt) {
+            return '<span class="badge bg-danger text-uppercase">fermé</span>';
+        }
+
+        return '<span class="badge bg-secondary text-uppercase">ouvert</span>';
     }
 }

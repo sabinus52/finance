@@ -13,7 +13,6 @@ namespace App\WorkFlow;
 
 use App\Entity\Account;
 use App\Entity\Category;
-use App\Entity\StockWallet;
 use App\Entity\Transaction;
 use App\Values\AccountType;
 use App\Values\TransactionType;
@@ -147,15 +146,22 @@ class Balance
      */
     private function updateBalanceAllWallet(Account $account): int
     {
-        $balance = 0.0;
-        /** @var StockWallet[] $results */
-        $results = $this->entityManager->getRepository(StockWallet::class)->findByAccount($account); /* @phpstan-ignore-line */
+        $balance = $invested = 0.0;
+
+        // Liste des transactions par compte
+        $wallet = new Wallet($this->entityManager, $account);
+        $results = $wallet->getTransactionHistories();
         foreach ($results as $item) {
-            $balance += $item->getVolume() * $item->getPrice();
+            if (TransactionType::REVALUATION === $item->getType()->getValue()) {
+                $balance = $item->getBalance();
+            }
+            if ($item->getCategory() && Category::INVESTMENT === $item->getCategory()->getCode()) {
+                $invested += $item->getAmount();
+            }
         }
 
-        $account->setBalance(round($balance, 2));
-        // $account->setInvested($invested); TODO à rajouter avec un nouveau champs
+        $account->setBalance($balance);
+        $account->setInvested($invested);
         $this->entityManager->flush();
 
         return count($results);

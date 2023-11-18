@@ -12,10 +12,14 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Stock;
+use App\Repository\StockRepository;
 use Olix\BackOfficeBundle\Form\Type\DatePickerType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -44,6 +48,26 @@ class StockFormType extends AbstractType
                 'required' => false,
             ])
         ;
+        // Ajout de la fusion en fonction du Data chargé
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
+            $form = $event->getForm();
+            /** @var Stock $data */
+            $data = $event->getData();
+            $form->add('fusionFrom', EntityType::class, [
+                'label' => 'Ancien titre fusionné',
+                'class' => Stock::class,
+                'query_builder' => function (StockRepository $er) use ($data) {
+                    return $er->createQueryBuilder('stk')
+                        ->leftJoin('stk.fusionTo', 'fus')
+                        ->where('stk.closedAt IS NOT NULL')
+                        ->andWhere('fus.id IS NULL OR fus.id = :id')
+                        ->setParameter('id', $data->getId())
+                        ->orderBy('stk.name')
+                    ;
+                },
+                'required' => false,
+            ]);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void

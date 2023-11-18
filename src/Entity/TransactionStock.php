@@ -138,6 +138,11 @@ class TransactionStock
         return $this;
     }
 
+    public function getPositionValue(): int
+    {
+        return $this->position->getValue();
+    }
+
     public function getVolume(): ?float
     {
         return $this->volume;

@@ -198,14 +198,10 @@ class TransactionRepository extends ServiceEntityRepository
     public function findAllByWallet(Account $account): array
     {
         return $this->createQueryBuilder('trt')
-            ->addSelect('rcp')
             ->addSelect('cat')
-            ->addSelect('prt')
             ->addSelect('sck')
             ->addSelect('wal')
-            ->innerJoin('trt.recipient', 'rcp')
             ->innerJoin('trt.category', 'cat')
-            ->innerJoin('cat.parent', 'prt')
             ->innerJoin('trt.transactionStock', 'wal')
             ->innerJoin('wal.stock', 'sck')
             ->andWhere('wal.account = :account')
