@@ -63,6 +63,42 @@ class AccountRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les comptes d'un type donné.
+     *
+     * @param int|null  $type
+     * @param bool|null $isOpened
+     *
+     * @return Account[]
+     */
+    public function findByType(?int $type, ?bool $isOpened): array
+    {
+        $query = $this->createQueryBuilder('acc')
+            ->addSelect('int')
+            ->innerJoin('acc.institution', 'int')
+            ->addOrderBy('acc.institution', 'ASC')
+            ->addOrderBy('acc.name', 'ASC')
+        ;
+
+        // Recherche par type
+        if (null !== $type) {
+            $query->andWhere('acc.type >= :min AND acc.type <= :max')
+                ->setParameter('min', $type * 10)
+                ->setParameter('max', $type * 10 + 9)
+            ;
+        }
+
+        // Si ouvert ou fermé
+        if (true === $isOpened) {
+            $query->andWhere('acc.closedAt IS NULL');
+        }
+        if (false === $isOpened) {
+            $query->andWhere('acc.closedAt IS NOT NULL');
+        }
+
+        return $query->getQuery()->getResult();
+    }
+
+    /**
      * Retoune un tableau associatif des noms des comptes [CA Compte courant] => 1.
      *
      * @return Account[]

@@ -14,6 +14,8 @@ namespace App\WorkFlow;
 use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
+use App\Repository\AccountRepository;
+use App\Repository\TransactionRepository;
 use App\Values\AccountType;
 use App\Values\TransactionType;
 use DateTime;
@@ -32,11 +34,20 @@ class Balance
     private $entityManager;
 
     /**
+     * @var TransactionRepository
+     */
+    private $repository;
+
+    /**
      * @param EntityManagerInterface $manager
      */
     public function __construct(EntityManagerInterface $manager)
     {
         $this->entityManager = $manager;
+
+        /** @var TransactionRepository $repository */
+        $repository = $this->entityManager->getRepository(Transaction::class);
+        $this->repository = $repository;
     }
 
     /**
@@ -56,10 +67,11 @@ class Balance
             $date = min($date, $transaction->getDate());
         }
 
-        $lastTransaction = $this->findOneLastBefore($transaction, $date);
+        // Recherche la transaction juste avant celle qui a été ajouté ou modifié.
+        $lastTransaction = $this->repository->findOneLastBeforeDate($transaction->getAccount(), $date);
         $balance = $lastTransaction->getBalance();
 
-        $results = $this->findToDoAfter($transaction, $date);
+        $results = $this->repository->findAfterDate($transaction->getAccount(), $date);
         foreach ($results as $item) {
             if (TransactionType::REVALUATION === $item->getType()->getValue()) {
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
@@ -74,6 +86,12 @@ class Balance
         }
 
         $transaction->getAccount()->setBalance($balance);
+
+        // Dans le cas d'une transaction boursière
+        if ($transaction->getTransactionStock()) {
+            $this->updateBalanceWallet($transaction->getTransactionStock()->getAccount());
+        }
+
         $this->entityManager->flush();
 
         return count($results);
@@ -86,13 +104,127 @@ class Balance
      *
      * @return int
      */
-    public function updateBalanceAll(Account $account): int
+    public function updateBalanceFromScratch(Account $account): int
     {
         if (AccountType::EPARGNE_FINANCIERE === $account->getTypeCode()) {
-            return $this->updateBalanceAllWallet($account);
+            $result = $this->updateBalanceWallet($account);
+        } else {
+            $result = $this->updateBalanceAccount($account);
         }
 
-        return $this->updateBalanceAllAccount($account);
+        $this->entityManager->flush();
+
+        return $result;
+    }
+
+    /**
+     * Mets à jours tous les comptes bancaires et portefeuilles boursiers.
+     *
+     * @param bool|null $isOpened
+     */
+    public function updateAllAccounts(?bool $isOpened = null): void
+    {
+        /** @var AccountRepository $repository */
+        $repository = $this->entityManager->getRepository(Account::class);
+        $accounts = $repository->findByType(null, $isOpened);
+
+        foreach ($accounts as $account) {
+            if (AccountType::EPARGNE_FINANCIERE !== $account->getTypeCode()) {
+                $this->updateBalanceWallet($account);
+            } else {
+                $this->updateBalanceAccount($account);
+            }
+        }
+
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Met à jour tous les soldes de tous les portefeuilles.
+     *
+     * @param bool|null $isOpened
+     */
+    public function updateAllWallets(?bool $isOpened = null): void
+    {
+        /** @var AccountRepository $repository */
+        $repository = $this->entityManager->getRepository(Account::class);
+        $accounts = $repository->findByType(AccountType::EPARGNE_FINANCIERE, $isOpened);
+
+        foreach ($accounts as $account) {
+            $this->updateBalanceWallet($account);
+        }
+
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Retourne les soldes d'un compte à la fin de chaque mois.
+     *
+     * @param Account $account
+     *
+     * @return array<float>
+     */
+    public function getByMonth(Account $account): array
+    {
+        $results = [];
+
+        // Construit le tableau des soldes par mois
+        /** @var Transaction[] $transactions */
+        $transactions = $this->entityManager->getRepository(Transaction::class)->findBy(['account' => $account], ['date' => 'ASC', 'id' => 'ASC']);
+        foreach ($transactions as $transaction) {
+            $results[$transaction->getDate()->format('Y-m')] = round($transaction->getBalance(), 2);
+        }
+
+        // Bouche les mois manquants
+        $start = clone $account->getOpenedAt();
+        $end = $account->getClosedAt();
+        $end ??= new DateTime();
+        $balance = 0.0;
+        while ($start->format('Y-m') <= $end->format('Y-m')) {
+            if (!isset($results[$start->format('Y-m')])) {
+                $results[$start->format('Y-m')] = $balance;
+            }
+            $balance = $results[$start->format('Y-m')];
+            $start->modify('+ 1 month');
+        }
+        ksort($results);
+
+        return $results;
+    }
+
+    /**
+     * Retourne les soldes d'un compte à la fin de chaque année.
+     *
+     * @param Account $account
+     *
+     * @return array<float>
+     */
+    public function getByYear(Account $account): array
+    {
+        $results = [];
+
+        // Construit le tableau des soldes par an
+        /** @var Transaction[] $transactions */
+        $transactions = $this->entityManager->getRepository(Transaction::class)->findBy(['account' => $account], ['date' => 'ASC', 'id' => 'ASC']);
+        foreach ($transactions as $transaction) {
+            $results[$transaction->getDate()->format('Y')] = round($transaction->getBalance(), 2);
+        }
+
+        // Bouche les années manquantes
+        $start = clone $account->getOpenedAt();
+        $end = $account->getClosedAt();
+        $end ??= new DateTime();
+        $balance = 0.0;
+        while ($start->format('Y') <= $end->format('Y')) {
+            if (!isset($results[$start->format('Y')])) {
+                $results[$start->format('Y')] = $balance;
+            }
+            $balance = $results[$start->format('Y')];
+            $start->modify('+ 1 year');
+        }
+        ksort($results);
+
+        return $results;
     }
 
     /**
@@ -102,14 +234,15 @@ class Balance
      *
      * @return int
      */
-    private function updateBalanceAllAccount(Account $account): int
+    private function updateBalanceAccount(Account $account): int
     {
         $balance = $account->getInitial();
         $reconcilied = $account->getInitial();
         $invested = $account->getInitial();
 
         // Liste des transactions par compte
-        $results = $this->entityManager->getRepository(Transaction::class)->findBy(['account' => $account], ['date' => 'ASC', 'id' => 'ASC']);
+        /** @var Transaction[] $results */
+        $results = $this->repository->findAfterDate($account, new DateTime('1970-01-01'));
         foreach ($results as $item) {
             if (TransactionType::REVALUATION === $item->getType()->getValue()) {
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
@@ -132,7 +265,6 @@ class Balance
         $account->setBalance($balance);
         $account->setReconBalance($reconcilied);
         $account->setInvested($invested);
-        $this->entityManager->flush();
 
         return count($results);
     }
@@ -144,27 +276,21 @@ class Balance
      *
      * @return int
      */
-    private function updateBalanceAllWallet(Account $account): int
+    private function updateBalanceWallet(Account $account): int
     {
-        $balance = $invested = 0.0;
-
-        // Liste des transactions par compte
         $wallet = new Wallet($this->entityManager, $account);
-        $results = $wallet->getTransactionHistories();
-        foreach ($results as $item) {
-            if (TransactionType::REVALUATION === $item->getType()->getValue()) {
-                $balance = $item->getBalance();
-            }
-            if ($item->getCategory() && Category::INVESTMENT === $item->getCategory()->getCode()) {
-                $invested += $item->getAmount();
-            }
+
+        $wallet->buidAndSaveWallet();
+        $walletCurrent = $wallet->getWallet();
+
+        $account->setBalance($walletCurrent->getValorisation());
+        if (AccountType::PEA_TITRES === $account->getType()->getValue()) {
+            $account->setInvested($account->getAccAssoc()->getInvested());
+        } else {
+            $account->setInvested($walletCurrent->getAmountInvest());
         }
 
-        $account->setBalance($balance);
-        $account->setInvested($invested);
-        $this->entityManager->flush();
-
-        return count($results);
+        return 1;
     }
 
     /**
@@ -180,55 +306,6 @@ class Balance
         return $this->entityManager
             ->getRepository(Category::class)
             ->findOneByCode($type, Category::REVALUATION)
-        ;
-    }
-
-    /**
-     * Recherche la transaction juste avant celle qui a été ajouté ou modifié.
-     *
-     * @param Transaction $transaction
-     * @param DateTime    $date
-     *
-     * @return Transaction
-     */
-    private function findOneLastBefore(Transaction $transaction, DateTime $date): Transaction
-    {
-        return $this->entityManager->createQueryBuilder()
-            ->select('trt')
-            ->from(Transaction::class, 'trt')
-            ->andWhere('trt.account = :account')
-            ->andWhere('trt.date < :date')
-            ->setParameter('account', $transaction->getAccount())
-            ->setParameter('date', $date->format('Y-m-d'))
-            ->addOrderBy('trt.date', 'DESC')
-            ->addOrderBy('trt.id', 'DESC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-
-    /**
-     * Recherche les transactions à mettre à jour à partir de la date de modif.
-     *
-     * @param Transaction $transaction
-     * @param DateTime    $date
-     *
-     * @return Transaction[]
-     */
-    private function findToDoAfter(Transaction $transaction, DateTime $date): array
-    {
-        return $this->entityManager->createQueryBuilder()
-            ->select('trt')
-            ->from(Transaction::class, 'trt')
-            ->andWhere('trt.account = :account')
-            ->andWhere('trt.date >= :date')
-            ->setParameter('account', $transaction->getAccount())
-            ->setParameter('date', $date->format('Y-m-d'))
-            ->addOrderBy('trt.date', 'ASC')
-            ->addOrderBy('trt.id', 'ASC')
-            ->getQuery()
-            ->getResult()
         ;
     }
 }

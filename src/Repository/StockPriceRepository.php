@@ -41,7 +41,7 @@ class StockPriceRepository extends ServiceEntityRepository
         $results = [];
         $prices = $this->findAll();
         foreach ($prices as $price) {
-            $results[$price->getStock()->getId()][$price->getDate()->format('Y-m-d')] = $price->getPrice();
+            $results[$price->getStock()->getId()][$price->getDate()->format('Y-m')] = $price->getPrice();
         }
 
         return $results;

@@ -107,7 +107,7 @@ class AccountController extends AbstractController
     public function calculateBalance(Account $account, EntityManagerInterface $entityManager): Response
     {
         $helper = new Balance($entityManager);
-        $result = $helper->updateBalanceAll($account);
+        $result = $helper->updateBalanceFromScratch($account);
 
         $this->addFlash('success', sprintf('Le solde a été recalculé pour le compte <strong>%s</strong> sur <strong>%s</strong> opérations.', $account, $result));
 

@@ -18,6 +18,7 @@ use App\Form\StockPriceFormType;
 use App\Helper\Charts\StockPriceChart;
 use App\Repository\StockPriceRepository;
 use App\Repository\StockRepository;
+use App\WorkFlow\Balance;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -131,6 +132,8 @@ class StockController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($stockPrice);
             $entityManager->flush();
+            $balance = new Balance($entityManager);
+            $balance->updateAllWallets();
             $this->addFlash('success', 'La création de la cotation de <strong>'.$stock.'</strong> a bien été prise en compte');
 
             return new Response('OK');
@@ -154,6 +157,8 @@ class StockController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
+            $balance = new Balance($entityManager);
+            $balance->updateAllWallets();
             $this->addFlash('success', 'La modification de la cotation de <strong>'.$stockPrice->getStock().'</strong> a bien été prise en compte');
 
             return new Response('OK');

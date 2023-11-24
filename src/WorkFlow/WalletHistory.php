@@ -32,7 +32,7 @@ class WalletHistory implements Iterator
     private $date;
 
     /**
-     * Portefeuille.
+     * Portefeuille. [id] => StockWallet().
      *
      * @var StockWallet[]
      */
@@ -46,6 +46,39 @@ class WalletHistory implements Iterator
         foreach ($this->wallet as &$item) {
             $item = clone $item;
         }
+    }
+
+    /**
+     * Affecte un portefeuille.
+     *
+     * @param StockWallet[] $stockWallet
+     *
+     * @return self
+     */
+    public function setWallet(array $stockWallet): self
+    {
+        $this->wallet = [];
+        $minDate = null;
+
+        foreach ($stockWallet as $item) {
+            $this->wallet[$item->getStock()->getId()] = $item;
+            if (null === $minDate || ($item->getPriceDate() && $minDate > $item->getPriceDate())) {
+                $minDate = clone $item->getPriceDate();
+            }
+        }
+        $this->setDate($minDate);
+
+        return $this;
+    }
+
+    /**
+     * Retourne le portefeuille.
+     *
+     * @return StockWallet[]
+     */
+    public function getWallet(): array
+    {
+        return $this->wallet;
     }
 
     /**
@@ -131,7 +164,7 @@ class WalletHistory implements Iterator
         return current($this->wallet);
     }
 
-    public function key(): mixed
+    public function key()
     {
         return key($this->wallet);
     }

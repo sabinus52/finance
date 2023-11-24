@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\StockWalletRepository;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -67,6 +68,15 @@ class StockWallet
      * @ORM\Column(type="float")
      */
     private $price;
+
+    /**
+     * Date du prix en cours.
+     *
+     * @var DateTime
+     *
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $priceDate;
 
     /**
      * Montant investi.
@@ -170,6 +180,19 @@ class StockWallet
     public function setPrice(float $price): self
     {
         $this->price = $price;
+
+        return $this;
+    }
+
+    public function getPriceDate(): ?DateTime
+    {
+        return $this->priceDate;
+    }
+
+    public function setPriceDate(DateTime $priceDate): self
+    {
+        $this->priceDate = clone $priceDate;
+        $this->priceDate->modify('last day of this month');
 
         return $this;
     }

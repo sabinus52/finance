@@ -192,7 +192,7 @@ class Helper
 
         /** @var Account $account */
         foreach ($accounts as $account) {
-            $balance->updateBalanceAll($account);
+            $balance->updateBalanceFromScratch($account);
             $this->statistic->setAccountData($account);
         }
     }

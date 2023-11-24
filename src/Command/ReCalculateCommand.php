@@ -89,8 +89,13 @@ class ReCalculateCommand extends Command
 
         $this->accounts = $this->entityManager->getRepository(Account::class)->findAll();
 
-        $this->calculateWallet($input);
         $this->calculateBalance();
+        $this->printAccounts();
+        $this->printWallets();
+
+        if (!empty($input->getOption('year'))) {
+            $this->debugWallet($input->getOption('year'));
+        }
 
         return Command::SUCCESS;
     }
@@ -107,11 +112,10 @@ class ReCalculateCommand extends Command
 
         foreach ($this->accounts as $account) {
             $this->inOut->progressAdvance();
-            $helper->updateBalanceAll($account);
+            $helper->updateBalanceFromScratch($account);
         }
 
         $this->inOut->progressFinish();
-        $this->printAccounts();
     }
 
     /**
@@ -135,11 +139,53 @@ class ReCalculateCommand extends Command
     }
 
     /**
+     * Affiche les portefeuilles.
+     */
+    private function printWallets(): void
+    {
+        foreach ($this->accounts as $account) {
+            if (AccountType::EPARGNE_FINANCIERE !== $account->getTypeCode()) {
+                continue;
+            }
+
+            $result = $this->entityManager->getRepository(StockWallet::class)->findBy(['account' => $account]);
+            $wallet = new WalletHistory();
+            $wallet->setWallet($result);
+            $this->printWallet($account, $wallet);
+        }
+    }
+
+    /**
+     * Affiche le portefeuille.
+     *
+     * @param Account       $account
+     * @param WalletHistory $wallet
+     */
+    private function printWallet(Account $account, WalletHistory $wallet): void
+    {
+        $this->inOut->writeln(sprintf('%s (%s)', $account->getFullName(), $wallet->getDate()->format('Y-m')));
+        $output = [];
+        /** @var StockWallet $item */
+        foreach ($wallet as $item) {
+            $output[] = [
+                $item->getStock(),
+                $item->getVolume(),
+                $item->getPrice().' €',
+                ($item->getPriceDate()) ? $item->getPriceDate()->format('d/m/Y') : '',
+                $item->getInvest().' €',
+                $item->getDividend(),
+                $item->getFee(),
+            ];
+        }
+        $this->inOut->table(['Stock', 'Volume', 'Cours', 'Date', 'Invest', 'Dividendes', 'Commission'], $output);
+    }
+
+    /**
      * Construction des portefeuilles boursiers.
      *
-     * @param InputInterface $input
+     * @param array<string> $years
      */
-    private function calculateWallet(InputInterface $input): void
+    private function debugWallet(array $years): void
     {
         $this->inOut->section('Calcul des portefeuilles boursiers');
 
@@ -157,36 +203,10 @@ class ReCalculateCommand extends Command
             // Affiche les portefeuilles désirés avec l'option "year"
             foreach ($results as $month => $wallet) {
                 $year = substr($month, 0, 4);
-                if (in_array($year, $input->getOption('year'), true) || in_array('all', $input->getOption('year'), true)) {
+                if (in_array($year, $years, true) || in_array('all', $years, true)) {
                     $this->printWallet($account, $wallet);
                 }
             }
-
-            // Affiche le portefeuille courant
-            /** @var WalletHistory $wallet */
-            $wallet = end($results);
-            $this->printWallet($account, $wallet);
         }
-    }
-
-    /**
-     * Affiche le portefeuille.
-     *
-     * @param Account       $account
-     * @param WalletHistory $wallet
-     */
-    private function printWallet(Account $account, WalletHistory $wallet): void
-    {
-        $this->inOut->writeln(sprintf('%s (%s)', $account->getFullName(), $wallet->getDate()->format('Y-m')));
-        $output = [];
-        foreach ($wallet as $item) {
-            $output[] = [
-                $item->getStock(),
-                $item->getVolume(),
-                $item->getPrice().' €',
-                $item->getInvest().' €',
-            ];
-        }
-        $this->inOut->table(['Stock', 'Volume', 'Cours', 'Invest'], $output);
     }
 }

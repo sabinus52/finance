@@ -15,6 +15,7 @@ use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Entity\Vehicle;
+use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -103,6 +104,55 @@ class TransactionRepository extends ServiceEntityRepository
             ->setParameter('account', $account)
             ->setParameter('state', [Transaction::STATE_NONE, Transaction::STATE_RECONTEMP])
             ->orderBy('trt.date', 'ASC')
+            ->addOrderBy('trt.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * Recherche la transaction juste avant la date définie.
+     *
+     * @param Account           $account
+     * @param DateTimeInterface $date
+     *
+     * @return Transaction
+     */
+    public function findOneLastBeforeDate(Account $account, DateTimeInterface $date): Transaction
+    {
+        return $this->createQueryBuilder('trt')
+            ->addSelect('cat')
+            ->innerJoin('trt.category', 'cat')
+            ->andWhere('trt.account = :account')
+            ->andWhere('trt.date < :date')
+            ->setParameter('account', $account)
+            ->setParameter('date', $date->format('Y-m-d'))
+            ->addOrderBy('trt.date', 'DESC')
+            ->addOrderBy('trt.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
+    /**
+     * Recherche les transactions après une date donnée.
+     *
+     * @param Account           $account
+     * @param DateTimeInterface $date
+     *
+     * @return Transaction[]
+     */
+    public function findAfterDate(Account $account, DateTimeInterface $date): array
+    {
+        return $this->createQueryBuilder('trt')
+            ->addSelect('cat')
+            ->innerJoin('trt.category', 'cat')
+            ->andWhere('trt.account = :account')
+            ->andWhere('trt.date >= :date')
+            ->setParameter('account', $account)
+            ->setParameter('date', $date->format('Y-m-d'))
+            ->addOrderBy('trt.date', 'ASC')
             ->addOrderBy('trt.id', 'ASC')
             ->getQuery()
             ->getResult()

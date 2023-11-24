@@ -54,11 +54,20 @@ class Wallet
     /**
      * Retourne le portefeuille courant.
      *
-     * @return StockWallet[]
+     * @return WalletHistory
      */
-    public function getWallet(): array
+    public function getWallet(): WalletHistory
     {
-        return $this->entityManager->getRepository(StockWallet::class)->findBy(['account' => $this->account]);
+        if (empty($this->histories)) {
+            $result = $this->entityManager->getRepository(StockWallet::class)->findBy(['account' => $this->account]);
+
+            $wallet = new WalletHistory();
+            $wallet->setWallet($result);
+
+            return $wallet;
+        }
+
+        return end($this->histories);
     }
 
     /**
@@ -172,6 +181,9 @@ class Wallet
             $lastDate = $transaction->getDate();
         }
 
+        // Créé jusqu'à ce jour
+        $this->addIntermediateHistories(clone $lastDate, new DateTime());
+
         $this->setAllPriceWallet();
     }
 
@@ -234,14 +246,24 @@ class Wallet
         // Pour chaque portefeuille
         foreach ($this->histories as $wallet) {
             // Pour chaque titre du portefeuille
+            /** @var StockWallet $item */
             foreach ($wallet as $item) {
-                $date = $wallet->getDate()->format('Y-m-d');
+                $date = clone $wallet->getDate();
                 $stockId = $item->getStock()->getId();
+
                 // Vérifie si un cours existe à cette date pour ce titre
-                if (isset($pricesByStockByMonth[$stockId][$date])) {
-                    $item->setPrice($pricesByStockByMonth[$stockId][$date]);
+                if (isset($pricesByStockByMonth[$stockId][$date->format('Y-m')])) {
+                    $item->setPrice($pricesByStockByMonth[$stockId][$date->format('Y-m')]);
+                    $item->setPriceDate($date);
                 } else {
-                    $item->setPrice(0.0);
+                    $lastMonth = clone $date;
+                    $lastMonth->modify('first day of this month')->modify('- 1 month');
+                    if (isset($pricesByStockByMonth[$stockId][$lastMonth->format('Y-m')])) {
+                        $item->setPrice($pricesByStockByMonth[$stockId][$lastMonth->format('Y-m')]);
+                        $item->setPriceDate($lastMonth);
+                    } else {
+                        $item->setPrice(0.0);
+                    }
                 }
             }
         }
