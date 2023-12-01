@@ -17,3 +17,38 @@
 {% macro perfcolor(rate) %}
 {% if rate < 0 %}red{% elseif rate < 0.05 %}orange{% elseif rate < 0.10 %}yellow{% else %}lime{% endif %}
 {% endmacro %}
+
+{% macro table_perf(account, items, format, isVariation, isCumulInvesti) %}
+    <table class="table table-sm table-hover text-nowrap">
+        <thead>
+            <tr>
+                <th class="text-center">Date</th>
+                {% if isVariation %}<th class="text-right">Variation</th>{% endif %}
+                <th class="text-right">Montant investi</th>
+                {% if isCumulInvesti %}<th class="text-right">Cumul investi</th>{% endif %}
+                <th class="text-right">Performance</th>
+                <th class="text-right">Cumul</th>
+                <th class="text-right">Valorisation</th>
+                <th class="text-right"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in items %}
+            <tr>
+                <td class="text-center">{{ item.period|format_datetime(pattern=format, locale='fr') }}</td>
+                {% if isVariation %}<td class="text-right">{{ _self.money(item.variation, account.currency) }}</td>{% endif %}
+                <td class="text-right">{{ _self.money(item.investment - item.repurchase, account.currency, false) }}</td>
+                {% if isCumulInvesti %}<td class="text-right">{{ _self.money(item.investmentCumul, account.currency, false) }}</td>{% endif %}
+                <td class="text-right">{{ _self.pourcentage(item.performance, true) }}</td>
+                <td class="text-right">{{ _self.pourcentage(item.cumulPerf, false) }}</td>
+                <td class="text-right">{{ _self.money(item.valuation, account.currency, false) }}</td>
+                <td></td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">Aucune opérations trouvées</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}

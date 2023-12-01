@@ -16,19 +16,20 @@ use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
 use App\Values\TransactionType;
-use DateTime;
 use DateTimeImmutable;
 
 /**
  * Classe pour le calcul de la performance des placements.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD.StaticAccess)
  */
 class Performance
 {
     public const MONTH = 1;
-    public const QUARTER = 2;
-    public const YEAR = 3;
+    public const QUARTER = 3;
+    public const YEAR = 12;
 
     /**
      * Repository des transactions.
@@ -61,8 +62,8 @@ class Performance
     {
         $this->repository = $repository;
         $this->account = $account;
-        $date = new DateTime();
-        $date->modify('first day of this month');
+        $date = new DateTimeImmutable();
+        $date = $date->modify('first day of this month');
 
         // Récupération des transactions du placement
         $this->transactions = $this->repository->findByAccount($this->account, [
@@ -89,38 +90,58 @@ class Performance
      */
     private function generate(int $typePeriod): array
     {
-        $cumulInvest = $cumulValuation = 0;
-        $prevPerfItem = null;
-        $results = [];
+        // Initialise
+        $results = $this->initializePerfItems($typePeriod);
 
         foreach ($this->transactions as $transaction) {
             // Crée la performance si elle n'existe pas
-            $period = $this->getPeriod($transaction, $typePeriod);
-            if (!array_key_exists($period, $results)) {
-                $results[$period] = new PerfItem($typePeriod);
-                $results[$period]->setPeriod($transaction->getDate())
-                    ->setInvestCumul($cumulInvest)
-                    ->setValuation($cumulValuation)
-                    ->setPrevious($prevPerfItem)
-                ;
-            }
+            $date = DateTimeImmutable::createFromMutable($transaction->getDate());
+            $period = $this->getPeriod($date, $typePeriod);
 
-            // On a insvesti durant la période
+            // On a investi durant la période
             if ($transaction->getCategory() && Category::INVESTMENT === $transaction->getCategory()->getCode()) {
-                $cumulInvest += $transaction->getAmount();
-                $results[$period]->addInvest($transaction->getAmount());
+                $results[$period]->addInvestment($transaction->getAmount());
             }
 
-            $cumulValuation += $transaction->getAmount();
-            $results[$period]->addValuation($transaction->getAmount());
+            // On a fait un rachat durant la période
+            if ($transaction->getCategory() && Category::REPURCHASE === $transaction->getCategory()->getCode()) {
+                $results[$period]->addRepurchase($transaction->getAmount());
+            }
 
-            // Ecrase par la vrai Valorisation
+            // Si présence d'une valorisation du contrat
             if (TransactionType::REVALUATION === $transaction->getType()->getValue()) {
-                $cumulValuation = $transaction->getBalance();
                 $results[$period]->setValuation($transaction->getBalance());
             }
+        }
 
+        return $results;
+    }
+
+    /**
+     * Initialise les items de performance de chaque période.
+     *
+     * @param int $typePeriod
+     *
+     * @return PerfItem[]
+     */
+    private function initializePerfItems(int $typePeriod): array
+    {
+        $results = [];
+        $prevPerfItem = null;
+        $start = DateTimeImmutable::createFromMutable($this->transactions[0]->getDate());
+        $start = $start->modify('first day of this month');
+        $end = new DateTimeImmutable();
+
+        while ($this->getPeriod($start, $typePeriod) <= $this->getPeriod($end, $typePeriod)) {
+            $period = $this->getPeriod($start, $typePeriod);
+
+            // Création de l'item
+            $results[$period] = new PerfItem($typePeriod);
+            $results[$period]->setPeriod($start)->setPrevious($prevPerfItem);
+
+            // Passe à la période suivante
             $prevPerfItem = $results[$period];
+            $start = $start->modify(sprintf('+%s month', $typePeriod));
         }
 
         return $results;
@@ -171,14 +192,13 @@ class Performance
     /**
      * Retourn la clé de la période en cours.
      *
-     * @param Transaction $transaction
-     * @param int         $typePeriod
+     * @param DateTimeImmutable $date
+     * @param int               $typePeriod
      *
      * @return string
      */
-    private function getPeriod(Transaction $transaction, int $typePeriod): string
+    private function getPeriod(DateTimeImmutable $date, int $typePeriod): string
     {
-        $date = $transaction->getDate();
         if (self::YEAR === $typePeriod) {
             return $date->format('Y');
         }
@@ -200,6 +220,10 @@ class Performance
      */
     public static function getPerfSlipperyFromByMonth(array $items): array
     {
+        if (empty($items)) {
+            return [];
+        }
+
         $result = [];
         $date = new DateTimeImmutable();
 
@@ -209,11 +233,15 @@ class Performance
             $last = self::searchByPeriod($items, $date->modify(sprintf('- %s month', ++$idx)));
         } while (null === $last);
         $date = $date->modify(sprintf('- %s month', $idx));
+        $last->calculate(); // Calcul du montant investi cumulé
 
         // Pour les X derniers mois
         $list = [1, 3, 6, 12, 24, 36, 60, 120];
         foreach ($list as $value) {
             $current = self::searchByPeriod($items, $date->modify(sprintf('- %s month', $value)));
+            if ($current) {
+                $current->calculate(); // Calcul du montant investi cumulé
+            }
             $last->setPrevious($current);
             $result[$value] = clone $last;
         }

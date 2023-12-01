@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace App\Helper;
 
-use DateTime;
 use DateTimeImmutable;
 
 /**
@@ -38,11 +37,32 @@ class PerfItem
     private $period;
 
     /**
+     * Montant investi durant la période.
+     *
+     * @var float
+     */
+    private $investment;
+
+    /**
      * Montant cumulé déjà investi.
      *
      * @var float
      */
-    private $investCumul;
+    private $investmentCumul;
+
+    /**
+     * Montant du rachat partiel durant la période.
+     *
+     * @var float
+     */
+    private $repurchase;
+
+    /**
+     * Montant cumulé des rachats partiels.
+     *
+     * @var float
+     */
+    private $repurchaseCumul;
 
     /**
      * Valorisation cumulée en cours.
@@ -66,12 +86,13 @@ class PerfItem
     public function __construct(int $typePeriod)
     {
         $this->typePeriod = $typePeriod;
+        $this->investment = 0.0;
+        $this->repurchase = 0.0;
+        $this->valuation = 0.0;
     }
 
-    public function setPeriod(DateTime $period): self
+    public function setPeriod(DateTimeImmutable $period): self
     {
-        $period = DateTimeImmutable::createFromMutable($period);
-
         switch ($this->typePeriod) {
             case Performance::MONTH:
                 $this->period = $period->modify('last day of this month');
@@ -94,16 +115,46 @@ class PerfItem
         return $this->period;
     }
 
-    public function setInvestCumul(float $investCumul): self
+    public function setInvestment(float $invest): self
     {
-        $this->investCumul = $investCumul;
+        $this->investment = abs($invest);
 
         return $this;
     }
 
-    public function getInvestCumul(): float
+    public function getInvestment(): float
     {
-        return $this->investCumul;
+        return $this->investment;
+    }
+
+    public function getInvestmentCumul(): float
+    {
+        if (null === $this->investmentCumul) {
+            $this->investmentCumul = $this->accumlateInvestment();
+        }
+
+        return $this->investmentCumul;
+    }
+
+    public function setRepurchase(float $repurchase): self
+    {
+        $this->repurchase = abs($repurchase);
+
+        return $this;
+    }
+
+    public function getRepurchase(): float
+    {
+        return $this->repurchase;
+    }
+
+    public function getRepurchaseCumul(): float
+    {
+        if (null === $this->repurchaseCumul) {
+            $this->repurchaseCumul = $this->accumlateRepurchase();
+        }
+
+        return $this->repurchaseCumul;
     }
 
     public function setValuation(float $valuation): self
@@ -115,6 +166,11 @@ class PerfItem
 
     public function getValuation(): float
     {
+        // Prend celui d'avant s'il est vide
+        if (0.0 === $this->valuation && null !== $this->previous) {
+            return $this->previous->getValuation();
+        }
+
         return $this->valuation;
     }
 
@@ -131,69 +187,121 @@ class PerfItem
     }
 
     /**
+     * Calcule le cumul du montant investi et la valorisation.
+     */
+    public function calculate(): void
+    {
+        $this->valuation = $this->getValuation();
+        $this->investmentCumul = $this->accumlateInvestment();
+        $this->repurchaseCumul = $this->accumlateRepurchase();
+    }
+
+    /**
      * Ajoute un montant investi durant la période.
      *
      * @param float $amount
      *
      * @return self
      */
-    public function addInvest(float $amount): self
+    public function addInvestment(float $amount): self
     {
-        $this->investCumul += $amount;
+        $this->investment += abs($amount);
 
         return $this;
     }
 
     /**
-     * Ajoute une opération de valorisation durant la période.
+     * Ajoute un montant de rachat durant la période.
      *
      * @param float $amount
      *
      * @return self
      */
-    public function addValuation(float $amount): self
+    public function addRepurchase(float $amount): self
     {
-        $this->valuation += $amount;
+        $this->repurchase += abs($amount);
 
         return $this;
     }
 
     /**
+     * Retourne le cumul du montant investi depuis le début.
+     *
+     * @return float
+     */
+    public function accumlateInvestment(): float
+    {
+        $investmentCumul = $this->investment;
+
+        // Appeler récursivement le parent pour accumuler le montant investi
+        if (null !== $this->previous) {
+            $investmentCumul += $this->previous->accumlateInvestment();
+        }
+
+        return $investmentCumul;
+    }
+
+    /**
+     * Retourne le cumul du montant des rachats depuis le début.
+     *
+     * @return float
+     */
+    public function accumlateRepurchase(): float
+    {
+        $repurchaseCumul = $this->repurchase;
+
+        // Appeler récursivement le parent pour accumuler le montant des rachats
+        if (null !== $this->previous) {
+            $repurchaseCumul += $this->previous->accumlateRepurchase();
+        }
+
+        return $repurchaseCumul;
+    }
+
+    /**
      * Retourne la variation par rapport à la période précedente.
+     * Nécesssaire pour les périodes "glissantes".
      *
      * @return float
      */
     public function getVariation(): float
     {
         if (null === $this->previous) {
-            return $this->valuation;
+            return $this->getValuation();
         }
 
-        return $this->valuation - $this->previous->getValuation();
+        return $this->getValuation() - $this->previous->getValuation() + $this->getRepurchaseCumul() - $this->previous->getRepurchaseCumul();
     }
 
     /**
-     * Retounre le montant investi durant cette période.
+     * Retourne le versement investi par rapport à la période précedente.
+     * Nécesssaire pour les périodes "glissantes".
      *
      * @return float
      */
     public function getVersement(): float
     {
         if (null === $this->previous) {
-            return $this->investCumul;
+            return $this->getInvestment();
         }
 
-        return $this->investCumul - $this->previous->getInvestCumul();
+        return $this->getInvestmentCumul() - $this->previous->getInvestmentCumul();
     }
 
     /**
-     * Rettourne la performance cumulée.
+     * Retourne la performance cumulée.
      *
      * @return float
      */
-    public function getCumulPerf(): float
+    public function getCumulPerf(): ?float
     {
-        return ($this->valuation - $this->investCumul) / $this->investCumul;
+        // Test si DIV 0
+        $investCumul = $this->getInvestmentCumul();
+        if (0.0 === $investCumul) {
+            return null;
+        }
+
+        return ($this->getValuation() + $this->getRepurchaseCumul() - $this->getInvestmentCumul()) / $investCumul;
     }
 
     /**
@@ -201,10 +309,16 @@ class PerfItem
      *
      * @return float
      */
-    public function getPerformance(): float
+    public function getPerformance(): ?float
     {
         if (null === $this->previous) {
-            return $this->getCumulPerf();
+            return null;
+        }
+
+        // Test si DIV 0
+        $quotient = $this->previous->getValuation() + $this->getVersement();
+        if (0.0 === $quotient) {
+            return null;
         }
 
         return ($this->getVariation() - $this->getVersement()) / ($this->previous->getValuation() + $this->getVersement());
