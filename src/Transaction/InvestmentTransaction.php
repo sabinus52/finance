@@ -36,6 +36,7 @@ final class InvestmentTransaction extends TransactionModelAbstract implements Tr
             'filter' => [
                 'source' => sprintf('acc.type <= 39 AND acc.type <> %s', AccountType::PEA_CAISSE),
                 'target' => sprintf('(acc.type BETWEEN 50 AND 59 OR acc.type = %s)', AccountType::PEA_CAISSE),
+                '!fields' => ['purchase'],
             ],
         ];
     }

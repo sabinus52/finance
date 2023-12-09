@@ -131,6 +131,9 @@ class Performance
         $start = DateTimeImmutable::createFromMutable($this->transactions[0]->getDate());
         $start = $start->modify('first day of this month');
         $end = new DateTimeImmutable();
+        if (null !== $this->account->getClosedAt()) {
+            $end = DateTimeImmutable::createFromMutable($this->account->getClosedAt());
+        }
 
         while ($this->getPeriod($start, $typePeriod) <= $this->getPeriod($end, $typePeriod)) {
             $period = $this->getPeriod($start, $typePeriod);

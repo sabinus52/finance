@@ -88,7 +88,6 @@ class PerfItem
         $this->typePeriod = $typePeriod;
         $this->investment = 0.0;
         $this->repurchase = 0.0;
-        $this->valuation = 0.0;
     }
 
     public function setPeriod(DateTimeImmutable $period): self
@@ -164,10 +163,10 @@ class PerfItem
         return $this;
     }
 
-    public function getValuation(): float
+    public function getValuation(): ?float
     {
         // Prend celui d'avant s'il est vide
-        if (0.0 === $this->valuation && null !== $this->previous) {
+        if (null === $this->valuation && null !== $this->previous) {
             return $this->previous->getValuation();
         }
 

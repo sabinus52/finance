@@ -262,4 +262,23 @@ class TransactionRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+
+    /**
+     * Rapproche toutes les transactions d'un compte.
+     *
+     * @param Account $account
+     *
+     * @return int
+     */
+    public function updateAllReconciliation(Account $account): int
+    {
+        return $this->createQueryBuilder('trt')
+            ->update()
+            ->set('trt.state', Transaction::STATE_RECONCILIED)
+            ->where('trt.account = :account')
+            ->setParameter('account', $account)
+            ->getQuery()
+            ->execute()
+        ;
+    }
 }

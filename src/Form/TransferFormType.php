@@ -15,6 +15,7 @@ use App\Entity\Account;
 use App\Entity\Transaction;
 use App\Repository\AccountRepository;
 use Olix\BackOfficeBundle\Form\Type\DatePickerType;
+use Olix\BackOfficeBundle\Form\Type\SwitchType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
@@ -47,80 +48,13 @@ class TransferFormType extends AbstractType
                 'required' => false,
                 'mapped' => false,
             ])
-            ->add('source', EntityType::class, [
-                'label' => 'De',
+            ->add('purchase', SwitchType::class, [
+                'label' => 'Rachat total',
                 'required' => false,
-                'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) use ($options) {
-                    $query = $er->createQueryBuilder('acc')
-                        ->addSelect('ist')
-                        ->innerJoin('acc.institution', 'ist')
-                        ->where($options['filter']['source'])
-                        ->orderBy('ist.name')
-                        ->addOrderBy('acc.name')
-                    ;
-                    if ($options['isNew']) {
-                        $query->andWhere('acc.closedAt IS NULL');
-                    }
-
-                    return $query;
-                },
-                'choice_label' => function (Account $choice) {
-                    $result = $choice->getFullName();
-                    if (null !== $choice->getClosedAt()) {
-                        $result .= ' (fermé)';
-                    }
-
-                    return $result;
-                },
-                'choice_attr' => function (Account $choice) {
-                    if (null !== $choice->getClosedAt()) {
-                        return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
-                    }
-
-                    return [];
-                },
-                'constraints' => [new NotBlank()],
-                'empty_data' => null,
                 'mapped' => false,
             ])
-            ->add('target', EntityType::class, [
-                'label' => 'Vers',
-                'required' => false,
-                'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) use ($options) {
-                    $query = $er->createQueryBuilder('acc')
-                        ->addSelect('ist')
-                        ->innerJoin('acc.institution', 'ist')
-                        ->where($options['filter']['target'])
-                        ->orderBy('ist.name')
-                        ->addOrderBy('acc.name')
-                    ;
-                    if ($options['isNew']) {
-                        $query->andWhere('acc.closedAt IS NULL');
-                    }
-
-                    return $query;
-                },
-                'choice_label' => function (Account $choice) {
-                    $result = $choice->getFullName();
-                    if (null !== $choice->getClosedAt()) {
-                        $result .= ' (fermé)';
-                    }
-
-                    return $result;
-                },
-                'choice_attr' => function (Account $choice) {
-                    if (null !== $choice->getClosedAt()) {
-                        return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
-                    }
-
-                    return [];
-                },
-                'constraints' => [new NotBlank()],
-                'empty_data' => null,
-                'mapped' => false,
-            ])
+            ->add('source', EntityType::class, $this->getOptionsAccount('De', $options['filter']['source'], $options['isNew']))
+            ->add('target', EntityType::class, $this->getOptionsAccount('Vers', $options['filter']['target'], $options['isNew']))
             ->add('memo', TextType::class, [
                 'label' => 'Mémo',
                 'required' => false,
@@ -142,5 +76,55 @@ class TransferFormType extends AbstractType
             'isNew' => false,
             'filter' => [],
         ]);
+    }
+
+    /**
+     * Retourne les options du champs du compte source et cible.
+     *
+     * @param string $label label du champs
+     * @param string $where Clause de filtre des comptes
+     * @param bool   $isNew Si création ou mis à jour
+     *
+     * @return array<mixed>
+     */
+    private function getOptionsAccount(string $label, string $where, bool $isNew): array
+    {
+        return [
+            'label' => $label,
+            'required' => false,
+            'class' => Account::class,
+            'query_builder' => function (AccountRepository $repository) use ($where, $isNew) {
+                $query = $repository->createQueryBuilder('acc')
+                    ->addSelect('ist')
+                    ->innerJoin('acc.institution', 'ist')
+                    ->where($where)
+                    ->orderBy('ist.name')
+                    ->addOrderBy('acc.name')
+                ;
+                if ($isNew) {
+                    $query->andWhere('acc.closedAt IS NULL');
+                }
+
+                return $query;
+            },
+            'choice_label' => function (Account $choice) {
+                $result = $choice->getFullName();
+                if (null !== $choice->getClosedAt()) {
+                    $result .= ' (fermé)';
+                }
+
+                return $result;
+            },
+            'choice_attr' => function (Account $choice) {
+                if (null !== $choice->getClosedAt()) {
+                    return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
+                }
+
+                return [];
+            },
+            'constraints' => [new NotBlank()],
+            'empty_data' => null,
+            'mapped' => false,
+        ];
     }
 }

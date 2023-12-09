@@ -21,8 +21,7 @@ use App\Repository\TransactionRepository;
 use App\Values\Payment;
 use App\Values\StockPosition;
 use App\Values\TransactionType;
-use App\WorkFlow\Balance;
-use App\WorkFlow\Transfer;
+use App\WorkFlow\Workflow;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -34,7 +33,6 @@ use Symfony\Component\PropertyAccess\PropertyAccessor;
  *
  * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- * @SuppressWarnings(PHPMD.NumberOfChildren)
  */
 abstract class TransactionModelAbstract implements TransactionModelInterface
 {
@@ -56,16 +54,11 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
     protected $transaction;
 
     /**
-     * Transaction avant la validation du formulaire.
+     * Worklow des transactions.
      *
-     * @var Transaction
+     * @var Workflow
      */
-    private $before;
-
-    /**
-     * @var Balance
-     */
-    private $balanceHelper;
+    private $workflow;
 
     /**
      * Constructeur.
@@ -76,10 +69,8 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
     {
         $this->entityManager = $manager;
         $this->repository = $this->entityManager->getRepository(Transaction::class); /** @phpstan-ignore-line */
-        $this->balanceHelper = new Balance($this->entityManager);
-
         $this->transaction = new Transaction();
-        $this->before = clone $this->transaction;
+        $this->workflow = new Workflow($this->entityManager, $this->transaction);
     }
 
     /**
@@ -126,7 +117,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
             }
         }
 
-        $this->before = clone $this->transaction;
+        $this->workflow = new Workflow($this->entityManager, $this->transaction);
 
         return $this;
     }
@@ -192,21 +183,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
      */
     public function insert(?FormInterface $form = null): void
     {
-        if ($this->isTransfer()) {
-            $transfer = new Transfer($this->entityManager, $this->transaction);
-            if ($form->has('invest')) {
-                $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData(), $form->get('invest')->getData());
-            } else {
-                $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
-            }
-            $transfer->persist();
-            $this->entityManager->flush();
-        } else {
-            $this->correctAmount();
-            $this->entityManager->persist($this->transaction);
-            $this->entityManager->flush();
-        }
-        $this->calculateBalance();
+        $this->workflow->insert($form);
     }
 
     /**
@@ -216,14 +193,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
      */
     public function insertModeImport(?array $datas = null): void
     {
-        if ($this->isTransfer()) {
-            $transfer = new Transfer($this->entityManager, $this->transaction);
-            $transfer->makeTransfer($datas['source'], $datas['target'], $datas['invest']);
-            $transfer->persist();
-        } else {
-            $this->correctAmount();
-            $this->entityManager->persist($this->transaction);
-        }
+        $this->workflow->insertModeImport($datas);
     }
 
     /**
@@ -233,19 +203,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
      */
     public function update(?FormInterface $form = null): void
     {
-        if ($this->isTransfer()) {
-            $transfer = new Transfer($this->entityManager, $this->transaction);
-            if ($form->has('invest')) {
-                $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData(), $form->get('invest')->getData());
-            } else {
-                $transfer->makeTransfer($form->get('source')->getData(), $form->get('target')->getData());
-            }
-            $this->entityManager->flush();
-        } else {
-            $this->correctAmount();
-            $this->entityManager->flush();
-        }
-        $this->calculateBalance();
+        $this->workflow->update($form);
     }
 
     /**
@@ -253,16 +211,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
      */
     public function delete(): void
     {
-        if ($this->isTransfer()) {
-            $transfer = new Transfer($this->entityManager, $this->transaction);
-            $transfer->remove();
-        } else {
-            $this->transaction->setAmount(0.0);
-            $this->entityManager->remove($this->transaction);
-            $this->entityManager->flush();
-            $transfer = null;
-        }
-        $this->calculateBalance();
+        $this->workflow->delete();
     }
 
     /**
@@ -294,7 +243,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
      */
     public function isTransfer(): bool
     {
-        return TransactionType::TRANSFER === $this->transaction->getType()->getValue();
+        return $this->workflow->isTransfer();
     }
 
     /**
@@ -345,35 +294,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
     protected function getPosition(): ?StockPosition
     {
         return null;
-    }
-
-    /**
-     * Corrige le montant en fonction si c'est une recette ou une dépense.
-     */
-    private function correctAmount(): void
-    {
-        $amount = $this->transaction->getAmount();
-        if (Category::RECETTES === $this->transaction->getCategory()->getType()) {
-            $this->transaction->setAmount(abs($amount));
-        } else {
-            $this->transaction->setAmount(abs($amount) * -1);
-        }
-
-        if (TransactionType::STOCKEXCHANGE === $this->transaction->getType()->getValue() && $this->transaction->getTransactionStock()->getPrice()) {
-            $fee = abs($amount) - ($this->transaction->getTransactionStock()->getVolume() * $this->transaction->getTransactionStock()->getPrice());
-            $this->transaction->getTransactionStock()->setFee(abs(round($fee, 2)));
-        }
-    }
-
-    /**
-     * Recalcule les soldes.
-     */
-    private function calculateBalance(): void
-    {
-        if ($this->isTransfer()) {
-            $this->balanceHelper->updateBalanceAfter($this->transaction->getTransfer(), $this->before);
-        }
-        $this->balanceHelper->updateBalanceAfter($this->transaction, $this->before);
     }
 
     /**
