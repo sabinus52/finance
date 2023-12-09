@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Controller\Account;
 
 use App\Entity\Account;
+use App\Entity\Stock;
 use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
 use App\Transaction\TransactionModelInterface;
@@ -102,6 +103,21 @@ class TransactionController extends BaseController
         $router = new TransactionModelRouter($entityManager);
 
         return $this->create($request, $account, $router->createStock(new StockPosition($type)));
+    }
+
+    /**
+     * Création d'une transaction d'une opération boursière.
+     *
+     * @Route("/account/{id}/create/transaction/stock/{type}/{stock}", name="transaction_create_wallet_stock", methods={"GET", "POST"})
+     */
+    public function createTransactionStockWithStock(Request $request, Account $account, int $type, Stock $stock, EntityManagerInterface $entityManager): Response
+    {
+        $router = new TransactionModelRouter($entityManager);
+
+        $model = $router->createStock(new StockPosition($type));
+        $model->setDatas(['transactionStock' => ['stock' => $stock]]);
+
+        return $this->create($request, $account, $model);
     }
 
     /**

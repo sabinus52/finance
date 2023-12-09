@@ -21,6 +21,13 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
 {
     public function build(SidebarMenuEvent $event): void
     {
+        $home = new MenuItemModel('home', [
+            'label' => 'Tableau de bord',
+            'icon' => 'fas fa-tachometer-alt',
+            'route' => 'home',
+        ]);
+        $event->addItem($home);
+
         /** @var AccountRepository $repository */
         $repository = $this->entityManager->getRepository(Account::class);
         $accountsByType = $repository->findGroupByTypeOpened();

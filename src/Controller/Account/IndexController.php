@@ -17,6 +17,8 @@ use App\Helper\Charts\SlipperyChart;
 use App\Helper\Charts\YearChart;
 use App\Helper\Performance;
 use App\Repository\TransactionRepository;
+use App\WorkFlow\Wallet;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -45,6 +47,36 @@ class IndexController extends BaseController
     public function indexTerm(Request $request, Account $account): Response
     {
         return $this->index($request, $account, 'account/3term.html.twig');
+    }
+
+    /**
+     * @Route("/portefeuille-boursier/{id}", name="account_4_index")
+     */
+    public function indexWallet(Request $request, Account $account, EntityManagerInterface $manager, TransactionRepository $repository): Response
+    {
+        $wallet = new Wallet($manager, $account);
+        $result = $wallet->getTransactionHistories();
+
+        $performance = new Performance($repository, $account);
+        $performance->setTransactions($result);
+
+        $chart2 = new MonthChart();
+        $chart3 = new SlipperyChart();
+        $chart4 = new YearChart();
+
+        return $this->index($request, $account, 'account/4wallet.html.twig', [
+            'wallet' => $wallet,
+            'results' => $result,
+            'operations' => $wallet->getTransactions(),
+            'itemsbyMonth' => array_slice($performance->getByMonth(), -12, 12, true),
+            'itemsbyQuarter' => array_slice($performance->getByQuarter(), -12, 12, true),
+            'itemsbyYear' => $performance->getByYear(),
+            'charts' => [
+                'slippery' => $chart3->getChart($performance->getBySlippery()),
+                'year' => $chart4->getChart($performance->getByYear()),
+                'month' => $chart2->getChart($performance->getByMonth()),
+            ],
+        ]);
     }
 
     /**
