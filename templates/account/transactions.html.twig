@@ -41,7 +41,7 @@
                             <a data-remote="{{ path('reconciliation_create', { 'id': account.id }) }}" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalRecon"><i class="fas fa-check-circle"></i> <span class="d-none d-md-inline">Rapprochement</span></a>
                         {% else %}
                             {{ form_start(form.valid) }}
-                                Rapprochement : <span class="p-2"><strong>{{ (account.reconCurrent)|format_currency('EUR', locale='fr') }}</strong></span>
+                                Rapprochement : <span class="p-2"><strong>{{ (account.balance.reconCurrent)|format_currency('EUR', locale='fr') }}</strong></span>
                                 Ecart : <span class="p-2"><strong id="txtGab">{{ (gab)|format_currency('EUR', locale='fr') }}</strong></span>
                                 <input type="hidden" name="gab" id="gab" value="{{gab}}">
                                 <button type="submit" id="btGab" data-remote="{{ path('reconciliation_index', { 'id': account.id }) }}" class="btn btn-primary btn-sm"{% if gab != 0 %} disabled{% endif %}><i class="fas fa-check-circle"></i> <span class="d-none d-md-inline">Valider le rapprochement</span></button>
@@ -51,7 +51,7 @@
                     </div>
                     <div class="card-body p-2">
                         <div class="p-2">
-                            Rapproché : <span class="p-2 text-{% if account.reconBalance > 0 %}green{% else %}red{% endif %}"><strong>{{ account.reconBalance|format_currency('EUR', locale='fr') }}</strong></span>
+                            Rapproché : <span class="p-2 text-{% if account.balance.reconBalance > 0 %}green{% else %}red{% endif %}"><strong>{{ account.balance.reconBalance|format_currency('EUR', locale='fr') }}</strong></span>
                             Solde : <span class="p-2 text-{% if account.balance > 0 %}green{% else %}red{% endif %}"><strong>{{ account.balance|format_currency('EUR', locale='fr') }}</strong></span>
                         </div>
                     {{ form_start(form.filter, { 'action': path('account_get_transaction', { 'id': account.id }), 'attr': { 'id': 'formFilter' }}) }}

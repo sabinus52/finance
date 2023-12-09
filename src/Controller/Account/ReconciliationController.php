@@ -41,7 +41,9 @@ class ReconciliationController extends BaseController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $account->setReconCurrent($form->get('balance')->getData());
+            $metaBalance = clone $account->getBalance();
+            $metaBalance->setReconCurrent($form->get('balance')->getData());
+            $account->setBalance($metaBalance);
             $entityManager->flush();
 
             $this->addFlash('success', sprintf('Le compte <strong>%s</strong> est prêt pour le rapprochement bancaire.', $account->getFullName()));
@@ -92,8 +94,9 @@ class ReconciliationController extends BaseController
 
         $formReconValid->handleRequest($request);
         if ($formReconValid->isSubmitted() && $formReconValid->isValid()) {
+            $metaBalance = clone $account->getBalance();
             // Ecart en cours pour le calcul final
-            $gab = $account->getReconBalance() - $account->getReconCurrent();
+            $gab = $metaBalance->getReconBalance() - $metaBalance->getReconCurrent();
 
             // Valide le rapprochement final
             $transactions = $repository->findByState(Transaction::STATE_RECONTEMP); /** @phpstan-ignore-line */
@@ -101,7 +104,8 @@ class ReconciliationController extends BaseController
                 $gab = round($gab + $transaction->getAmount(), 2);
                 $transaction->setState(Transaction::STATE_RECONCILIED);
             }
-            $account->setReconBalance($account->getReconCurrent());
+            $metaBalance->setReconBalance($metaBalance->getReconCurrent());
+            $account->setBalance($metaBalance);
 
             if (0.0 !== $gab) {
                 $this->addFlash('error', 'Une erreur est survenue lors du rapprochement bancaire');
@@ -155,7 +159,7 @@ class ReconciliationController extends BaseController
             ])
             ->getForm()
         ;
-        $form->get('balance')->setData($account->getReconCurrent());
+        $form->get('balance')->setData($account->getBalance()->getReconCurrent());
 
         return $form;
     }
@@ -170,7 +174,7 @@ class ReconciliationController extends BaseController
      */
     private function calculateGab(Account $account, array $transactions): float
     {
-        $gab = $account->getReconBalance() - $account->getReconCurrent();
+        $gab = $account->getBalance()->getReconBalance() - $account->getBalance()->getReconCurrent();
         foreach ($transactions as $transaction) {
             if (Transaction::STATE_RECONTEMP === $transaction->getState()) {
                 $gab = round($gab + $transaction->getAmount(), 2);

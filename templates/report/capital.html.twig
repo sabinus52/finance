@@ -31,21 +31,21 @@
                 <div class="row">
                     <div class="col-2">
                         <div class="small-box bg-gradient-indigo">
-                            <div class="inner"><h3>{{ mymacro.money(total.perf.balance, total.perf.currency, false) }}</h3><p>Valorisation</p></div>
+                            <div class="inner"><h3>{{ mymacro.money(total.perf.balance.balance, total.perf.currency, false) }}</h3><p>Valorisation</p></div>
                             <div class="icon"><i class="fas fa-euro-sign"></i></div>
                         </div>
                         <div class="small-box bg-gradient-info">
-                            <div class="inner"><h3>{{ mymacro.money(total.perf.balance-total.perf.invested, total.perf.currency, false) }}</h3><p>+/- values</p></div>
+                            <div class="inner"><h3>{{ mymacro.money(total.perf.investGain, total.perf.currency, false) }}</h3><p>+/- values</p></div>
                             <div class="icon"><i class="fas fa-chart-line"></i></div>
                         </div>
                     </div>
                     <div class="col-2">
-                        <div class="small-box bg-gradient-{{ mymacro.perfcolor(total.perf.performance) }}">
-                            <div class="inner"><h3>{{ mymacro.pourcentage(total.perf.performance, false) }}</h3><p>Performance</p></div>
+                        <div class="small-box bg-gradient-{{ mymacro.perfcolor(total.perf.investPerformance) }}">
+                            <div class="inner"><h3>{{ mymacro.pourcentage(total.perf.investPerformance, false) }}</h3><p>Performance</p></div>
                             <div class="icon"><i class="fas fa-wave-square"></i></div>
                         </div>
                         <div class="small-box bg-gradient-secondary">
-                            <div class="inner"><h3>{{ mymacro.money(total.perf.invested, total.perf.currency, false) }}</h3><p>Montant investi</p></div>
+                            <div class="inner"><h3>{{ mymacro.money(total.perf.balance.investment, total.perf.currency, false) }}</h3><p>Montant investi</p></div>
                             <div class="icon"><i class="fas fa-hand-holding-usd"></i></div>
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                                         <tr>
                                             <td class="text-center"> {{ year }}</td>
                                             <td class="text-right">{{ mymacro.money(item.versement, 'EUR', false) }}</td>
-                                            <td class="text-right">{{ mymacro.money(item.investCumul, 'EUR', false) }}</td>
+                                            <td class="text-right">{{ mymacro.money(item.investmentCumul, 'EUR', false) }}</td>
                                             <td class="text-right">{{ mymacro.pourcentage(item.performance, true) }}</td>
                                             <td class="text-right">{{ mymacro.pourcentage(item.cumulPerf, false) }}</td>
                                             <td class="text-right">{{ mymacro.money(item.valuation, 'EUR', false) }}</td>
@@ -149,19 +149,19 @@
                                 <tr>
                                     <td>Total</td>
                                     {% for item in accounts %}
-                                        <td class="text-center"><strong>{{ mymacro.money(item.balance, item.currency, false) }}</strong></td>
+                                        <td class="text-center"><strong>{{ mymacro.money(item.balance.balance, item.currency, false) }}</strong></td>
                                     {% endfor %}
                                 </tr>
                                 <tr>
                                     <td>Performance</td>
                                     {% for item in accounts %}
-                                        <td class="text-center"><strong>{{ mymacro.pourcentage(item.performance, true) }}</strong></td>
+                                        <td class="text-center"><strong>{{ mymacro.pourcentage(item.investPerformance, true) }}</strong></td>
                                     {% endfor %}
                                 </tr>
                                 <tr>
                                     <td>Versement</td>
                                     {% for item in accounts %}
-                                        <td class="text-center"><small>{{ mymacro.money(item.invested, item.currency, false) }}</small></td>
+                                        <td class="text-center"><small>{{ mymacro.money(item.balance.investment, item.currency, false) }}</small></td>
                                     {% endfor %}
                                 </tr>
                             </tbody>

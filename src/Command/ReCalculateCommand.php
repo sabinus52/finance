@@ -125,17 +125,19 @@ class ReCalculateCommand extends Command
     {
         $output = [];
         foreach ($this->accounts as $account) {
-            $balance = round($account->getBalance(), 2);
-            $recon = round($account->getReconBalance(), 2);
-            $invest = round($account->getInvested(), 2);
+            $balance = round($account->getBalance()->getBalance(), 2);
+            $recon = round($account->getBalance()->getReconBalance(), 2);
+            $investment = round($account->getBalance()->getInvestment(), 2);
+            $repurchase = round($account->getBalance()->getRepurchase(), 2);
             $output[] = [
                 $account,
                 ($balance <= 0) ? '' : $balance.' €',
                 ($recon <= 0) ? '' : $recon.' €',
-                ($invest <= 0) ? '' : $invest.' €',
+                ($investment <= 0) ? '' : $investment.' €',
+                ($repurchase <= 0) ? '' : $repurchase.' €',
             ];
         }
-        $this->inOut->table(['Compte', 'Solde', 'Rapprochement', 'Montant investi'], $output);
+        $this->inOut->table(['Compte', 'Solde', 'Rapprochement', 'Investissement', 'Rachat'], $output);
     }
 
     /**

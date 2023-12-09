@@ -257,6 +257,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
             $transfer = new Transfer($this->entityManager, $this->transaction);
             $transfer->remove();
         } else {
+            $this->transaction->setAmount(0.0);
             $this->entityManager->remove($this->transaction);
             $this->entityManager->flush();
             $transfer = null;
@@ -370,9 +371,9 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
     private function calculateBalance(): void
     {
         if ($this->isTransfer()) {
-            $this->balanceHelper->updateBalanceAfter($this->transaction->getTransfer(), $this->before->getDate());
+            $this->balanceHelper->updateBalanceAfter($this->transaction->getTransfer(), $this->before);
         }
-        $this->balanceHelper->updateBalanceAfter($this->transaction, $this->before->getDate());
+        $this->balanceHelper->updateBalanceAfter($this->transaction, $this->before);
     }
 
     /**

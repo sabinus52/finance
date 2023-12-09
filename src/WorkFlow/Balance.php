@@ -16,6 +16,7 @@ use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Repository\AccountRepository;
 use App\Repository\TransactionRepository;
+use App\Values\AccountBalance;
 use App\Values\AccountType;
 use App\Values\TransactionType;
 use DateTime;
@@ -54,18 +55,14 @@ class Balance
      * Mets à jour le solde des transactions après celle définie.
      *
      * @param Transaction $transaction Transaction courante modifiée
-     * @param DateTime    $date
+     * @param Transaction $before      Transaction courante mais avant sa modification
      *
      * @return int
      */
-    public function updateBalanceAfter(Transaction $transaction, ?DateTime $date = null): int
+    public function updateBalanceAfter(Transaction $transaction, Transaction $before): int
     {
         // Prends la date la plus ancienne entre celle modifié et avant modification
-        if (null === $date) {
-            $date = $transaction->getDate();
-        } else {
-            $date = min($date, $transaction->getDate());
-        }
+        $date = min($before->getDate(), $transaction->getDate());
 
         // Recherche la transaction juste avant celle qui a été ajouté ou modifié.
         $lastTransaction = $this->repository->findOneLastBeforeDate($transaction->getAccount(), $date);
@@ -85,7 +82,20 @@ class Balance
             }
         }
 
-        $transaction->getAccount()->setBalance($balance);
+        $accountBalance = clone $transaction->getAccount()->getBalance();
+        $accountBalance->setBalance($balance);
+        // Recalcul de l'investissement
+        if (Category::INVESTMENT === $transaction->getCategory()->getCode() && $transaction->getAmount() >= 0) {
+            $invested = $accountBalance->getInvestment();
+            $invested = $invested - $before->getAmount() + $transaction->getAmount();
+            $accountBalance->setInvestment($invested);
+        }
+        if (Category::REPURCHASE === $transaction->getCategory()->getCode() && $transaction->getAmount() <= 0) {
+            $repurchase = $accountBalance->getRepurchase();
+            $repurchase = $repurchase - abs($before->getAmount()) + abs($transaction->getAmount());
+            $accountBalance->setRepurchase($repurchase);
+        }
+        $transaction->getAccount()->setBalance($accountBalance);
 
         // Dans le cas d'une transaction boursière
         if ($transaction->getTransactionStock()) {
@@ -238,7 +248,8 @@ class Balance
     {
         $balance = $account->getInitial();
         $reconcilied = $account->getInitial();
-        $invested = $account->getInitial();
+        $investment = 0.0;
+        $repurchase = 0.0;
 
         // Liste des transactions par compte
         /** @var Transaction[] $results */
@@ -258,13 +269,19 @@ class Balance
                 $reconcilied += $item->getAmount();
             }
             if (Category::INVESTMENT === $item->getCategory()->getCode() && $item->getAmount() > 0) {
-                $invested += $item->getAmount();
+                $investment += abs($item->getAmount());
+            }
+            if (Category::REPURCHASE === $item->getCategory()->getCode() && $item->getAmount() < 0) {
+                $repurchase += abs($item->getAmount());
             }
         }
 
-        $account->setBalance($balance);
-        $account->setReconBalance($reconcilied);
-        $account->setInvested($invested);
+        $metaBalance = new AccountBalance();
+        $metaBalance->setBalance($balance);
+        $metaBalance->setReconBalance($reconcilied);
+        $metaBalance->setInvestment($investment);
+        $metaBalance->setRepurchase($repurchase);
+        $account->setBalance($metaBalance);
 
         return count($results);
     }
@@ -283,12 +300,16 @@ class Balance
         $wallet->buidAndSaveWallet();
         $walletCurrent = $wallet->getWallet();
 
-        $account->setBalance($walletCurrent->getValorisation());
+        $metaBalance = new AccountBalance();
+        $metaBalance->setBalance($walletCurrent->getValorisation());
+        $account->getBalance()->setBalance($walletCurrent->getValorisation());
         if (AccountType::PEA_TITRES === $account->getType()->getValue()) {
-            $account->setInvested($account->getAccAssoc()->getInvested());
+            $metaBalance->setInvestment($account->getAccAssoc()->getBalance()->getInvestment());
+            $metaBalance->setRepurchase($account->getAccAssoc()->getBalance()->getRepurchase());
         } else {
-            $account->setInvested($walletCurrent->getAmountInvest());
+            $metaBalance->setInvestment($walletCurrent->getAmountInvest());
         }
+        $account->setBalance($metaBalance);
 
         return 1;
     }

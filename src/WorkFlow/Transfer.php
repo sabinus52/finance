@@ -80,6 +80,8 @@ class Transfer
      */
     public function remove(): void
     {
+        $this->debit->setAmount(0.0);
+        $this->credit->setAmount(0.0);
         $this->debit->setTransfer(null);
         $this->credit->setTransfer(null);
         $this->entityManager->flush();

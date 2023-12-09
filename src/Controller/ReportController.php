@@ -23,7 +23,6 @@ use App\Helper\Report\ThriftCapacity;
 use App\Repository\AccountRepository;
 use App\Repository\TransactionRepository;
 use App\Values\AccountType;
-use DateTime;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -55,8 +54,8 @@ class ReportController extends AbstractController
         $accounts = $repository->findByType(AccountType::EPARGNE_ASSURANCE_VIE, true);
 
         foreach ($accounts as $account) {
-            $total->setInvested($total->getInvested() + $account->getInvested());
-            $total->setBalance($total->getBalance() + $account->getBalance());
+            $total->getBalance()->setInvestment($total->getBalance()->getInvestment() + $account->getBalance()->getInvestment());
+            $total->getBalance()->setBalance($total->getBalance()->getBalance() + $account->getBalance()->getBalance());
             $perf = new Performance($repoTransac, $account);
 
             $byMonth = $perf->getByMonth();
@@ -128,9 +127,9 @@ class ReportController extends AbstractController
             if (!isset($totalPerfItems[$key])) {
                 $totalPerfItems[$key] = new PerfItem(Performance::MONTH);
             }
-            $period = DateTime::createFromImmutable($month->getPeriod());
+            $period = $month->getPeriod();
             $totalPerfItems[$key]->setPeriod($period);
-            $totalPerfItems[$key]->addInvest($month->getInvestCumul());
+            $totalPerfItems[$key]->addInvestment($month->getInvestmentCumul());
             $totalPerfItems[$key]->addValuation($month->getValuation());
         }
     }

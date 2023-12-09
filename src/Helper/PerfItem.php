@@ -225,6 +225,20 @@ class PerfItem
     }
 
     /**
+     * Ajoute un montant de valorisation durant la période.
+     *
+     * @param float $amount
+     *
+     * @return self
+     */
+    public function addValuation(float $amount): self
+    {
+        $this->valuation += abs($amount);
+
+        return $this;
+    }
+
+    /**
      * Retourne le cumul du montant investi depuis le début.
      *
      * @return float

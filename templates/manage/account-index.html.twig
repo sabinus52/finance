@@ -28,9 +28,10 @@
                                     <th>Nom</th>
                                     <th>Numéro</th>
                                     <th class="text-center">Status</th>
-                                    <th class="text-right">Rapprochement</th>
+                                    {% if key < constant('App\\values\\AccountType::EPARGNE_FINANCIERE') %}<th class="text-right">Rapprochement</th>{% endif %}
                                     <th class="text-right">Solde</th>
-                                    <th class="text-right">Montant investi</th>
+                                    {% if key >= constant('App\\values\\AccountType::EPARGNE_A_TERME') %}<th class="text-right">Investissement</th>{% endif %}
+                                    {% if key >= constant('App\\values\\AccountType::EPARGNE_A_TERME') %}<th class="text-right">Rachat</th>{% endif %}
                                     <th></th>
                                 </tr>
                                 <tbody>
@@ -41,9 +42,10 @@
                                         <td class="align-middle">{{ item.name }}</td>
                                         <td class="align-middle">{{ item.number }}</td>
                                         <td class="align-middle text-center">{{ item.statusBadge|raw }}</td>
-                                        <td class="align-middle text-right">{% if item.reconBalance %}<i>{{ mymacro.money(item.reconBalance, item.currency, false) }}</i>{% endif %}</td>
-                                        <td class="align-middle text-right"><b>{{ mymacro.money(item.balance, item.currency) }}</b></td>
-                                        <td class="align-middle text-right">{% if item.invested != 0 %}{{ mymacro.money(item.invested, item.currency, false) }}{% endif %}</td>
+                                        {% if key < constant('App\\values\\AccountType::EPARGNE_FINANCIERE') %}<td class="align-middle text-right">{% if item.balance.reconBalance %}<i>{{ mymacro.money(item.balance.reconBalance, item.currency, false) }}</i>{% endif %}</td>{% endif %}
+                                        <td class="align-middle text-right"><b>{{ mymacro.money(item.balance.balance, item.currency) }}</b></td>
+                                        {% if key >= constant('App\\values\\AccountType::EPARGNE_A_TERME') %}<td class="align-middle text-right">{% if item.balance.investment != 0 %}{{ mymacro.money(item.balance.investment, item.currency, false) }}{% endif %}</td>{% endif %}
+                                        {% if key >= constant('App\\values\\AccountType::EPARGNE_A_TERME') %}<td class="align-middle text-right">{% if item.balance.repurchase != 0 %}{{ mymacro.money(item.balance.repurchase, item.currency, false) }}{% endif %}</td>{% endif %}
                                         <td class="text-right align-middle">
                                             <a href="{{ path('account_'~key~'_index', {'id': item.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i><span class="d-none d-md-inline">&nbsp;Voir<span></a>
                                             <a href="{{ path('manage_account__edit', {'id': item.id}) }}" class="btn btn-sm btn-info"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>

@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import 'macro.html.twig' as mymacro %}
+
 {% block title %}{{ parent() }} - Tableau de bord{% endblock %}
 
 {% block content_title %}Tableau de bord{% endblock %}
@@ -9,48 +11,48 @@
 
     <div class="container-fluid">
 
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Card title</h5>
-                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                        <a href="#" class="card-link">Card link</a>
-                        <a href="#" class="card-link">Another link</a>
-                    </div>
-                </div>
-                <div class="card card-primary card-outline">
-                    <div class="card-body">
-                        <h5 class="card-title">Card title</h5>
-                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                        <a href="#" class="card-link">Card link</a>
-                        <a href="#" class="card-link">Another link</a>
-                    </div>
-                </div>
-            </div>
+        <ul class="nav nav-pills nav-fill mb-3" id="pills-tab" role="tablist">
+        {% for key, item in accounts %}
+            <li class="nav-item" role="presentation">
+                {% set total = 0 %}
+                {% for groups in item %}{% for acc in groups %}{% set total = total + acc.balance.balance %}{% endfor %}{% endfor %}
+                <a class="nav-link{% if loop.first %} active{% endif %}" id="pills-{{ key }}-tab" data-toggle="pill" data-target="#pills-{{ key }}" role="tab" aria-controls="pills-{{ key }}" aria-selected="true" href="#">{{ units[key] }} : {{ mymacro.money(total, 'EUR', false) }}</a>
+            </li>
+        {% endfor %}
+        </ul>
 
-            <div class="col-lg-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="m-0">Featured</h5>
-                    </div>
-                    <div class="card-body">
-                        <h6 class="card-title">Special title treatment</h6>
-                        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                        <a href="#" class="btn btn-primary">Go somewhere</a>
-                    </div>
-                </div>
-                <div class="card card-primary card-outline">
-                    <div class="card-header">
-                        <h5 class="m-0">Featured</h5>
-                    </div>
-                    <div class="card-body">
-                        <h6 class="card-title">Special title treatment</h6>
-                        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                        <a href="#" class="btn btn-primary">Go somewhere</a>
+        <div class="tab-content" id="pills-tabContent">
+        {% for key, item in accounts %}
+            <div class="tab-pane fade show{% if loop.first %} active{% endif %}" id="pills-{{ key }}" role="tabpanel" aria-labelledby="pills-{{ key }}-tab">
+            
+            <div class="row">
+                <div class="col-2">
+                    <div class="small-box bg-green">
+                        {% set total = 0 %}
+                        {% for groups in item %}{% for acc in groups %}{% set total = total + acc.balance.balance %}{% endfor %}{% endfor %}
+                        <div class="inner"><h3>{{ mymacro.money(total, 'EUR', false) }}</h3><p>Solde <em>{{ units[key] }}</em></p></div>
+                        <div class="icon"><i class="fas fa-euro-sign"></i></div>
                     </div>
                 </div>
+
+                {% for group, groups in item %}
+                    <div class="col-2">
+                        <div class="small-box bg-lightblue">
+                            {% set total = 0 %}
+                            {% for account in groups %}{% set total = total + account.balance.balance %}{% endfor %}
+                            <div class="inner"><h3>{{ mymacro.money(total, 'EUR', false) }}</h3><p>{{ types[group].label }}</p></div>
+                            <div class="icon"><i class="{{ types[group].icon }}"></i></div>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
+            
+
+            
+            
+            
+            </div>
+        {% endfor %}
         </div>
 
     </div>

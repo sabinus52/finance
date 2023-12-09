@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\AccountRepository;
+use App\Values\AccountBalance;
 use App\Values\AccountType;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -100,33 +101,6 @@ class Account
     private $initial;
 
     /**
-     * Solde courant du compte.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float", options={"default": 0})
-     */
-    private $balance;
-
-    /**
-     * Solde rapproché.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float", options={"default": 0})
-     */
-    private $reconBalance;
-
-    /**
-     * Rapprochement en cours à solder.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float", options={"default": 0})
-     */
-    private $reconCurrent;
-
-    /**
      * Devise du compte.
      *
      * @var string
@@ -166,13 +140,13 @@ class Account
     private $overdraft;
 
     /**
-     * Montant investi dans les placements.
+     * Metadata des différents soldes calculés.
      *
-     * @var float
+     * @var AccountBalance
      *
-     * @ORM\Column(type="float", options={"default": 0})
+     * @ORM\Column(type="object", nullable=true)
      */
-    private $invested;
+    private $balance;
 
     /**
      * @var Institution
@@ -199,16 +173,16 @@ class Account
      */
     private $transactions;
 
+    /**
+     * Constructeur.
+     */
     public function __construct()
     {
         $this->unit = 0;
         $this->initial = 0;
-        $this->balance = 0;
-        $this->reconBalance = 0;
-        $this->reconCurrent = 0;
+        $this->balance = new AccountBalance();
         $this->currency = 'EUR';
         $this->overdraft = 0;
-        $this->invested = 0;
         $this->transactions = new ArrayCollection();
     }
 
@@ -303,42 +277,6 @@ class Account
         return $this;
     }
 
-    public function getBalance(): ?float
-    {
-        return $this->balance;
-    }
-
-    public function setBalance(?float $balance): self
-    {
-        $this->balance = $balance;
-
-        return $this;
-    }
-
-    public function getReconBalance(): ?float
-    {
-        return $this->reconBalance;
-    }
-
-    public function setReconBalance(float $reconBalance): self
-    {
-        $this->reconBalance = $reconBalance;
-
-        return $this;
-    }
-
-    public function getReconCurrent(): ?float
-    {
-        return $this->reconCurrent;
-    }
-
-    public function setReconCurrent(float $reconCurrent): self
-    {
-        $this->reconCurrent = $reconCurrent;
-
-        return $this;
-    }
-
     public function getCurrency(): ?string
     {
         return $this->currency;
@@ -387,14 +325,18 @@ class Account
         return $this;
     }
 
-    public function getInvested(): ?float
+    public function getBalance(): AccountBalance
     {
-        return $this->invested;
+        if (null === $this->balance) {
+            return new AccountBalance();
+        }
+
+        return $this->balance;
     }
 
-    public function setInvested(?float $invested): self
+    public function setBalance(AccountBalance $balance): self
     {
-        $this->invested = $invested;
+        $this->balance = $balance;
 
         return $this;
     }
@@ -500,10 +442,24 @@ class Account
     /**
      * Retourne la performance du placement.
      *
-     * @return float
+     * @return float|null
      */
-    public function getPerformance(): float
+    public function getInvestPerformance(): ?float
     {
-        return round(($this->balance - $this->invested) / $this->invested, 5);
+        if (0.0 === $this->balance->getInvestment()) {
+            return null;
+        }
+
+        return round($this->getInvestGain() / $this->balance->getInvestment(), 5);
+    }
+
+    public function getInvestValuation(): float
+    {
+        return $this->balance->getBalance() + $this->balance->getRepurchase();
+    }
+
+    public function getInvestGain(): float
+    {
+        return $this->balance->getBalance() + $this->balance->getRepurchase() - $this->balance->getInvestment();
     }
 }
