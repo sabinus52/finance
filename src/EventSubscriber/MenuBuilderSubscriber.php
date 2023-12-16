@@ -111,6 +111,11 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'manage_stock__index',
             'icon' => 'fas fa-landmark',
         ]));
+        $manage->addChild(new MenuItemModel('manage_model', [
+            'label' => 'Modèles / planification',
+            'route' => 'manage_model__index',
+            'icon' => 'far fa-calendar-alt',
+        ]));
 
         $event
             ->addItem($report)
