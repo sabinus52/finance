@@ -30,6 +30,8 @@
                         <table class="table table-hover text-nowrap">
                             <thead>
                                 <tr>
+                                    <th>Périodicité</th>
+                                    <th>Prochaine date</th>
                                     <th>Tiers</th>
                                     <th>Catégorie</th>
                                     <th class="text-right">Montant</th>
@@ -40,12 +42,25 @@
                             <tbody>
                             {% for item in models %}
                                 <tr>
+                                    <td class="text-center">{% if item.schedule %}{{ item.schedule.frequency }} {{ item.schedule.periodLabel }}{% endif %}</td>
+                                    <td class="text-center">{% if item.schedule %}{{ item.schedule.stateBadge|raw }}{% endif %}</td>
                                     <td class="text-bold">{% if item.transfer %}<i class="fas fa-angle-double-right"></i> {{ item.transfer }}{% else %}{{ item.recipient }}{% endif %}</td>
                                     <td>{{ item.category }}</td>
                                     <td class="text-right text-bold {% if item.amount > 0 %}text-green{% else %}text-red{% endif %}">{{ mymacro.money(item.amount, item.account.currency, false) }}</td>
                                     <td>{{ item.account }}</td>
                                     <td class="text-right">
-                                        <a href="{{ path('manage_model__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" role="button" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                        <a href="{{ path('manage_model__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" role="button" data-toggle="olix-modal" data-target="#modalOlix" title="Modifier le modèle"><i class="fas fa-edit"></i></a>
+                                        <div class="btn-group">
+                                            <a href="{{ path('manage_model__schedule', {'id': item.id}) }}" class="btn btn-sm btn-primary" role="button" data-toggle="olix-modal" data-target="#modalOlix"><i class="far fa-calendar-alt"></i><span class="d-none d-md-inline">&nbsp;Programmer<span></a>
+                                            <a type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></a>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item" href="{{ path('manage_model__schedule_enable', {'id': item.id}) }}"><i class="far fa-calendar-check"></i> Activer la planification</a>
+                                                <a class="dropdown-item" href="{{ path('manage_model__schedule_disable', {'id': item.id}) }}"><i class="far fa-calendar-times"></i> Désactiver la planification</a>
+                                                <div class="dropdown-divider"></div>
+                                                <a class="dropdown-item" href="{{ path('manage_model__schedule_remove', {'id': item.id}) }}"><i class="fas fa-trash"></i> Supprimer la planification</a>
+                                            </div>
+                                        </div>
+                                        <a href="{{ path('manage_model__remove', {'id': item.id}) }}" class="btn btn-sm btn-danger" role="button" data-toggle="olix-modal" data-target="#modalOlix" title="Supprimer ce modèle"><i class="fas fa-trash"></i></a>
                                     </td>
                                 </tr>
                             {% else %}

@@ -14,11 +14,14 @@ namespace App\Controller\Manage;
 use App\Entity\Category;
 use App\Entity\Model;
 use App\Entity\Recipient;
+use App\Entity\Schedule;
 use App\Form\ModelStandardFormType;
 use App\Form\ModelTransferFormType;
+use App\Form\ScheduleFormType;
 use App\Repository\ModelRepository;
 use App\Values\Payment;
 use App\Values\TransactionType;
+use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -58,7 +61,7 @@ class ModelController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($model);
             $entityManager->flush();
-            $this->addFlash('success', 'La création du modèle <strong>'.$model.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf('La création du modèle <strong>%s</strong> a bien été prise en compte', $model));
 
             return new Response('OK');
         }
@@ -81,7 +84,7 @@ class ModelController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'La modification du modèle <strong>'.$model.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf('La modification du modèle <strong>%s</strong> a bien été prise en compte', $model));
 
             return new Response('OK');
         }
@@ -92,6 +95,116 @@ class ModelController extends AbstractController
                 'title' => 'Modifier un modèle',
             ],
         ]);
+    }
+
+    /**
+     * @Route("/account/model/remove/{id}", name="manage_model__remove", methods={"GET", "POST"})
+     */
+    public function remove(Request $request, Model $model, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createFormBuilder()->getForm();
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->remove($model);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('La suppression du modèle <strong>%s</strong> a bien été prise en compte', $model));
+
+            return new Response('OK');
+        }
+
+        return $this->renderForm('@OlixBackOffice/Include/modal-content-delete.html.twig', [
+            'form' => $form,
+            'element' => sprintf('ce modèle <b>%s</b>', $model),
+        ]);
+    }
+
+    /**
+     * @Route("/manage/model/schedule/{id}", name="manage_model__schedule", methods={"GET", "POST"})
+     */
+    public function updateSchedule(Request $request, Model $model, EntityManagerInterface $entityManager): Response
+    {
+        $schedule = $model->getSchedule();
+        if (null === $schedule) {
+            $schedule = new Schedule();
+        }
+        $form = $this->createForm(ScheduleFormType::class, $schedule);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $model->setSchedule($schedule);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('La modification de la planification du modèle <strong>%s</strong> a bien été prise en compte', $model));
+
+            return new Response('OK');
+        }
+
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+            'form' => $form,
+            'modal' => [
+                'title' => 'Modifier un modèle',
+            ],
+        ]);
+    }
+
+    /**
+     * @Route("/manage/model/schedule/enable/{id}", name="manage_model__schedule_enable", methods={"GET", "POST"})
+     */
+    public function enableSchedule(Model $model, EntityManagerInterface $entityManager): Response
+    {
+        $schedule = $model->getSchedule();
+        if (null === $schedule) {
+            $this->addFlash('warning', 'Aucune planification associé à ce modèle');
+
+            return $this->redirectToRoute('manage_model__index');
+        }
+        $schedule->setState(true);
+        // Réactive en remettant la prochaine date de la planification
+        $period = new DateInterval(sprintf('P%s%s', $schedule->getFrequency(), $schedule->getPeriod()));
+        while ($schedule->getDoAt()->format('Y-m-d') < date('Y-m-d')) {
+            $schedule->setDoAt($schedule->getDoAt()->add($period));
+        }
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('La planification du modèle <strong>%s</strong> a été activée', $model));
+
+        return $this->redirectToRoute('manage_model__index');
+    }
+
+    /**
+     * @Route("/manage/model/schedule/disable/{id}", name="manage_model__schedule_disable", methods={"GET", "POST"})
+     */
+    public function disableSchedule(Model $model, EntityManagerInterface $entityManager): Response
+    {
+        $schedule = $model->getSchedule();
+        if (null === $schedule) {
+            $this->addFlash('warning', 'Aucune planification associé à ce modèle');
+
+            return $this->redirectToRoute('manage_model__index');
+        }
+        $schedule->setState(false);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('La planification du modèle <strong>%s</strong> a été désactivée', $model));
+
+        return $this->redirectToRoute('manage_model__index');
+    }
+
+    /**
+     * @Route("/manage/model/schedule/remove/{id}", name="manage_model__schedule_remove", methods={"GET", "POST"})
+     */
+    public function removeSchedule(Model $model, EntityManagerInterface $entityManager): Response
+    {
+        $schedule = $model->getSchedule();
+        if (null === $schedule) {
+            $this->addFlash('warning', 'Aucune planification associé à ce modèle');
+
+            return $this->redirectToRoute('manage_model__index');
+        }
+        $model->setSchedule(null);
+        $entityManager->remove($schedule);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('La planification du modèle <strong>%s</strong> a été supprimée', $model));
+
+        return $this->redirectToRoute('manage_model__index');
     }
 
     /**

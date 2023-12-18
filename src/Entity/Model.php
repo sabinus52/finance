@@ -125,6 +125,15 @@ class Model
     private $transfer;
 
     /**
+     * Planification associé.
+     *
+     * @var Schedule
+     *
+     * @ORM\OneToOne(targetEntity=Schedule::class, inversedBy="model", cascade={"persist", "remove"})
+     */
+    private $schedule;
+
+    /**
      * Constructeur.
      */
     public function __construct()
@@ -272,5 +281,17 @@ class Model
         } elseif (Category::EXPENSE === $this->getCategory()->getType()) {
             $this->setAmount(abs($this->getAmount()) * -1);
         }
+    }
+
+    public function getSchedule(): ?Schedule
+    {
+        return $this->schedule;
+    }
+
+    public function setSchedule(?Schedule $schedule): self
+    {
+        $this->schedule = $schedule;
+
+        return $this;
     }
 }
