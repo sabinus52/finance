@@ -196,6 +196,54 @@ class TransactionController extends BaseController
     }
 
     /**
+     * Clone une transaction.
+     *
+     * @Route("/account/transactions/clone/{id}", name="transaction__clone", methods={"GET", "POST"})
+     */
+    public function clone(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
+    {
+        $router = new TransactionModelRouter($entityManager);
+        $modelTransaction = $router->load($transaction);
+        $transaction = clone $modelTransaction->getTransaction();
+        $transaction->setDate(new DateTime());
+        $transaction->setState(Transaction::STATE_NONE);
+        // Cas d'une transaction de véhicule
+        if ($transaction->getTransactionVehicle()) {
+            $vehicle = clone $transaction->getTransactionVehicle();
+            $transaction->setTransactionVehicle($vehicle);
+        }
+        // Cas d'une transaction d'un orfre boursier
+        if ($transaction->getTransactionStock()) {
+            $stock = clone $transaction->getTransactionStock();
+            $transaction->setTransactionStock($stock);
+        }
+        $modelTransaction->setTransaction($transaction);
+
+        $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions() + ['isNew' => true]);
+        if ($modelTransaction->isTransfer()) {
+            $form->get('source')->setData($transaction->getTransfer()->getAccount()); // Compte débiteur
+            $form->get('amount')->setData(abs($transaction->getTransfer()->getAmount()));
+            $form->get('target')->setData($transaction->getAccount()); // Compte créditeur
+            $transaction->setTransfer(null);
+        }
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid() && $modelTransaction->checkForm($form)) {
+            $modelTransaction->insert($form);
+            $this->addFlash('success', sprintf('Le clonage %s a bien été prise en compte', $modelTransaction->getMessage()));
+
+            return new Response('OK');
+        }
+
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+            'form' => $form,
+            'modal' => [
+                'title' => sprintf('Cloner %s', $modelTransaction->getFormTitle()),
+            ],
+        ]);
+    }
+
+    /**
      * Supprime une transaction.
      *
      * @Route("/account/transactions/remove/{id}", name="transaction__remove")

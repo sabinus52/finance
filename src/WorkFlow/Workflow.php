@@ -71,7 +71,7 @@ final class Workflow
     public function insert(?FormInterface $form = null): void
     {
         if ($this->isTransfer()) {
-            if (true === $form->get('purchase')->getData()) {
+            if ($form->has('purchase') && true === $form->get('purchase')->getData()) {
                 // Cas particulier d'un rachat total
                 $this->doRepurchaseTotal();
             }
