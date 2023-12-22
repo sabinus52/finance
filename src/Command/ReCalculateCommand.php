@@ -13,12 +13,12 @@ namespace App\Command;
 
 use App\Entity\Account;
 use App\Entity\StockWallet;
-use App\Helper\DoctrineHelper;
 use App\Values\AccountType;
 use App\WorkFlow\Balance;
 use App\WorkFlow\Wallet;
 use App\WorkFlow\WalletHistory;
 use Doctrine\ORM\EntityManagerInterface;
+use Olix\BackOfficeBundle\Helper\DoctrineHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;

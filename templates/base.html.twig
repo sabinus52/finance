@@ -17,6 +17,10 @@
     </a>
 {% endblock %}
 
+{% block navbar_links %}
+    <li class="nav-item d-none d-sm-inline-block"><a href="{{ path('dump_base') }}" class="nav-link" title="Sauvegarder la base"><i class="fas fa-save fa-lg"></i></a></li>
+{% endblock %}
+
 {% block sidebar_user %}{% endblock %}
 {% block sidebar_search %}{% endblock %}
 
