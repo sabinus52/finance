@@ -33,8 +33,8 @@ final class VehicleResaleTransaction extends TransactionModelAbstract implements
         return [
             'filter' => [
                 'account' => sprintf('acc.type <= %s', AccountType::COURANT * 10 + 9),
-                '!fields' => ['category', 'project', 'transactionVehicle'],
-                '!fieldsvh' => [],
+                '!fields' => ['category', 'project'],
+                '!fieldsvh' => ['volume'],
             ],
         ];
     }

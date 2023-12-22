@@ -69,6 +69,9 @@ class YearChart extends ChartBuilder implements ChartBuilderInterface
         $labels = $values1 = $values2 = $colors = [];
         /** @var PerfItem[] $datas */
         foreach ($datas as $year => $item) {
+            if ($item->getValuation() === null) {
+                continue;
+            }
             $labels[] = $year;
             $values1[] = round($item->getPerformance() * 100, 2);
             $values2[] = round($item->getCumulPerf() * 100, 2);
@@ -96,7 +99,7 @@ class YearChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @return string
      */
-    private function getBackgroundColor(float $value): string
+    private function getBackgroundColor(?float $value): string
     {
         $result = 'green';
         if ($value < 0.0) {

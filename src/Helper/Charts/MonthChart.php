@@ -80,6 +80,9 @@ class MonthChart extends ChartBuilder implements ChartBuilderInterface
         $labels = $values = [];
         /** @var PerfItem[] $datas */
         foreach ($datas as $month => $item) {
+            if ($item->getValuation() === null) {
+                continue;
+            }
             $labels[] = $month;
             $values[] = round($item->getCumulPerf() * 100, 2);
         }

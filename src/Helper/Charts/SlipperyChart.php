@@ -109,7 +109,7 @@ class SlipperyChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @return string
      */
-    private function getBackgroundColor(float $value): string
+    private function getBackgroundColor(?float $value): string
     {
         return ($value > 0.0) ? 'green' : 'red';
     }

@@ -139,7 +139,6 @@ class Transfer
             $this->createDebit();
             $this->credit->setTransfer($this->debit);
             $this->debit->setTransfer($this->credit);
-            $this->credit->setState(Transaction::STATE_NONE);
         }
 
         return $this;
