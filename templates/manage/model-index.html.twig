@@ -43,7 +43,7 @@
                             {% for item in models %}
                                 <tr>
                                     <td class="text-center">{% if item.schedule %}{{ item.schedule.frequency }} {{ item.schedule.periodLabel }}{% endif %}</td>
-                                    <td class="text-center">{% if item.schedule %}{{ item.schedule.stateBadge|raw }}{% endif %}</td>
+                                    <td class="text-center">{% if item.schedule %}{{ item.schedule.lastDateBadge|raw }}{% endif %}</td>
                                     <td class="text-bold">{% if item.transfer %}<i class="fas fa-angle-double-right"></i> {{ item.transfer }}{% else %}{{ item.recipient }}{% endif %}</td>
                                     <td>{{ item.category }}</td>
                                     <td class="text-right text-bold {% if item.amount > 0 %}text-green{% else %}text-red{% endif %}">{{ mymacro.money(item.amount, item.account.currency, false) }}</td>
@@ -61,6 +61,14 @@
                                             </div>
                                         </div>
                                         <a href="{{ path('manage_model__remove', {'id': item.id}) }}" class="btn btn-sm btn-danger" role="button" data-toggle="olix-modal" data-target="#modalOlix" title="Supprimer ce modèle"><i class="fas fa-trash"></i></a>
+                                        <div class="btn-group">
+                                            <a class="btn btn-sm btn-secondary dropdown-toggle{% if not item.schedule or not item.schedule.state %} disabled{% endif %}" role="button" data-toggle="dropdown" aria-expanded="false" {% if not item.schedule or not item.schedule.state %} aria-disabled="true"{% endif %}><i class="fas fa-plus"></i><span class="d-none d-md-inline">&nbsp;Postage<span></a>
+                                            <div class="dropdown-menu">
+                                                <a href="{{ path('schedule_valid', {'id': item.id}) }}" class="dropdown-item text-success"><i class="fas fa-check"></i> Valider cette planification</a>
+                                                <a href="{{ path('schedule_checkvalid', {'id': item.id}) }}" class="dropdown-item text-primary" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i> Modifier et valider cette planification</a>
+                                                <a href="{{ path('schedule_skip', {'id': item.id}) }}" class="dropdown-item text-warning"><i class="fas fa-times"></i> Ignorer cette planification</a>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             {% else %}

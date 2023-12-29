@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ScheduleRepository;
+use DateInterval;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -109,7 +110,7 @@ class Schedule
     {
         $this->state = true;
         $this->frequency = 1;
-        $this->period = 'month';
+        $this->period = 'M';
     }
 
     public function getId(): ?int
@@ -129,15 +130,6 @@ class Schedule
         return $this;
     }
 
-    public function getStateBadge(): string
-    {
-        if (true === $this->state) {
-            return '<span class="badge badge-success">'.$this->doAt->format('d/m/Y').'</span>';
-        }
-
-        return '<span class="badge badge-danger">Désactivé</span>';
-    }
-
     public function getDoAt(): ?DateTimeImmutable
     {
         return $this->doAt;
@@ -146,6 +138,39 @@ class Schedule
     public function setDoAt(?DateTimeImmutable $doAt): self
     {
         $this->doAt = $doAt;
+
+        return $this;
+    }
+
+    /**
+     * Retourne le badge de la prochaine date de la planification ou à défaut le statut.
+     *
+     * @return string
+     */
+    public function getLastDateBadge(): string
+    {
+        if (false === $this->state) {
+            return '<span class="badge badge-danger">Désactivé</span>';
+        }
+
+        $now = new DateTimeImmutable();
+        $color = 'success';
+        if ($this->doAt < $now) {
+            $color = 'warning';
+        }
+
+        return sprintf('<span class="badge badge-%s">%s</span>', $color, $this->doAt->format('d/m/Y'));
+    }
+
+    /**
+     * Remet la prochaine date de la planification.
+     *
+     * @return self
+     */
+    public function setNextDoAt(): self
+    {
+        $period = new DateInterval(sprintf('P%s%s', $this->getFrequency(), $this->getPeriod()));
+        $this->doAt = $this->doAt->add($period);
 
         return $this;
     }

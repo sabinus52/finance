@@ -175,10 +175,10 @@ class Transfer
     public function makeTransfer(Account $source, Account $target, ?float $amountTarget = null): void
     {
         if (null === $amountTarget) {
-            $amountTarget = abs($this->credit->getAmount());
+            $amountTarget = $this->credit->getAmount();
         }
         $this->debit->setAccount($source);
-        $this->debit->setAmount($this->credit->getAmount() * -1);
+        $this->debit->setAmount(abs($this->credit->getAmount()) * -1);
         $this->debit->setDate($this->credit->getDate());
         $this->credit->setAccount($target);
         $this->credit->setAmount(abs($amountTarget));

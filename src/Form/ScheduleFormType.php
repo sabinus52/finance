@@ -48,10 +48,10 @@ class ScheduleFormType extends AbstractType
                 'label' => 'Période',
                 'required' => true,
                 'choices' => [
-                    'Jour' => 'day',
-                    'Semaine' => 'week',
-                    'Mois' => 'month',
-                    'Année' => 'year',
+                    'Jour' => 'D',
+                    'Semaine' => 'W',
+                    'Mois' => 'M',
+                    'Année' => 'Y',
                 ],
             ])
             ->add('number', IntegerType::class, [

@@ -30,6 +30,11 @@ class ModelRepository extends ServiceEntityRepository
         parent::__construct($registry, Model::class);
     }
 
+    /**
+     * Retourne tous les modèles.
+     *
+     * @return Model[]
+     */
     public function findAll(): array
     {
         return $this->createQueryBuilder('mod')
@@ -40,6 +45,30 @@ class ModelRepository extends ServiceEntityRepository
             ->innerJoin('mod.category', 'cat')
             ->innerJoin('cat.parent', 'prt')
             ->addOrderBy('mod.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * Retourne les panifications actives.
+     *
+     * @return Model[]
+     */
+    public function findScheduleEnabled(): array
+    {
+        return $this->createQueryBuilder('mod')
+            ->addSelect('rcp')
+            ->addSelect('cat')
+            ->addSelect('prt')
+            ->addSelect('shd')
+            ->innerJoin('mod.recipient', 'rcp')
+            ->innerJoin('mod.category', 'cat')
+            ->innerJoin('cat.parent', 'prt')
+            ->innerJoin('mod.schedule', 'shd')
+            ->where('shd.state = :state')
+            ->setParameter('state', true)
+            ->addOrderBy('shd.doAt', 'ASC')
             ->getQuery()
             ->getResult()
         ;

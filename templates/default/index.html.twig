@@ -55,8 +55,52 @@
         {% endfor %}
         </div>
 
+
+        <div class="col-md-12">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Prochaines planifications</h3>
+                </div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-sm table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>Prochaine date</th>
+                                <th>Tiers</th>
+                                <th>Catégorie</th>
+                                <th class="text-right">Montant</th>
+                                <th>Compte</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in schedules %}
+                            <tr>
+                                <td class="text-center">{% if item.schedule %}{{ item.schedule.lastDateBadge|raw }}{% endif %}</td>
+                                <td class="text-bold">{% if item.transfer %}<i class="fas fa-angle-double-right"></i> {{ item.transfer }}{% else %}{{ item.recipient }}{% endif %}</td>
+                                <td>{{ item.category }}</td>
+                                <td class="text-right text-bold {% if item.amount > 0 %}text-green{% else %}text-red{% endif %}">{{ mymacro.money(item.amount, item.account.currency, false) }}</td>
+                                <td>{{ item.account }}</td>
+                                <td class="text-right">
+                                    <a href="{{ path('schedule_valid', {'id': item.id}) }}" class="btn btn-sm btn-success" role="button" title="Valider"><i class="fas fa-check"></i></a>
+                                        <a href="{{ path('schedule_checkvalid', {'id': item.id}) }}" class="btn btn-sm btn-primary" role="button" data-toggle="olix-modal" data-target="#modalOlix" title="Editer et Valider"><i class="fas fa-edit"></i></a>
+                                        <a href="{{ path('schedule_skip', {'id': item.id}) }}" class="btn btn-sm btn-warning" role="button" title="Passer"><i class="fas fa-times"></i></a>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="3">Aucun éléments dans la table</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
+    {% include '@OlixBackOffice/Include/modal.html.twig' with { title: "Chargement du formulaire" } %}
 
 {% endblock %}
 
