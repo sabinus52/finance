@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Transaction;
 
 use App\Entity\Category;
+use App\Entity\Model;
 use App\Entity\Transaction;
 use App\Values\StockPosition;
 use App\Values\TransactionType;
@@ -222,6 +223,43 @@ final class TransactionModelRouter
                 'amount' => 0,
             ]);
         }
+
+        return $modelTransac;
+    }
+
+    /**
+     * Crée le modèle de transaction à partir d'un modèle.
+     *
+     * @param Model $model
+     *
+     * @return TransactionModelInterface
+     */
+    public function createFromModel(Model $model): TransactionModelInterface
+    {
+        // Création en fonction de son type
+        if ($model->getTransfer()) {
+            $modelTransac = $this->createTransferByCategory($model->getCategory()->getCode());
+        } elseif ($model->getVehicle()) {
+            $modelTransac = $this->createVehicle(null);
+            $modelTransac->setDatas([
+                'transactionVehicle' => [
+                    'vehicle' => $model->getVehicle(),
+                ],
+            ]);
+        } else {
+            $modelTransac = $this->createStandardByType(($model->getAmount() > 0));
+        }
+
+        // Remplissage des données
+        $modelTransac->setAccount($model->getAccount());
+        $modelTransac->setDatas([
+            'date' => DateTime::createFromImmutable($model->getSchedule()->getDoAt()),
+            'amount' => $model->getAmount(),
+            'payment' => $model->getPayment(),
+            'recipient' => $model->getRecipient(),
+            'category' => $model->getCategory(),
+            'memo' => $model->getMemo(),
+        ]);
 
         return $modelTransac;
     }

@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+{% block title %}{{ parent() }} - Gérer les planifications et les modèles{% endblock %}
+
+{% block content_title %}<i class="far fa-calendar-alt"></i> Gérer les planifications et les modèles{% endblock %}
+{% block content_subtitle %}{% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-12">
+
+                <div class="card card-success card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Liste des modèles</h3>
+                        <div class="card-tools">
+                            <div class="btn-group mr-3" role="group" aria-label="transaction">
+                                <a href="{{ path('manage_model__create', { 'type': constant('App\\Entity\\Category::INCOME') }) }}" class="btn btn-sm bg-gradient-olive" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus-square"></i> Ajouter une recette</a>
+                                <a href="{{ path('manage_model__create', { 'type': constant('App\\Entity\\Category::EXPENSE')|default(0) }) }}" class="btn btn-sm bg-gradient-maroon" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-minus-square"></i> Ajouter une dépense</a>
+                            </div>
+                            <a href="{{ path('manage_model__create', { 'type': constant('App\\Entity\\Category::VIREMENT') }) }}" class="btn btn-sm bg-gradient-indigo" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-exchange-alt"></i> Ajouter un virement</a>
+                        </div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Périodicité</th>
+                                    <th>Prochaine date</th>
+                                    <th>Tiers</th>
+                                    <th>Catégorie</th>
+                                    <th class="text-right">Montant</th>
+                                    <th>Compte</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in models %}
+                                <tr>
+                                    <td class="text-center">{% if item.schedule %}{{ item.schedule.frequency }} {{ item.schedule.periodLabel }}{% endif %}</td>
+                                    <td class="text-center">{% if item.schedule %}{{ item.schedule.lastDateBadge|raw }}{% endif %}</td>
+                                    <td class="text-bold">{% if item.transfer %}<i class="fas fa-angle-double-right"></i> {{ item.transfer }}{% else %}{{ item.recipient }}{% endif %}</td>
+                                    <td>{{ item.category }}</td>
+                                    <td class="text-right text-bold {% if item.amount > 0 %}text-green{% else %}text-red{% endif %}">{{ mymacro.money(item.amount, item.account.currency, false) }}</td>
+                                    <td>{{ item.account }}</td>
+                                    <td class="text-right">
+                                        <a href="{{ path('manage_model__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" role="button" data-toggle="olix-modal" data-target="#modalOlix" title="Modifier le modèle"><i class="fas fa-edit"></i></a>
+                                        <div class="btn-group">
+                                            <a href="{{ path('manage_model__schedule', {'id': item.id}) }}" class="btn btn-sm btn-primary" role="button" data-toggle="olix-modal" data-target="#modalOlix"><i class="far fa-calendar-alt"></i><span class="d-none d-md-inline">&nbsp;Programmer<span></a>
+                                            <a type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></a>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item" href="{{ path('manage_model__schedule_enable', {'id': item.id}) }}"><i class="far fa-calendar-check"></i> Activer la planification</a>
+                                                <a class="dropdown-item" href="{{ path('manage_model__schedule_disable', {'id': item.id}) }}"><i class="far fa-calendar-times"></i> Désactiver la planification</a>
+                                                <div class="dropdown-divider"></div>
+                                                <a class="dropdown-item" href="{{ path('manage_model__schedule_remove', {'id': item.id}) }}"><i class="fas fa-trash"></i> Supprimer la planification</a>
+                                            </div>
+                                        </div>
+                                        <a href="{{ path('manage_model__remove', {'id': item.id}) }}" class="btn btn-sm btn-danger" role="button" data-toggle="olix-modal" data-target="#modalOlix" title="Supprimer ce modèle"><i class="fas fa-trash"></i></a>
+                                        <div class="btn-group">
+                                            <a class="btn btn-sm btn-secondary dropdown-toggle{% if not item.schedule or not item.schedule.state %} disabled{% endif %}" role="button" data-toggle="dropdown" aria-expanded="false" {% if not item.schedule or not item.schedule.state %} aria-disabled="true"{% endif %}><i class="fas fa-plus"></i><span class="d-none d-md-inline">&nbsp;Postage<span></a>
+                                            <div class="dropdown-menu">
+                                                <a href="{{ path('schedule_valid', {'id': item.id}) }}" class="dropdown-item text-success"><i class="fas fa-check"></i> Valider cette planification</a>
+                                                <a href="{{ path('schedule_checkvalid', {'id': item.id}) }}" class="dropdown-item text-primary" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i> Modifier et valider cette planification</a>
+                                                <a href="{{ path('schedule_skip', {'id': item.id}) }}" class="dropdown-item text-warning"><i class="fas fa-times"></i> Ignorer cette planification</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="3">Aucun éléments dans la table</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    {% include '@OlixBackOffice/Include/modal.html.twig' with { title: "Chargement du formulaire" } %}
+
+{% endblock %}

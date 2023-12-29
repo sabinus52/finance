@@ -13,6 +13,7 @@ namespace App\Controller;
 
 use App\Entity\Account;
 use App\Repository\AccountRepository;
+use App\Repository\ModelRepository;
 use App\Values\AccountType;
 use Doctrine\ORM\EntityManagerInterface;
 use Olix\BackOfficeBundle\Helper\DoctrineHelper;
@@ -27,7 +28,7 @@ class DefaultController extends AbstractController
     /**
      * @Route("/", name="home")
      */
-    public function index(AccountRepository $repository): Response
+    public function index(AccountRepository $repository, ModelRepository $repotModel): Response
     {
         $accounts = [];
         /** @var Account[] $accounts */
@@ -48,6 +49,7 @@ class DefaultController extends AbstractController
             'accounts' => $result,
             'units' => $this->getParameter('app.account.units'),
             'types' => AccountType::$valuesGroupBy,
+	    'schedules' => $repotModel->findScheduleEnabled(),
         ]);
     }
 
