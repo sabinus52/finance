@@ -155,7 +155,7 @@ class Schedule
 
         $now = new DateTimeImmutable();
         $color = 'success';
-        if ($this->doAt < $now) {
+        if ($this->doAt < $now->modify('+ 10 days')) {
             $color = 'warning';
         }
 

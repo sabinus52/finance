@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Model;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -68,6 +69,34 @@ class ModelRepository extends ServiceEntityRepository
             ->innerJoin('mod.schedule', 'shd')
             ->where('shd.state = :state')
             ->setParameter('state', true)
+            ->addOrderBy('shd.doAt', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * Retourne les panifications à traiter pour la création des transactions.
+     *
+     * @return Model[]
+     */
+    public function findScheduleToDo(): array
+    {
+        $now = new DateTimeImmutable();
+
+        return $this->createQueryBuilder('mod')
+            ->addSelect('rcp')
+            ->addSelect('cat')
+            ->addSelect('prt')
+            ->addSelect('shd')
+            ->innerJoin('mod.recipient', 'rcp')
+            ->innerJoin('mod.category', 'cat')
+            ->innerJoin('cat.parent', 'prt')
+            ->innerJoin('mod.schedule', 'shd')
+            ->where('shd.state = :state')
+            ->andWhere('shd.doAt <= :limit')
+            ->setParameter('state', true)
+            ->setParameter('limit', $now->modify('+ 10 days')->format('Y-m-d'))
             ->addOrderBy('shd.doAt', 'ASC')
             ->getQuery()
             ->getResult()
