@@ -248,6 +248,7 @@ class Balance
     {
         $balance = $account->getInitial();
         $reconcilied = $account->getInitial();
+        $reconCurrent = $account->getBalance()->getReconCurrent();
         $investment = 0.0;
         $repurchase = 0.0;
 
@@ -279,6 +280,7 @@ class Balance
         $metaBalance = new AccountBalance();
         $metaBalance->setBalance($balance);
         $metaBalance->setReconBalance($reconcilied);
+        $metaBalance->setReconCurrent($reconCurrent);
         $metaBalance->setInvestment($investment);
         $metaBalance->setRepurchase($repurchase);
         $account->setBalance($metaBalance);

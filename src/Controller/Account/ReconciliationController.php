@@ -99,7 +99,10 @@ class ReconciliationController extends BaseController
             $gab = $metaBalance->getReconBalance() - $metaBalance->getReconCurrent();
 
             // Valide le rapprochement final
-            $transactions = $repository->findByState(Transaction::STATE_RECONTEMP); /** @phpstan-ignore-line */
+            $transactions = $repository->findBy([
+                'account' => $account,
+                'state' => Transaction::STATE_RECONTEMP,
+            ]);
             foreach ($transactions as $transaction) {
                 $gab = round($gab + $transaction->getAmount(), 2);
                 $transaction->setState(Transaction::STATE_RECONCILIED);

@@ -35,12 +35,6 @@ class DefaultController extends AbstractController
         $accounts = $repository->findBy([], ['institution' => 'ASC', 'name' => 'ASC']);
 
         $result = [];
-        // Initialise les données de types de comptes pour le regroupement
-        /*foreach (AccountType::$valuesGroupBy as $key => $value) {
-            $result[][$key] = $value;
-            $result[][$key]['accounts'] = [];
-        }*/
-
         foreach ($accounts as $account) {
             $result[$account->getUnit()][$account->getType()->getTypeCode()][] = $account;
         }
@@ -49,7 +43,7 @@ class DefaultController extends AbstractController
             'accounts' => $result,
             'units' => $this->getParameter('app.account.units'),
             'types' => AccountType::$valuesGroupBy,
-	    'schedules' => $repotModel->findScheduleEnabled(),
+            'schedules' => $repotModel->findScheduleToDo(),
         ]);
     }
 
