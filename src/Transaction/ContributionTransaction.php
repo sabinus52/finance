@@ -17,11 +17,11 @@ use App\Values\AccountType;
 use App\Values\Payment;
 
 /**
- * Modèle de transaction des intérêts bancaires.
+ * Modèle de transaction des contributions sociales.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-final class InterestTransaction extends TransactionModelAbstract implements TransactionModelInterface
+final class ContributionTransaction extends TransactionModelAbstract implements TransactionModelInterface
 {
     public function getFormClass(): string
     {
@@ -40,21 +40,21 @@ final class InterestTransaction extends TransactionModelAbstract implements Tran
 
     public function getFormTitle(): string
     {
-        return 'un intérêt bancaire';
+        return 'une contribution sociale';
     }
 
     public function getCategory(): ?Category
     {
-        return $this->getCategoryByCode(Category::INCOME, Category::INTERET);
+        return $this->getCategoryByCode(Category::EXPENSE, Category::TAXE_CSG);
     }
 
     public function getPayment(): ?Payment
     {
-        return new Payment(Payment::DEPOT);
+        return new Payment(Payment::PRELEVEMENT);
     }
 
     public function getMessage(): string
     {
-        return 'd\'intérêt';
+        return 'de CSG/CRDS';
     }
 }

@@ -50,6 +50,7 @@ class Category
     public const RESALE = 'RSAL';
     public const INTERET = 'INTR';
     public const TAXE = 'TAXE';
+    public const TAXE_CSG = 'CSSG';
 
     /**
      * Listes des catégories de niveau 1 de mouvements internes.

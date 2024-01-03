@@ -115,6 +115,9 @@ final class TransactionModelRouter
             case Category::INTERET:
                 $modelTransac = new InterestTransaction($this->entityManager);
                 break;
+            case Category::TAXE_CSG:
+                $modelTransac = new ContributionTransaction($this->entityManager);
+                break;
             case Category::TAXE:
                 $modelTransac = new TaxTransaction($this->entityManager);
                 break;

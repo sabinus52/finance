@@ -5,7 +5,7 @@
         <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
             <div class="btn-group mr-3" role="group" aria-label="transaction">
                 <a href="{{ path('transaction_create_bycat', { 'id': account.id, 'codecat': constant('App\\Entity\\Category::INTERET') }) }}" class="btn bg-gradient-olive text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus-square"></i> Intérêts</a>
-                <a href="{{ path('transaction_create_bycat', { 'id': account.id, 'codecat': constant('App\\Entity\\Category::TAXE')|default(0) }) }}" class="btn bg-gradient-maroon text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-minus-square"></i> Taxes</a>
+                <a href="{{ path('transaction_create_bycat', { 'id': account.id, 'codecat': constant('App\\Entity\\Category::TAXE_CSG') }) }}" class="btn bg-gradient-maroon text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-minus-square"></i> CSG/CRDS</a>
             </div>
             <div class="btn-group mr-3" role="group" aria-label="transfer">
                 <a href="{{ path('transfer_create', { 'id': account.id, 'type': constant('App\\Entity\\Category::VIREMENT') }) }}" class="btn bg-gradient-indigo" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-exchange-alt"></i> Virement</a>
