@@ -142,7 +142,7 @@ class ModelController extends AbstractController
         return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
-                'title' => 'Modifier un modèle',
+                'title' => 'Modifier une planification',
             ],
         ]);
     }

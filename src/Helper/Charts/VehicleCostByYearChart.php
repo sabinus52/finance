@@ -90,6 +90,10 @@ class VehicleCostByYearChart extends ChartBuilder implements ChartBuilderInterfa
 
         foreach ($transactions as $item) {
             $year = $item->getDate()->format('Y');
+            // Ne prends pas en compte les transactions futures
+            if ($item->getDate()->format('Y-m-d') > date('Y-m-d')) {
+                continue;
+            }
 
             switch ($item->getCategory()->getCode()) {
                 case Category::CARBURANT:

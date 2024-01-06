@@ -15,6 +15,7 @@ use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Entity\Vehicle;
+use DateTimeImmutable;
 use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -66,9 +67,12 @@ class TransactionRepository extends ServiceEntityRepository
                 continue;
             }
             if ('range' === $key) {
-                $query->andWhere('trt.date BETWEEN :start AND :end')
+                $now = new DateTimeImmutable();
+                $query->andWhere('(trt.date BETWEEN :start AND :end OR trt.date BETWEEN :start2 AND :end2)')
                     ->setParameter('start', $value[0])
                     ->setParameter('end', $value[1])
+                    ->setParameter('start2', $now->format('Y-m-d'))
+                    ->setParameter('end2', $now->modify('+ 30 days')->format('Y-m-d'))
                 ;
             } else {
                 $query->andWhere(sprintf('trt.%s = :%s', $key, $key))

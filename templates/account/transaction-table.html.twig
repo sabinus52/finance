@@ -18,7 +18,7 @@
     </thead>
     <tbody>
     {% for item in transactions %}
-        <tr>
+        <tr{% if item.date|date('Y-m-d') > "now"|date("Y-m-d") %} class="font-italic"{% endif %}>
             <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
             <td><img src="{{ asset(item.payment.pathImage) }}" width="24"></td>
             <td>

@@ -239,6 +239,7 @@ class TransactionController extends BaseController
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Cloner %s', $modelTransaction->getFormTitle()),
+                'btnlabel' => 'Cloner',
             ],
         ]);
     }

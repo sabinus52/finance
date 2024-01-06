@@ -280,7 +280,7 @@ class PerfItem
     public function getVariation(): float
     {
         if (null === $this->previous) {
-            return floatval($this->getValuation());
+            return (float) ($this->getValuation());
         }
 
         return $this->getValuation() - $this->previous->getValuation() + $this->getRepurchaseCumul() - $this->previous->getRepurchaseCumul();

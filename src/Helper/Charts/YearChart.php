@@ -69,7 +69,7 @@ class YearChart extends ChartBuilder implements ChartBuilderInterface
         $labels = $values1 = $values2 = $colors = [];
         /** @var PerfItem[] $datas */
         foreach ($datas as $year => $item) {
-            if ($item->getValuation() === null) {
+            if (null === $item->getValuation()) {
                 continue;
             }
             $labels[] = $year;

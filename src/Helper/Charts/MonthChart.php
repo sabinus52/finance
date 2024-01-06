@@ -80,7 +80,7 @@ class MonthChart extends ChartBuilder implements ChartBuilderInterface
         $labels = $values = [];
         /** @var PerfItem[] $datas */
         foreach ($datas as $month => $item) {
-            if ($item->getValuation() === null) {
+            if (null === $item->getValuation()) {
                 continue;
             }
             $labels[] = $month;

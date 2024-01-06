@@ -150,6 +150,7 @@ class StockController extends AbstractController
             'form' => $form,
             'modal' => [
                 'title' => 'Créer une nouvelle cotation',
+                'btnlabel' => 'Ajouter',
             ],
         ]);
     }
@@ -210,6 +211,7 @@ class StockController extends AbstractController
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Fusion de %s', $stock),
+                'btnlabel' => 'Fusionner',
             ],
         ]);
     }

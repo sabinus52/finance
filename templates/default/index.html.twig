@@ -66,10 +66,10 @@
                         <thead>
                             <tr>
                                 <th>Prochaine date</th>
-                                <th>Tiers</th>
-                                <th>Catégorie</th>
-                                <th class="text-right">Montant</th>
                                 <th>Compte</th>
+                                <th>Tiers</th>
+                                <th class="text-right">Montant</th>
+                                <th>Catégorie</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -77,14 +77,14 @@
                         {% for item in schedules %}
                             <tr>
                                 <td class="text-center">{% if item.schedule %}{{ item.schedule.lastDateBadge|raw }}{% endif %}</td>
+                                <td><img src="{{ item.account.institution.logo }}" height="24"> {{ item.account.name }}</td>
                                 <td class="text-bold">{% if item.transfer %}<i class="fas fa-angle-double-right"></i> {{ item.transfer }}{% else %}{{ item.recipient }}{% endif %}</td>
-                                <td>{{ item.category }}</td>
                                 <td class="text-right text-bold {% if item.amount > 0 %}text-green{% else %}text-red{% endif %}">{{ mymacro.money(item.amount, item.account.currency, false) }}</td>
-                                <td>{{ item.account }}</td>
+                                <td>{{ item.category }}</td>
                                 <td class="text-right">
                                     <a href="{{ path('schedule_valid', {'id': item.id}) }}" class="btn btn-sm btn-success" role="button" title="Valider"><i class="fas fa-check"></i></a>
-                                        <a href="{{ path('schedule_checkvalid', {'id': item.id}) }}" class="btn btn-sm btn-primary" role="button" data-toggle="olix-modal" data-target="#modalOlix" title="Editer et Valider"><i class="fas fa-edit"></i></a>
-                                        <a href="{{ path('schedule_skip', {'id': item.id}) }}" class="btn btn-sm btn-warning" role="button" title="Passer"><i class="fas fa-times"></i></a>
+                                    <a href="{{ path('schedule_checkvalid', {'id': item.id}) }}" class="btn btn-sm btn-primary" role="button" data-toggle="olix-modal" data-target="#modalOlix" title="Editer et Valider"><i class="fas fa-edit"></i></a>
+                                    <a href="{{ path('schedule_skip', {'id': item.id}) }}" class="btn btn-sm btn-warning" role="button" title="Passer"><i class="fas fa-times"></i></a>
                                 </td>
                             </tr>
                         {% else %}

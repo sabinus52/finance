@@ -76,7 +76,7 @@ class ScheduleController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid() && $modelTransaction->checkForm($form)) {
             $modelTransaction->insert($form);
-            $this->addFlash('success', sprintf('La planification <strong>%s</strong> pour le <strong>%s</strong> a été validée', $model, $schedule->getDoAt()->format('d/m/Y')));
+            $this->addFlash('success', sprintf('La transaction planifiée <strong>%s</strong> a été validée', $modelTransaction->getTransaction()));
 
             // Prochaine planification
             $schedule->setNextDoAt();
