@@ -46,7 +46,7 @@ class StockWallet
      *
      * @var Account
      *
-     * @ORM\ManyToOne(targetEntity=Account::class, inversedBy="stockWallets")
+     * @ORM\ManyToOne(targetEntity=Account::class)
      * @ORM\JoinColumn(nullable=false)
      */
     private $account;

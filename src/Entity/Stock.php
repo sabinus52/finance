@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\StockRepository;
-use DateTimeInterface;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -41,6 +41,7 @@ class Stock
      *
      * @ORM\Column(type="string", length=12, unique=true)
      * @Assert\NotBlank
+     * @Assert\Length(max=12)
      */
     private $codeISIN;
 
@@ -51,13 +52,14 @@ class Stock
      *
      * @ORM\Column(type="string", length=100, unique=true)
      * @Assert\NotBlank
+     * @Assert\Length(min=5, max=100)
      */
     private $name;
 
     /**
      * Date de la fermeture.
      *
-     * @var DateTimeInterface
+     * @var DateTime
      *
      * @ORM\Column(type="date", nullable=true)
      */
@@ -150,12 +152,12 @@ class Stock
         return $this;
     }
 
-    public function getClosedAt(): ?DateTimeInterface
+    public function getClosedAt(): ?DateTime
     {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?DateTimeInterface $closedAt): self
+    public function setClosedAt(?DateTime $closedAt): self
     {
         $this->closedAt = $closedAt;
 

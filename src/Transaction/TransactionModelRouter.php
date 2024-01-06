@@ -71,6 +71,9 @@ final class TransactionModelRouter
             case TransactionType::VEHICLE:
                 $modelTransac = $this->createVehicle($transaction->getCategory()->getCode());
                 break;
+            case TransactionType::STOCKEXCHANGE:
+                $modelTransac = $this->createStock($transaction->getTransactionStock()->getPosition());
+                break;
             case TransactionType::REVALUATION:
                 $modelTransac = $this->createRevaluation();
                 break;
@@ -171,6 +174,12 @@ final class TransactionModelRouter
                 break;
             case StockPosition::DIVIDEND:
                 $modelTransac = new StockDividendTransaction($this->entityManager);
+                break;
+            case StockPosition::FUSION_BUY:
+                $modelTransac = new StockFusionBuyingTransaction($this->entityManager);
+                break;
+            case StockPosition::FUSION_SALE:
+                $modelTransac = new StockFusionSellingTransaction($this->entityManager);
                 break;
 
             default:

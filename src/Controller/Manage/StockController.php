@@ -11,17 +11,22 @@ declare(strict_types=1);
 
 namespace App\Controller\Manage;
 
+use App\Entity\Account;
 use App\Entity\Stock;
 use App\Entity\StockPrice;
 use App\Form\StockFormType;
+use App\Form\StockFusionFormType;
 use App\Form\StockPriceFormType;
 use App\Helper\Charts\StockPriceChart;
 use App\Repository\StockPriceRepository;
 use App\Repository\StockRepository;
 use App\WorkFlow\Balance;
+use App\WorkFlow\StockFusion;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -30,6 +35,8 @@ use Symfony\Component\Routing\Annotation\Route;
  * Controleur des cotations boursières.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class StockController extends AbstractController
 {
@@ -170,5 +177,62 @@ class StockController extends AbstractController
                 'title' => 'Modifier la cotation',
             ],
         ]);
+    }
+
+    /**
+     * Création de la fusion d'un titre boursier.
+     *
+     * @Route("/account/{id}/fusion/stock/{stock}", name="manage_stock__fusion", methods={"GET", "POST"})
+     */
+    public function fusion(Request $request, Account $account, Stock $stock, EntityManagerInterface $entityManager, StockPriceRepository $repository): Response
+    {
+        $form = $this->createForm(StockFusionFormType::class, $stock);
+
+        // Recherche la dernière cotation
+        $last = $repository->findOneLastPrice($stock);
+        if ($last) {
+            $form->get('price')->setData($last->getPrice());
+        }
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid() && $this->checkFormFusion($form)) {
+            $fusion = new StockFusion($entityManager, $account);
+            $fusion->setOldStock($stock, $form->get('price')->getData());
+            $fusion->setNewStock($form->get('fusion2')->getData(), $form->get('name2')->getData(), $form->get('codeISIN2')->getData(), $form->get('volume2')->getData(), $form->get('price2')->getData());
+            $fusion->execute();
+
+            $this->addFlash('success', sprintf('La fusion de %s vers %s a bien été prise en compte', $stock, $fusion->getNewStock()));
+
+            return new Response('OK');
+        }
+
+        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+            'form' => $form,
+            'modal' => [
+                'title' => sprintf('Fusion de %s', $stock),
+            ],
+        ]);
+    }
+
+    /**
+     * Vérifie la formulaire de la fusion.
+     *
+     * @param FormInterface $form
+     *
+     * @return bool
+     */
+    private function checkFormFusion(FormInterface $form): bool
+    {
+        $isValid = true;
+        if (empty($form->get('fusion2')->getData()) && empty($form->get('name2')->getData())) {
+            $form->get('name2')->addError(new FormError('Ce champs ne peut être vide si aucun titre n\'est sélectionné'));
+            $isValid = false;
+        }
+        if (empty($form->get('fusion2')->getData()) && empty($form->get('codeISIN2')->getData())) {
+            $form->get('codeISIN2')->addError(new FormError('Ce champs ne peut être vide si aucun titre n\'est sélectionné'));
+            $isValid = false;
+        }
+
+        return $isValid;
     }
 }

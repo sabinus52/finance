@@ -16,6 +16,7 @@ use App\Entity\Category;
 use App\Entity\StockPrice;
 use App\Entity\StockWallet;
 use App\Entity\Transaction;
+use App\Values\AccountType;
 use App\Values\TransactionType;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -92,6 +93,20 @@ class Wallet
             $this->buildWallets();
         }
 
+        if (AccountType::PEA_TITRES === $this->account->getType()->getValue()) {
+            return $this->getTransactionHistoriesPEA();
+        }
+
+        return $this->getTransactionHistoriesNotPEA();
+    }
+
+    /**
+     * Retourne les transactions de versement et de réévaluations d'un compte titre standard.
+     *
+     * @return Transaction[]
+     */
+    private function getTransactionHistoriesNotPEA(): array
+    {
         $transactions = [];
         $lastBalance = $lastInvest = 0.0;
         $category = $this->entityManager->getRepository(Category::class)->findOneByCode(Category::INCOME, Category::INVESTMENT); /** @phpstan-ignore-line */
@@ -112,6 +127,60 @@ class Wallet
             }
 
             $balance = $item->getValorisation();
+            if ($balance > 0.0) {
+                // Ne sauvegarde pas les valorisation à 0
+                $transaction = new Transaction();
+                $transaction
+                    ->setDate($item->getDate())
+                    ->setTypeValue(TransactionType::REVALUATION)
+                    ->setAmount($balance - $lastBalance)
+                    ->setBalance($balance)
+                ;
+                $lastBalance = $balance;
+                $transactions[] = $transaction;
+            }
+        }
+
+        return $transactions;
+    }
+
+    /**
+     * Retourne les transactions de versement et de réévaluations d'un compte PEA.
+     *
+     * @return Transaction[]
+     */
+    private function getTransactionHistoriesPEA(): array
+    {
+        $transactions = [];
+        $lastBalance = 0.0;
+        $category = $this->entityManager->getRepository(Category::class)->findOneByCode(Category::INCOME, Category::INVESTMENT); /** @phpstan-ignore-line */
+        $peaCaisse = $this->entityManager->getRepository(Transaction::class)->findByAccount($this->account->getAccAssoc(), ['category' => $category]); /** @phpstan-ignore-line */
+        foreach ($peaCaisse as $transaction) {
+            $transactions[] = $transaction;
+        }
+
+        $balance = new Balance($this->entityManager);
+        $peaCaisse = $balance->getByMonth($this->account->getAccAssoc());
+
+        // Pour chaque portefeuille
+        foreach ($this->histories as $item) {
+            /*$invest = $item->getAmountInvest();
+            if ($invest !== $lastInvest) {
+                $transaction = new Transaction();
+                $transaction
+                    ->setDate($item->getDate())
+                    ->setTypeValue(TransactionType::STANDARD)
+                    ->setAmount($invest - $lastInvest)
+                    ->setCategory($category)
+                ;
+                $lastInvest = $invest;
+                $transactions[] = $transaction;
+            }*/
+
+            $balance = $item->getValorisation();
+            if (isset($peaCaisse[$item->getDate()->format('Y-m')])) {
+                $balance += $peaCaisse[$item->getDate()->format('Y-m')];
+            }
             if ($balance > 0.0) {
                 // Ne sauvegarde pas les valorisation à 0
                 $transaction = new Transaction();

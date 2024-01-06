@@ -7,9 +7,11 @@
     <div class="col-12">
         <div class="btn-toolbar" role="toolbar" aria-label="toolbar">
             <div class="btn-group mr-3" role="group" aria-label="transaction">
-                <a href="{{ path('transaction_create_wallet', { 'id': account.id, 'type': constant('App\\Values\\StockPosition::BUYING') }) }}" class="btn bg-gradient-info text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Achat</a>
-                <a href="{{ path('transaction_create_wallet', { 'id': account.id, 'type': constant('App\\Values\\StockPosition::SELLING') }) }}" class="btn bg-gradient-info text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Vente</a>
-                <a href="{{ path('transaction_create_wallet', { 'id': account.id, 'type': constant('App\\Values\\StockPosition::DIVIDEND') }) }}" class="btn bg-gradient-info text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Dividendes</a>
+                <a href="{{ path('transaction_create_wallet', { 'id': account.id, 'type': constant('App\\Values\\StockPosition::BUYING') }) }}" class="btn bg-gradient-success text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Achat</a>
+                <a href="{{ path('transaction_create_wallet', { 'id': account.id, 'type': constant('App\\Values\\StockPosition::SELLING') }) }}" class="btn bg-gradient-danger text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Vente</a>
+            </div>
+            <div class="btn-group mr-3" role="group" aria-label="dividende">
+                <a href="{{ path('transaction_create_wallet', { 'id': account.id, 'type': constant('App\\Values\\StockPosition::DIVIDEND') }) }}" class="btn bg-gradient-primary text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Dividendes</a>
             </div>
             <div class="btn-group mr-3" role="group" aria-label="transfer">
                 <a href="{{ path('transfer_create', { 'id': account.id, 'type': constant('App\\Entity\\Category::INVESTMENT') }) }}" class="btn bg-gradient-indigo" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-hand-holding-usd"></i> Investissement</a>
@@ -23,27 +25,23 @@
 
     <div class="row">
 
-    [[<pre>
-        {{ dump(itemsbyYear) }}
-    </pre>]]
-
         <div class="col-2">
             <div class="small-box bg-gradient-indigo">
-                <div class="inner"><h3>{{ mymacro.money(account.balance, account.currency, false) }}</h3><p>Valorisation</p></div>
+                <div class="inner"><h3>{{ mymacro.money(account.investValuation, account.currency, false) }}</h3><p>Valorisation</p></div>
                 <div class="icon"><i class="fas fa-euro-sign"></i></div>
             </div>
             <div class="small-box bg-gradient-info">
-                <div class="inner"><h3>{{ mymacro.money(account.balance-account.invested, account.currency, false) }}</h3><p>+/- values</p></div>
+                <div class="inner"><h3>{{ mymacro.money(account.investGain, account.currency, false) }}</h3><p>+/- values</p></div>
                 <div class="icon"><i class="fas fa-wave-square"></i></div>
             </div>
         </div>
         <div class="col-2">
-            <div class="small-box bg-gradient-{{ mymacro.perfcolor(account.performance) }}">
-                <div class="inner"><h3>{{ mymacro.pourcentage(account.performance, false) }}</h3><p>Performance</p></div>
+            <div class="small-box bg-gradient-{{ mymacro.perfcolor(account.investPerformance) }}">
+                <div class="inner"><h3>{{ mymacro.pourcentage(account.investPerformance, false) }}</h3><p>Performance</p></div>
                 <div class="icon"><i class="fas fa-chart-line"></i></div>
             </div>
             <div class="small-box bg-gradient-secondary">
-                <div class="inner"><h3>{{ mymacro.money(account.invested, account.currency, false) }}</h3><p>Montant investi</p></div>
+                <div class="inner"><h3>{{ mymacro.money(account.balance.investment, account.currency, false) }}</h3><p>Montant investi</p></div>
                 <div class="icon"><i class="fas fa-hand-holding-usd"></i></div>
             </div>
         </div>
@@ -163,6 +161,12 @@
                                         <a href="{{ path('transaction_create_wallet_stock', { 'id': account.id, 'stock': item.stock.id, 'type': constant('App\\Values\\StockPosition::SELLING') }) }}" class="btn btn-sm bg-gradient-green" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-minus"></i><span class="d-none d-md-inline">&nbsp;Vente<span></a>
                                         <a href="{{ path('transaction_create_wallet_stock', { 'id': account.id, 'stock': item.stock.id, 'type': constant('App\\Values\\StockPosition::DIVIDEND') }) }}" class="btn btn-sm bg-gradient-primary" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-file-invoice-dollar"></i><span class="d-none d-md-inline">&nbsp;Dividendes<span></a>
                                         <a href="{{ path('manage_stock__price_add', { 'id': item.stock.id }) }}" class="btn btn-sm bg-gradient-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-university"></i><span class="d-none d-md-inline">&nbsp;Cotation<span></a>
+                                        <div class="btn-group">
+                                            <a class="btn btn-sm btn-secondary dropdown-toggle" role="button" data-toggle="dropdown" aria-expanded="false"><i class="far fa-arrow-alt-circle-down"></i></a>
+                                            <div class="dropdown-menu">
+                                                <a href="{{ path('manage_stock__fusion', { 'id': account.id, 'stock': item.stock.id}) }}" class="dropdown-item" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-random"></i> Fusionner ce titre</a>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             {% endif %}
