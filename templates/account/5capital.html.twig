@@ -1,0 +1,124 @@
+{% extends 'account/layout.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+
+{% block operation_button %}
+    <div class="col-12">
+        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="btn-group mr-3" role="group" aria-label="transaction">
+                <a href="{{ path('capital_create', { 'id': account.id }) }}" class="btn bg-gradient-info text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Effectuer une valorisation</a>
+            </div>
+            <div class="btn-group mr-3" role="group" aria-label="transfer">
+                <a href="{{ path('transfer_create', { 'id': account.id, 'type': constant('App\\Entity\\Category::INVESTMENT') }) }}" class="btn bg-gradient-indigo" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-hand-holding-usd"></i> Investissement</a>
+                <a href="{{ path('transfer_create', { 'id': account.id, 'type': constant('App\\Entity\\Category::REPURCHASE') }) }}" class="btn bg-gradient-indigo" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-cart-arrow-down"></i> Rachat</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block recon_button %}{% endblock %}
+
+
+{% block content_account %}
+
+    <div class="row">
+
+        <div class="col-2">
+            <div class="small-box bg-gradient-indigo">
+                <div class="inner"><h3>{{ mymacro.money(account.investValuation, account.currency, false) }}</h3><p>Valorisation</p></div>
+                <div class="icon"><i class="fas fa-euro-sign"></i></div>
+            </div>
+            <div class="small-box bg-gradient-info">
+                <div class="inner"><h3>{{ mymacro.money(account.investGain, account.currency, false) }}</h3><p>+/- values</p></div>
+                <div class="icon"><i class="fas fa-wave-square"></i></div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="small-box bg-gradient-{{ mymacro.perfcolor(account.investPerformance) }}">
+                <div class="inner"><h3>{{ mymacro.pourcentage(account.investPerformance, false) }}</h3><p>Performance</p></div>
+                <div class="icon"><i class="fas fa-chart-line"></i></div>
+            </div>
+            <div class="small-box bg-gradient-secondary">
+                <div class="inner"><h3>{{ mymacro.money(account.balance.investment, account.currency, false) }}</h3><p>Montant investi</p></div>
+                <div class="icon"><i class="fas fa-hand-holding-usd"></i></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance glissante</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        {{ render_chart(charts.slippery, { style: 'height:250px;'}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par année</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        {{ render_chart(charts.year, { style: 'height:250px;'}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance globale</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        {{ render_chart(charts.month, { style: 'height:350px;'}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par année</h3>            
+                </div>
+                <div class="card-body table-responsive p-0">
+                    {{ mymacro.table_perf(account, itemsbyYear, 'Y', false, false) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par mois</h3>            
+                </div>
+                <div class="card-body table-responsive p-0">
+                    {{ mymacro.table_perf(account, itemsbyMonth, 'MMMM Y', true, true) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par trimestre</h3>            
+                </div>
+                <div class="card-body table-responsive p-0">
+                    {{ mymacro.table_perf(account, itemsbyQuarter, 'qqqq Y', false, false) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

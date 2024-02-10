@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+{% block title %}{{ parent() }} - Gérer les comptes et contrats{% endblock %}
+
+{% block content_title %}<i class="fas fa-piggy-bank"></i> Gérer les comptes{% endblock %}
+{% block content_subtitle %}(Contrat, épargne, capitalisation, ...){% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-12">
+
+            {% for key, byType in accounts %}
+                {% if byType.accounts is not empty %}
+                    <div class="card card-success card-outline">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="{{ byType.icon }}"></i> &nbsp; Liste des comptes {{ byType.label }}</h3>
+                            <div class="card-tools"><a href="{{ path('manage_account__create') }}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un compte</span></a></div>
+                        </div>
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-sm table-hover text-nowrap">
+                                <tr>
+                                    <th colspan="2">Organisme</th>
+                                    <th>Nom</th>
+                                    <th>Numéro</th>
+                                    <th class="text-center">Status</th>
+                                    {% if key < constant('App\\values\\AccountType::EPARGNE_FINANCIERE') %}<th class="text-right">Rapprochement</th>{% endif %}
+                                    <th class="text-right">Solde</th>
+                                    {% if key >= constant('App\\values\\AccountType::EPARGNE_A_TERME') %}<th class="text-right">Investissement</th>{% endif %}
+                                    {% if key >= constant('App\\values\\AccountType::EPARGNE_A_TERME') %}<th class="text-right">Rachat</th>{% endif %}
+                                    <th></th>
+                                </tr>
+                                <tbody>
+                                {% for item in byType.accounts %}
+                                    <tr>
+                                        <td class="text-center"><img src="{{ item.institution.logo }}" height="48"></td>
+                                        <td class="align-middle">{{ item.institution.name }}</td>
+                                        <td class="align-middle">{{ item.name }}</td>
+                                        <td class="align-middle">{{ item.number }}</td>
+                                        <td class="align-middle text-center">{{ item.statusBadge|raw }}</td>
+                                        {% if key < constant('App\\values\\AccountType::EPARGNE_FINANCIERE') %}<td class="align-middle text-right">{% if item.balance.reconBalance %}<i>{{ mymacro.money(item.balance.reconBalance, item.currency, false) }}</i>{% endif %}</td>{% endif %}
+                                        <td class="align-middle text-right"><b>{{ mymacro.money(item.balance.balance, item.currency) }}</b></td>
+                                        {% if key >= constant('App\\values\\AccountType::EPARGNE_A_TERME') %}<td class="align-middle text-right">{% if item.balance.investment != 0 %}{{ mymacro.money(item.balance.investment, item.currency, false) }}{% endif %}</td>{% endif %}
+                                        {% if key >= constant('App\\values\\AccountType::EPARGNE_A_TERME') %}<td class="align-middle text-right">{% if item.balance.repurchase != 0 %}{{ mymacro.money(item.balance.repurchase, item.currency, false) }}{% endif %}</td>{% endif %}
+                                        <td class="text-right align-middle">
+                                            <a href="{{ path('account_'~key~'_index', {'id': item.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i><span class="d-none d-md-inline">&nbsp;Voir<span></a>
+                                            <a href="{{ path('manage_account__edit', {'id': item.id}) }}" class="btn btn-sm btn-info"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                            <a href="{{ path('manage_account__balance', {'id': item.id}) }}" class="btn btn-sm btn-secondary"><i class="fas fa-sync"></i><span class="d-none d-md-inline">&nbsp;Recalcul<span></a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}

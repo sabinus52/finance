@@ -1,0 +1,62 @@
+{% import 'macro.html.twig' as mymacro %}
+
+<div class="my-custom-scrollbar">
+<table class="table table-sm table-hover text-nowrap">
+    <thead>
+        <tr>
+            <th class="text-center">Date</th>
+            <th>Mode</th>
+            <th>Bénéficiaire</th>
+            <th>Catégories</th>
+            <th>Etat</th>
+            <th class="text-right">Débit</th>
+            <th class="text-right">Crédit</th>
+            <th class="text-right">Solde</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for item in transactions %}
+        <tr{% if item.date|date('Y-m-d') > "now"|date("Y-m-d") %} class="font-italic"{% endif %}>
+            <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
+            <td><img src="{{ asset(item.payment.pathImage) }}" width="24"></td>
+            <td>
+            {% if item.transfer %}
+                {% if item.amount > 0 %}<i class="fas fa-angle-double-left"></i>{% else %}<i class="fas fa-angle-double-right"></i>{% endif %}
+                {{ item.transfer.account.name }}
+             {% else %}
+                {{ item.recipient.name }}
+            {% endif %}
+            </td>
+            <td>{{ item.category.fullName }}</td>
+            <td class="text-center">
+            {% if isReconcilied is defined %}
+                <div class="icheck-orange">
+                    <input type="checkbox" id="recon{{ item.id }}" name="reconciliation" data-remote="{{ path('reconciliation_check', { 'id': item.id }) }}" data-gab="#gab" {% if item.state == constant('STATE_RECONTEMP', item) %} checked="checked"{% endif %}>
+                    <label for="recon{{ item.id }}"></label>
+                </div>
+            {% else %}
+                {% if item.state == constant('STATE_RECONCILIED', item) %}<span class="text-primary"><i class="far fa-check-circle"></i></span>{% endif %}
+            {% endif %}
+            </td>
+            <td class="text-right text-red">{% if item.amount < 0 %}{{ mymacro.money(item.amount, account.currency, false) }}{% endif %}</td>
+            <td class="text-right text-green">{% if item.amount > 0 %}{{ mymacro.money(item.amount, account.currency, false) }}{% endif %}</td>
+            <td class="text-right">{{ mymacro.money(item.balance, account.currency, false) }}</td>
+            <td class="text-center text-info">{% if item.memo %}<i class="fas fa-info-circle" title="{{ item.memo }}"></i>{% endif %}</td>
+            <td class="text-right align-middle">
+            <a href="{{ path('transaction__clone', {'id': item.id}) }}" class="btn btn-sm btn-primary" data-toggle="olix-modal" data-target="#modalOlix" title="Cloner cette transaction"><i class="far fa-clone"></i></a>
+                {% if item.state != constant('STATE_RECONCILIED', item) %}
+                    <a href="{{ path('transaction__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalOlix" title="Modifier cette transaction"><i class="fas fa-edit"></i></a>
+                    <a href="{{ path('transaction__remove', {'id': item.id}) }}" class="btn btn-sm btn-danger" data-toggle="olix-modal" data-target="#modalOlix" title="Supprimer cette transaction"><i class="fas fa-trash"></i></a>
+                {% endif %}
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="3">Aucune opérations trouvées</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>

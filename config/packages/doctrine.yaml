@@ -2,6 +2,15 @@ doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
 
+        types:
+            account_type: App\Doctrine\Type\AccountTypeType
+            transaction_type: App\Doctrine\Type\TransactionTypeType
+            payment: App\Doctrine\Type\PaymentType
+            position: App\Doctrine\Type\StockPositionType
+            projectcat: App\Doctrine\Type\ProjectCategoryType
+            vehicle_type: App\Doctrine\Type\VehicleTypeType
+            fuel: App\Doctrine\Type\FuelType
+
         # IMPORTANT: You MUST configure your server version,
         # either here or in the DATABASE_URL env var (see .env file)
         #server_version: '13'

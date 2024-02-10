@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+{% block title %}{{ parent() }} - Tableau de bord{% endblock %}
+
+{% block content_title %}Tableau de bord{% endblock %}
+{% block content_subtitle %}{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <ul class="nav nav-pills nav-fill mb-3" id="pills-tab" role="tablist">
+        {% for key, item in accounts %}
+            <li class="nav-item" role="presentation">
+                {% set total = 0 %}
+                {% for groups in item %}{% for acc in groups %}{% set total = total + acc.balance.balance %}{% endfor %}{% endfor %}
+                <a class="nav-link{% if loop.first %} active{% endif %}" id="pills-{{ key }}-tab" data-toggle="pill" data-target="#pills-{{ key }}" role="tab" aria-controls="pills-{{ key }}" aria-selected="true" href="#">{{ units[key] }} : {{ mymacro.money(total, 'EUR', false) }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+        {% for key, item in accounts %}
+            <div class="tab-pane fade show{% if loop.first %} active{% endif %}" id="pills-{{ key }}" role="tabpanel" aria-labelledby="pills-{{ key }}-tab">
+            
+            <div class="row">
+                <div class="col-2">
+                    <div class="small-box bg-green">
+                        {% set total = 0 %}
+                        {% for groups in item %}{% for acc in groups %}{% set total = total + acc.balance.balance %}{% endfor %}{% endfor %}
+                        <div class="inner"><h3>{{ mymacro.money(total, 'EUR', false) }}</h3><p>Solde <em>{{ units[key] }}</em></p></div>
+                        <div class="icon"><i class="fas fa-euro-sign"></i></div>
+                    </div>
+                </div>
+
+                {% for group, groups in item %}
+                    <div class="col-2">
+                        <div class="small-box bg-lightblue">
+                            {% set total = 0 %}
+                            {% for account in groups %}{% set total = total + account.balance.balance %}{% endfor %}
+                            <div class="inner"><h3>{{ mymacro.money(total, 'EUR', false) }}</h3><p>{{ types[group].label }}</p></div>
+                            <div class="icon"><i class="{{ types[group].icon }}"></i></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+
+            
+            
+            
+            </div>
+        {% endfor %}
+        </div>
+
+
+        <div class="col-md-12">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Prochaines planifications</h3>
+                </div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-sm table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>Prochaine date</th>
+                                <th>Compte</th>
+                                <th>Tiers</th>
+                                <th class="text-right">Montant</th>
+                                <th>Catégorie</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in schedules %}
+                            <tr>
+                                <td class="text-center">{% if item.schedule %}{{ item.schedule.lastDateBadge|raw }}{% endif %}</td>
+                                <td><img src="{{ item.account.institution.logo }}" height="24"> {{ item.account.name }}</td>
+                                <td class="text-bold">{% if item.transfer %}<i class="fas fa-angle-double-right"></i> {{ item.transfer }}{% else %}{{ item.recipient }}{% endif %}</td>
+                                <td class="text-right text-bold {% if item.amount > 0 %}text-green{% else %}text-red{% endif %}">{{ mymacro.money(item.amount, item.account.currency, false) }}</td>
+                                <td>{{ item.category }}</td>
+                                <td class="text-right">
+                                    <a href="{{ path('schedule_valid', {'id': item.id}) }}" class="btn btn-sm btn-success" role="button" title="Valider"><i class="fas fa-check"></i></a>
+                                    <a href="{{ path('schedule_checkvalid', {'id': item.id}) }}" class="btn btn-sm btn-primary" role="button" data-toggle="olix-modal" data-target="#modalOlix" title="Editer et Valider"><i class="fas fa-edit"></i></a>
+                                    <a href="{{ path('schedule_skip', {'id': item.id}) }}" class="btn btn-sm btn-warning" role="button" title="Passer"><i class="fas fa-times"></i></a>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="3">Aucun éléments dans la table</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {% include '@OlixBackOffice/Include/modal.html.twig' with { title: "Chargement du formulaire" } %}
+
+{% endblock %}
+

@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+###> doctrine/doctrine-bundle ###
+  database:
+    image: mariadb:${MARIADB_VERSION:-10.9}
+    container_name: finance-bdd-devp
+    ports:
+      - ${MARIADB_PORT:-3306}:3306
+    environment:
+      MARIADB_DATABASE: ${MARIADB_BASE:-app}
+      # You should definitely change the password in production
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MARIADB_USER: ${MARIADB_USER:-app}
+      MARIADB_PASSWORD: ${MARIADB_PASS:-!ChangeMe!}
+    volumes:
+      - ./var/data:/var/lib/mysql:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+###< doctrine/doctrine-bundle ###
+

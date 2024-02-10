@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+
+{#% form_theme formRecon '@OlixBackOffice/Twig/form-theme-layout.html.twig' %#}
+
+{% import 'macro.html.twig' as mymacro %}
+
+{% block title %}{{ parent() }} - {{ account.fullName }}{% endblock %}
+
+{% block content_title %}<img src="{{ account.institution.logo }}" width="48"> {{ account.fullName }}{% endblock %}
+{% block content_subtitle %}{% endblock %}
+{% block content_breadcrumb %}
+    <div class="col-sm-2 offset-sm-4">
+        <div class="small-box bg-gradient-success" style="margin-bottom:0px;">
+            <div class="inner"><h4><b>{{ mymacro.money(account.balance.balance, account.currency, false) }}</b></h4></div>
+            <div class="icon"><i class="fas fa-coins" style="font-size:32px;top:10px;"></i></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style type="text/css">
+.my-custom-scrollbar {
+    position: relative;
+    height: 500px;
+    overflow: auto;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+
+
+</script>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="row p-2">
+            {% block operation_button %}{% endblock %}
+        </div>
+
+        {% block content_account %}{% endblock %}
+
+        {% block transactions %}
+            <div class="row">
+                <div class="col-md-12">
+
+                    <div class="card card-outline" style="">
+
+                        {% block transaction_filter %}
+                            <div class="card-header">
+                                {% form_theme form.filter '@OlixBackOffice/Twig/form-theme-horizontal-layout.html.twig' %}
+                                {{ form_start(form.filter, { 'action': path('account_get_transaction', { 'id': account.id }), 'attr': { 'class': 'filter' }}) }}
+                                    <div class="row">
+                                        <div class="col-md-6">{{ form_row(form.filter.range) }}</div>
+                                        <div class="col-md-6">{{ form_row(form.filter.state) }}</div>
+                                    </div>
+                                {{ form_end(form.filter) }}
+                            </div>
+                        {% endblock %}
+
+                        <div class="card-body table-responsive p-0">
+                            <div class="my-custom-scrollbar">
+                            {% if transactions is defined %}
+                                {% include "account/transaction-table.html.twig" %}
+                            {% else %}
+                                <table class="table table-sm table-hover text-nowrap">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Mode</th>
+                                            <th>Bénéficiaire</th>
+                                            <th>Catégories</th>
+                                            <th>Etat</th>
+                                            <th>Débit</th>
+                                            <th>Crédit</th>
+                                            <th>Solde</th>
+                                            <th>Mémo</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            {% endif %}
+                            </div>
+                        </div>
+                        <!-- <div class="overlay dark">
+                            <i class="fas fa-10x fa-spinner fa-spin"></i>
+                        </div> -->
+                    </div>
+
+                </div>
+            </div>
+        {% endblock %}
+
+    </div>
+
+    {% include '@OlixBackOffice/Include/modal.html.twig' %}
+
+{% endblock %}

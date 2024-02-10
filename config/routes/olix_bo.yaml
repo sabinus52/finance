@@ -1,0 +1,2 @@
+olix_bo:
+    resource: '@OlixBackOfficeBundle/config/routing.yml'

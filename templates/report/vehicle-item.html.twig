@@ -1,0 +1,254 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+{% block title %}{{ parent() }} - Coût des dépenses sur les véhicules{% endblock %}
+
+{% block content_title %}<i class="fas fa-car"></i> Coût des dépenses sur les véhicules{% endblock %}
+{% block content_subtitle %}(auto / moto){% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-4">
+                <div class="small-box bg-green">
+                    <div class="inner">
+                        <h3>{{ vehicle.name }}</h3>
+                        <p><strong>{{ report.mileage|number_format(0, '.', ' ') }} km</strong> durant <strong>{{ report.period.y }} ans {{ report.period.m }} mois {{ report.period.d }} jours</strong></p>
+                    </div>
+                    <div class="icon"><i class="{{ report.vehicle.type.icon }}"></i></div>
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="small-box bg-red">
+                    <div class="inner">
+                        <h3>{{ mymacro.money(report.totalCost|abs, 'EUR', false) }}</h3>
+                        <p>Coût total</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-euro-sign"></i></div>
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="small-box bg-indigo">
+                    <div class="inner">
+                        <h3>{{ mymacro.money(report.totalCostByKm|abs, 'EUR', false) }}</h3>
+                        <p>Coût par km (<strong>{{ report.mileage|number_format(0, '.', ' ') }} km</strong>)</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-road"></i></div>
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="small-box bg-purple">
+                    <div class="inner">
+                        <h3>{{ mymacro.money(report.totalCostByDay|abs, 'EUR', false) }}</h3>
+                        <p>Coût par jour (<strong>{{ report.numberDays }} jours</strong>)</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-calendar-day"></i></div>
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="small-box bg-orange">
+                    <div class="inner">
+                        <h3>{{ report.consumption|number_format(1, ',') }} L<sub> / 100 km</sub></h3>
+                        <p>Consommation moyenne</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-gas-pump"></i></div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-pink"><i class="{{ report.vehicle.type.icon }}"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Coût du financement du véhicule</span>
+                        <span class="info-box-number">{{ mymacro.money(report.cost.funding|abs, 'EUR', false) }}</span>
+                        <div class="progress"><div class="progress-bar bg-pink" style="width: {{ (report.cost.funding / report.totalCost * 100)|abs|round }}%"></div></div>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <span class="info-box-icon bg-olive"><i class="fas fa-gas-pump"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Coût du carburant</span>
+                        <span class="info-box-number">{{ mymacro.money(report.cost.fuel|abs, 'EUR', false) }}</span>
+                        <div class="progress"><div class="progress-bar bg-olive" style="width: {{ (report.cost.fuel / report.totalCost * 100)|abs|round }}%"></div></div>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <span class="info-box-icon bg-purple"><i class="fas fa-tools"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Coût d'entretien</span>
+                        <span class="info-box-number">{{ mymacro.money(report.cost.repair|abs, 'EUR', false) }}</span>
+                        <div class="progress"><div class="progress-bar bg-purple" style="width: {{ (report.cost.repair / report.totalCost * 100)|abs|round }}%"></div></div>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <span class="info-box-icon bg-secondary"><i class="fas fa-receipt"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Coût divers</span>
+                        <span class="info-box-number">{{ mymacro.money(report.cost.other|abs, 'EUR', false) }}</span>
+                        <div class="progress"><div class="progress-bar bg-secondary" style="width: {{ (report.cost.other / report.totalCost * 100)|abs|round }}%"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-5">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-calendar-alt"></i> &nbsp; Coûts par année</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart">{{ render_chart(chart.costbyyear, { style: 'height:320px;'}) }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card card-olive">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-gas-pump"></i> &nbsp; Coûts du carburant</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless table-sm">
+                            <tbody>
+                                <tr>
+                                    <td><i class="fas fa-road"></i> &nbsp; Distance moyenne</td>
+                                    <td class="text-bold">{{ report.fuelAverageDistance|number_format(0) }} km</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-glass-whiskey"></i> &nbsp; Quantité moyenne</td>
+                                    <td class="text-bold">{{ report.fuelAverageVolume|number_format(0) }} l</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-euro-sign"></i> &nbsp; Coût moyen</td>
+                                    <td class="text-bold">{{ mymacro.money(report.fuelAverageCost|abs, 'EUR', false) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-burn"></i> &nbsp; Prix moyen du litre</td>
+                                    <td class="text-bold">{{ mymacro.money(report.fuelAveragePrice|abs, 'EUR', false) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-burn"></i> &nbsp; Plein par mois</td>
+                                    <td class="text-bold">{{ report.fuelNumberByMonth|number_format(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-burn"></i> &nbsp; Nombre de pleins</td>
+                                    <td class="text-bold">{{ report.fuelNumber }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-road"></i> &nbsp; Coût carburant au km</td>
+                                    <td class="text-bold">{{ mymacro.money(report.fuelCostByKm|abs, 'EUR', false) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-calendar-day"></i> &nbsp; Coût carburant par jour</td>
+                                    <td class="text-bold">{{ mymacro.money(report.fuelCostByDay|abs, 'EUR', false) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-calendar-alt"></i> &nbsp; Coût carburant par mois</td>
+                                    <td class="text-bold">{{ mymacro.money(report.fuelCostByMonth|abs, 'EUR', false) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-primary card-tabs">
+                    <div class="card-header p-0 pt-1">
+                        <ul class="nav nav-tabs" id="charts-tabs" role="tablist">
+                            <li class="nav-item"><a class="nav-link active" id="charts-tabs-cons-tab" data-toggle="pill" href="#charts-tabs-cons" role="tab" aria-controls="charts-tabs-cons" aria-selected="true">Consommation moyenne</a></li>
+                            <li class="nav-item"><a class="nav-link" id="charts-tabs-price-tab" data-toggle="pill" href="#charts-tabs-price" role="tab" aria-controls="charts-tabs-price" aria-selected="false">Evolution du prix au litre</a></li>
+                            <li class="nav-item"><a class="nav-link" id="charts-tabs-bymonth-tab" data-toggle="pill" href="#charts-tabs-bymonth" role="tab" aria-controls="charts-tabs-bymonth" aria-selected="false">Frais carburant par mois</a></li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <div class="tab-pane fade active show" id="charts-tabs-cons" role="tabpanel" aria-labelledby="charts-tabs-cons-tab">
+                                <div class="chart">{{ render_chart(chart.consumption, { style: 'height:350px;'}) }}</div>
+                            </div>
+                            <div class="tab-pane fade" id="charts-tabs-price" role="tabpanel" aria-labelledby="charts-tabs-price-tab">
+                                <div class="chart" style="height:350px">{{ render_chart(chart.price) }}</div>
+                            </div>
+                            <div class="tab-pane fade" id="charts-tabs-bymonth" role="tabpanel" aria-labelledby="charts-tabs-bymonth-tab">
+                                <div class="chart" style="height:350px">{{ render_chart(chart.costbymonth) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="far fa-list-alt"></i> &nbsp; Liste des opérations</h3>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-sm table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Date</th>
+                                    <th>Bénéficiaire</th>
+                                    <th>Catégories</th>
+                                    <th class="text-right">Kilométrage</th>
+                                    <th class="text-right">Volume</th>
+                                    <th class="text-right">Prix</th>
+                                    <th class="text-right">Montant</th>
+                                    <th class="text-right">Distance</th>
+                                    <th class="text-right">100 km</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% set lastkm = vehicle.kilometer %}
+                            {% for item in transactions %}
+                                <tr>
+                                {% if item.category.code == constant('App\\Entity\\Category::CARBURANT') %}
+                                    <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
+                                    <td>{{ item.recipient.name }}</td>
+                                    <td>{{ item.category.fullName }}</td>
+                                    <td class="text-right">{{ item.transactionvehicle.distance }} km</td>
+                                    <td class="text-right">{{ item.transactionvehicle.volume }} l</td>
+                                    {% set costL = item.amount|abs / item.transactionvehicle.volume %}
+                                    <td class="text-right {% if costL > report.fuelAveragePrice * 1.1 %}text-red{% elseif costL < report.fuelAveragePrice * 0.9 %}text-green{% else %}text-yellow{% endif %}">{{ mymacro.money(costL, 'EUR', false) }}</td>
+                                    <td class="text-right text-red text-bold">{{ mymacro.money(item.amount|abs, 'EUR', false) }}</td>
+                                    <td class="text-right">{{ item.transactionvehicle.distance - lastkm }} km</td>
+                                    {% set cost100k = item.transactionvehicle.volume / (item.transactionvehicle.distance - lastkm) * 100 %}
+                                    <td class="text-right {% if cost100k > report.consumption * 1.1 %}text-red{% elseif cost100k < report.consumption * 0.9 %}text-green{% else %}text-yellow{% endif %}">{{ cost100k|number_format(2) }} l</td>
+                                    {% set lastkm = item.transactionvehicle.distance %}
+                                {% else %}
+                                    <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
+                                    <td>{{ item.recipient.name }}</td>
+                                    <td>{{ item.category.fullName }}</td>
+                                    <td class="text-right">{% if item.transactionvehicle.distance %}{{ item.transactionvehicle.distance }} km{% endif %}</td>
+                                    <td class="text-right"></td>
+                                    <td class="text-right"></td>
+                                    <td class="text-right {% if item.amount > 0 %}text-green{% else %}text-red{% endif %} text-bold">{{ mymacro.money(item.amount|abs, 'EUR', false) }}</td>
+                                    <td class="text-right"></td>
+                                    <td class="text-right"></td>
+                                {% endif %}
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="3">Aucune opérations trouvées</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}

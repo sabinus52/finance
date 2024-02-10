@@ -1,0 +1,266 @@
+{% extends 'account/layout.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+
+{% block operation_button %}
+    <div class="col-12">
+        <div class="btn-toolbar" role="toolbar" aria-label="toolbar">
+            <div class="btn-group mr-3" role="group" aria-label="transaction">
+                <a href="{{ path('transaction_create_wallet', { 'id': account.id, 'type': constant('App\\Values\\StockPosition::BUYING') }) }}" class="btn bg-gradient-success text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Achat</a>
+                <a href="{{ path('transaction_create_wallet', { 'id': account.id, 'type': constant('App\\Values\\StockPosition::SELLING') }) }}" class="btn bg-gradient-danger text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Vente</a>
+            </div>
+            <div class="btn-group mr-3" role="group" aria-label="dividende">
+                <a href="{{ path('transaction_create_wallet', { 'id': account.id, 'type': constant('App\\Values\\StockPosition::DIVIDEND') }) }}" class="btn bg-gradient-primary text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Dividendes</a>
+            </div>
+            <div class="btn-group mr-3" role="group" aria-label="transfer">
+                <a href="{{ path('transfer_create', { 'id': account.id, 'type': constant('App\\Entity\\Category::INVESTMENT') }) }}" class="btn bg-gradient-indigo" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-hand-holding-usd"></i> Investissement</a>
+                <a href="{{ path('transfer_create', { 'id': account.id, 'type': constant('App\\Entity\\Category::REPURCHASE') }) }}" class="btn bg-gradient-indigo" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-cart-arrow-down"></i> Rachat</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content_account %}
+
+    <div class="row">
+
+        <div class="col-2">
+            <div class="small-box bg-gradient-indigo">
+                <div class="inner"><h3>{{ mymacro.money(account.investValuation, account.currency, false) }}</h3><p>Valorisation</p></div>
+                <div class="icon"><i class="fas fa-euro-sign"></i></div>
+            </div>
+            <div class="small-box bg-gradient-info">
+                <div class="inner"><h3>{{ mymacro.money(account.investGain, account.currency, false) }}</h3><p>+/- values</p></div>
+                <div class="icon"><i class="fas fa-wave-square"></i></div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="small-box bg-gradient-{{ mymacro.perfcolor(account.investPerformance) }}">
+                <div class="inner"><h3>{{ mymacro.pourcentage(account.investPerformance, false) }}</h3><p>Performance</p></div>
+                <div class="icon"><i class="fas fa-chart-line"></i></div>
+            </div>
+            <div class="small-box bg-gradient-secondary">
+                <div class="inner"><h3>{{ mymacro.money(account.balance.investment, account.currency, false) }}</h3><p>Montant investi</p></div>
+                <div class="icon"><i class="fas fa-hand-holding-usd"></i></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance glissante</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        {{ render_chart(charts.slippery, { style: 'height:250px;'}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par année</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        {{ render_chart(charts.year, { style: 'height:250px;'}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance globale</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        {{ render_chart(charts.month, { style: 'height:350px;'}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par année</h3>            
+                </div>
+                <div class="card-body table-responsive p-0">
+                    {{ mymacro.table_perf(account, itemsbyYear, 'Y', true, true) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par mois</h3>            
+                </div>
+                <div class="card-body table-responsive p-0">
+                    {{ mymacro.table_perf(account, itemsbyMonth, 'MMMM Y', true, true) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Performance par trimestre</h3>            
+                </div>
+                <div class="card-body table-responsive p-0">
+                    {{ mymacro.table_perf(account, itemsbyQuarter, 'qqqq Y', false, false) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card card-outline" style="">
+                <div class="card-body table-responsive p-0">
+                    <div id="tableTransactions">
+                        <table class="table table-sm table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Titres</th>
+                                    <th class="align-middle text-right">Volume</th>
+                                    <th class="align-middle text-right">Cours</th>
+                                    <th class="align-middle text-right">Prix de revient</th>
+                                    <th class="align-middle text-right">Investi</th>
+                                    <th class="align-middle text-right">Gain sur cours</th>
+                                    <th class="align-middle text-right">Dividendes</th>
+                                    <th class="align-middle text-right">Gain total</th>
+                                    <th class="align-middle text-right">Rendement</th>
+                                    <th class="align-middle text-right">Commissions</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in wallet.wallet %}
+                            {% if item.volume > 0 %}
+                                <tr>
+                                    <td><strong>{{ item.stock.name }}</strong><br><small>{{ item.stock.codeISIN }}</small></td>
+                                    <td class="align-middle text-right">{{ item.volume }}</td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.price, account.currency, false) }} <br><small>({{ item.priceDate|date("d/m/Y") }})</small></td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.invest / item.volume, account.currency, false) }}</td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.invest, account.currency, false) }}</td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.gainOnCost, account.currency, true) }}</td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.dividend, account.currency, false) }}</td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.gainTotal, account.currency, true) }}</td>
+                                    <td class="align-middle text-right">{{ mymacro.pourcentage(item.performance, true) }}</td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.fee, account.currency, false) }}</td>
+                                    <td class="align-middle text-right">
+                                        <a href="{{ path('transaction_create_wallet_stock', { 'id': account.id, 'stock': item.stock.id, 'type': constant('App\\Values\\StockPosition::BUYING') }) }}" class="btn btn-sm bg-gradient-red" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i><span class="d-none d-md-inline">&nbsp;Achat<span></a>
+                                        <a href="{{ path('transaction_create_wallet_stock', { 'id': account.id, 'stock': item.stock.id, 'type': constant('App\\Values\\StockPosition::SELLING') }) }}" class="btn btn-sm bg-gradient-green" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-minus"></i><span class="d-none d-md-inline">&nbsp;Vente<span></a>
+                                        <a href="{{ path('transaction_create_wallet_stock', { 'id': account.id, 'stock': item.stock.id, 'type': constant('App\\Values\\StockPosition::DIVIDEND') }) }}" class="btn btn-sm bg-gradient-primary" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-file-invoice-dollar"></i><span class="d-none d-md-inline">&nbsp;Dividendes<span></a>
+                                        <a href="{{ path('manage_stock__price_add', { 'id': item.stock.id }) }}" class="btn btn-sm bg-gradient-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-university"></i><span class="d-none d-md-inline">&nbsp;Cotation<span></a>
+                                        <div class="btn-group">
+                                            <a class="btn btn-sm btn-secondary dropdown-toggle" role="button" data-toggle="dropdown" aria-expanded="false"><i class="far fa-arrow-alt-circle-down"></i></a>
+                                            <div class="dropdown-menu">
+                                                <a href="{{ path('manage_stock__fusion', { 'id': account.id, 'stock': item.stock.id}) }}" class="dropdown-item" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-random"></i> Fusionner ce titre</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="card card-outline" style="">
+                <div class="card-body table-responsive p-0">
+                    <div id="tableTransactions" class="my-custom-scrollbar">
+                        <table class="table table-sm table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Titres</th>
+                                    <th>Position</th>
+                                    <th class="align-middle text-right">Volume</th>
+                                    <th class="align-middle text-right">Prix</th>
+                                    <th class="align-middle text-right">Comissions</th>
+                                    <th class="align-middle text-right">Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in operations %}
+                                <tr>
+                                    <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
+                                    <td>{{ item.transactionStock.stock.name }}</td>
+                                    <td>{{ item.transactionStock.position }}</td>
+                                    <td class="align-middle text-right">{{ item.transactionStock.volume }}</td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.transactionStock.price, account.currency, false) }}</td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.transactionStock.fee, account.currency, false) }}</td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.amount, account.currency) }}</td>
+                                    <td></td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="3">Aucune opérations trouvées</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="card card-outline" style="">
+                <div class="card-body table-responsive p-0">
+                    <div id="tableTransactions" class="my-custom-scrollbar">
+                        <table class="table table-sm table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Mode</th>
+                                    <th>Cetégorie</th>
+                                    <th class="align-middle text-right">Débit</th>
+                                    <th class="align-middle text-right">Crédit</th>
+                                    <th class="align-middle text-right">Solde</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in results %}
+                                <tr>
+                                    <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
+                                    <td>{{ item.type.value }}</td>
+                                    <td>{{ item.category }}</td>
+                                    <td class="align-middle text-right">{% if item.amount <= 0 %}{{ mymacro.money(item.amount, account.currency) }}{% endif %}</td>
+                                    <td class="align-middle text-right">{% if item.amount > 0 %}{{ mymacro.money(item.amount, account.currency) }}{% endif %}</td>
+                                    <td class="align-middle text-right">{{ mymacro.money(item.balance, account.currency, false) }}</td>
+                                    <td></td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="3">Aucune opérations trouvées</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block transactions %}{% endblock %}

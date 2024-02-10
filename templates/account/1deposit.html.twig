@@ -1,0 +1,24 @@
+{% extends 'account/layout.html.twig' %}
+
+{% block operation_button %}
+    <div class="col-12">
+        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="btn-group mr-3" role="group" aria-label="transaction">
+                <a href="{{ path('transaction_create_bytype', { 'id': account.id, 'type': constant('App\\Entity\\Category::INCOME') }) }}" class="btn bg-gradient-olive text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus-square"></i> Crédit</a>
+                <a href="{{ path('transaction_create_bytype', { 'id': account.id, 'type': constant('App\\Entity\\Category::EXPENSE')|default(0) }) }}" class="btn bg-gradient-maroon text-bold" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-minus-square"></i> Débit</a>
+            </div>
+            <div class="btn-group mr-3" role="group" aria-label="transfer">
+                <a href="{{ path('transfer_create', { 'id': account.id, 'type': constant('App\\Entity\\Category::VIREMENT') }) }}" class="btn bg-gradient-indigo" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-exchange-alt"></i> Virement</a>
+                <a href="{{ path('transfer_create', { 'id': account.id, 'type': constant('App\\Entity\\Category::INVESTMENT') }) }}" class="btn bg-gradient-indigo" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-hand-holding-usd"></i> Investissement</a>
+            </div>
+            <div class="btn-group mr-3" role="group" aria-label="vehicle">
+                <a href="{{ path('transaction_create_vehicle', { 'id': account.id, 'type': constant('App\\Entity\\Category::CARBURANT') }) }}" class="btn bg-gradient-pink" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-gas-pump"></i> Carburant</a>
+                <a href="{{ path('transaction_create_vehicle', { 'id': account.id, 'type': constant('App\\Entity\\Category::VEHICULEREPAIR') }) }}" class="btn bg-gradient-pink" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-wrench"></i> Entretien</a>
+                <a href="{{ path('transaction_create_vehicle', { 'id': account.id, 'type': 'ALL' }) }}" class="btn bg-gradient-pink" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-car"></i> Véhicule</a>
+            </div>
+            <div class="btn-group" role="group" aria-label="reconciliation">
+                <a href="{{ path('reconciliation_create', { 'id': account.id }) }}" class="btn bg-gradient-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-check-circle"></i> Rapprochement</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
