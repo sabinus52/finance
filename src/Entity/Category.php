@@ -21,11 +21,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Category (Catégories des opérations).
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=CategoryRepository::class)
- *
- * @ORM\HasLifecycleCallbacks
  */
+#[ORM\Entity(repositoryClass: CategoryRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Category implements \Stringable
 {
     final public const RECETTES = true;
@@ -77,82 +75,67 @@ class Category implements \Stringable
         self::STOCKTRANSAC => ['Achat titres', 'Vente titres'], // Achat et vente titres boursiers
     ];
 
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Code de la catégorie pour reconnaitre les virements internes ou la catégorie essence.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=4, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 4, nullable: true)]
     private $code;
 
     /**
      * Nom de la catégorie.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=100)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(max=100)
      */
+    #[ORM\Column(type: 'string', length: 100)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     private $name;
 
     /**
      * Type (recettes=1 ou dépenses=0).
      *
      * @var bool
-     *
-     * @ORM\Column(type="smallint")
      */
+    #[ORM\Column(type: 'smallint')]
     private $type;
 
     /**
      * Niveau de la hiérarchie.
      *
      * @var int
-     *
-     * @ORM\Column(type="smallint")
      */
+    #[ORM\Column(type: 'smallint')]
     private $level;
 
     /**
      * Catégorie parente.
      *
      * @var Category
-     *
-     * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="children")
-     *
-     * @ORM\JoinColumn(referencedColumnName="id", onDelete="CASCADE")
      */
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
+    #[ORM\JoinColumn(referencedColumnName: 'id', onDelete: 'CASCADE')]
     private $parent;
 
     /**
      * Catégories enfants.
      *
      * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=Category::class, mappedBy="parent")
-     *
-     * @ORM\OrderBy({"name": "ASC"})
      */
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    #[ORM\OrderBy(['name' => 'ASC'])]
     private $children;
 
     /**
      * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="category")
      */
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'category')]
     private $transactions;
 
     public function __construct()
@@ -320,11 +303,8 @@ class Category implements \Stringable
         return ($this->type) ? '+' : '-';
     }
 
-    /**
-     * @ORM\PrePersist
-     *
-     * @ORM\PreUpdate
-     */
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
     public function setTree(): void
     {
         $this->level = 1;

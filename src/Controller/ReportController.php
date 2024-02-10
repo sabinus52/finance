@@ -36,9 +36,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ReportController extends AbstractController
 {
-    /**
-     * @Route("/rapports/capitalisation", name="report_capital")
-     */
+    #[Route(path: '/rapports/capitalisation', name: 'report_capital')]
     public function indexCapital(AccountRepository $repository, TransactionRepository $repoTransac): Response
     {
         $total = new Account();
@@ -135,9 +133,7 @@ class ReportController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/rapports/capacite-epargne", name="report_capacity")
-     */
+    #[Route(path: '/rapports/capacite-epargne', name: 'report_capacity')]
     public function indecCapacity(TransactionRepository $repository): Response
     {
         $now = new \DateTimeImmutable();

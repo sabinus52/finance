@@ -30,9 +30,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ProjectController extends AbstractController
 {
-    /**
-     * @Route("/manage/project", name="manage_project__index")
-     */
+    #[Route(path: '/manage/project', name: 'manage_project__index')]
     public function index(ProjectRepository $repository): Response
     {
         return $this->render('manage/project-index.html.twig', [
@@ -40,9 +38,7 @@ class ProjectController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/project/infos/{id}", name="manage_project__item")
-     */
+    #[Route(path: '/manage/project/infos/{id}', name: 'manage_project__item')]
     public function seeDatasItem(Project $project, TransactionRepository $repository): Response
     {
         $categories = [];
@@ -86,9 +82,7 @@ class ProjectController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/project/create", name="manage_project__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/project/create', name: 'manage_project__create', methods: ['GET', 'POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $project = new Project();
@@ -111,9 +105,7 @@ class ProjectController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/project/edit/{id}", name="manage_project__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/project/edit/{id}', name: 'manage_project__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Project $project, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(ProjectFormType::class, $project);
@@ -134,9 +126,7 @@ class ProjectController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/project/transaction/{id}/add", name="manage_project__addtrt", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/project/transaction/{id}/add', name: 'manage_project__addtrt', methods: ['GET', 'POST'])]
     public function addTransaction(Request $request, Project $project, TransactionRepository $repository, EntityManagerInterface $entityManager): Response
     {
         $transactions = $request->get('transaction');
@@ -151,9 +141,7 @@ class ProjectController extends AbstractController
         return new Response('rrrrez  rereerz'.$result);
     }
 
-    /**
-     * @Route("/manage/project/transaction/{id}/remove/{transaction}", name="manage_project__deltrt", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/project/transaction/{id}/remove/{transaction}', name: 'manage_project__deltrt', methods: ['GET', 'POST'])]
     public function removeTransaction(Request $request, Project $project, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createFormBuilder()->getForm();

@@ -15,49 +15,38 @@ use App\Repository\TransactionVehicleRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Entity(repositoryClass=TransactionVehicleRepository::class)
- */
+#[ORM\Entity(repositoryClass: TransactionVehicleRepository::class)]
 class TransactionVehicle
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Véhicule associé.
      *
      * @var Vehicle
-     *
-     * @ORM\ManyToOne(targetEntity=Vehicle::class, inversedBy="transactionVehicles")
-     *
-     * @ORM\JoinColumn(nullable=false)
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\ManyToOne(targetEntity: Vehicle::class, inversedBy: 'transactionVehicles')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
     private $vehicle;
 
     /**
      * Kilométrage.
      *
      * @var int
-     *
-     * @ORM\Column(type="integer", nullable=true)
      */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $distance;
 
     /**
      * Volume d'essence.
      *
      * @var float
-     *
-     * @ORM\Column(type="float", nullable=true)
      */
+    #[ORM\Column(type: 'float', nullable: true)]
     private $volume;
 
     public function getId(): ?int

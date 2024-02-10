@@ -64,9 +64,8 @@ class BaseController extends AbstractController
 
     /**
      * Retourne la page de la liste des transactions filtrées.
-     *
-     * @Route("/account/{id}/transactions/ajax", name="account_get_transaction")
      */
+    #[Route(path: '/account/{id}/transactions/ajax', name: 'account_get_transaction')]
     public function getListTransactionAjax(Request $request, TransactionRepository $repository, Account $account): Response
     {
         // Récupération des informations du formulaire du filtre

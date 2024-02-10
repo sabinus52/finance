@@ -23,122 +23,100 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Vehicle (Compta sur les véhicules).
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=VehicleRepository::class)
  */
+#[ORM\Entity(repositoryClass: VehicleRepository::class)]
 class Vehicle implements \Stringable
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Marque du véhicule.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=20)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(max=20)
      */
+    #[ORM\Column(type: 'string', length: 20)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 20)]
     private $brand;
 
     /**
      * Modèle du véhicule.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=20)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(max=20)
      */
+    #[ORM\Column(type: 'string', length: 20)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 20)]
     private $model;
 
     /**
      * Type de véhicule.
      *
      * @var VehicleType
-     *
-     * @ORM\Column(type="vehicle_type")
      */
+    #[ORM\Column(type: 'vehicle_type')]
     private $type;
 
     /**
      * Immatriculation.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=10, nullable=true)
-     *
-     * @Assert\Length(max=10)
      */
+    #[ORM\Column(type: 'string', length: 10, nullable: true)]
+    #[Assert\Length(max: 10)]
     private $matriculation;
 
     /**
      * Type de carburant.
      *
      * @var Fuel
-     *
-     * @ORM\Column(type="fuel")
      */
+    #[ORM\Column(type: 'fuel')]
     private $fuel;
 
     /**
      * Date de 1ère circulation.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date", nullable=true)
      */
+    #[ORM\Column(type: 'date', nullable: true)]
     private $registeredAt;
 
     /**
      * Kilométrage d'achat.
      *
      * @var int
-     *
-     * @ORM\Column(type="integer", options={"default": 0})
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    #[Assert\NotBlank]
     private $kilometer;
 
     /**
      * Date d'achat.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'date')]
+    #[Assert\NotBlank]
     private $boughtAt;
 
     /**
      * Date de vente.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date", nullable=true)
      */
+    #[ORM\Column(type: 'date', nullable: true)]
     private $soldAt;
 
     /**
      * Liste des transactions associés.
      *
      * @var Collection
-     *
-     * @ORM\OneToMany(targetEntity=TransactionVehicle::class, mappedBy="vehicle", orphanRemoval=true)
      */
+    #[ORM\OneToMany(targetEntity: TransactionVehicle::class, mappedBy: 'vehicle', orphanRemoval: true)]
     private $transactionVehicles;
 
     public function __construct()

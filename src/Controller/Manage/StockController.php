@@ -39,9 +39,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class StockController extends AbstractController
 {
-    /**
-     * @Route("/manage/stock", name="manage_stock__index")
-     */
+    #[Route(path: '/manage/stock', name: 'manage_stock__index')]
     public function index(StockRepository $repository): Response
     {
         return $this->render('manage/stock-index.html.twig', [
@@ -49,9 +47,7 @@ class StockController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/stock/create", name="manage_stock__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/stock/create', name: 'manage_stock__create', methods: ['GET', 'POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $stock = new Stock();
@@ -74,9 +70,7 @@ class StockController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/stock/edit/{id}", name="manage_stock__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/stock/edit/{id}', name: 'manage_stock__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Stock $stock, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(StockFormType::class, $stock);
@@ -97,9 +91,7 @@ class StockController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/stock/prices/{id}", name="manage_stock__prices", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/stock/prices/{id}', name: 'manage_stock__prices', methods: ['GET', 'POST'])]
     public function seeListPrices(Stock $stock, StockPriceRepository $repository): Response
     {
         $prices = $repository->findByStock($stock, ['date' => 'DESC']); /** @phpstan-ignore-line */
@@ -117,9 +109,7 @@ class StockController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/stock/prices/{id}/create", name="manage_stock__price_add", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/stock/prices/{id}/create', name: 'manage_stock__price_add', methods: ['GET', 'POST'])]
     public function createPrice(Request $request, Stock $stock, EntityManagerInterface $entityManager, StockPriceRepository $repository): Response
     {
         // Recherche la dernière cotation
@@ -154,9 +144,7 @@ class StockController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/stock/prices/update/{id}", name="manage_stock__price_upd", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/stock/prices/update/{id}', name: 'manage_stock__price_upd', methods: ['GET', 'POST'])]
     public function updatePrice(Request $request, StockPrice $stockPrice, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(StockPriceFormType::class, $stockPrice);
@@ -181,9 +169,8 @@ class StockController extends AbstractController
 
     /**
      * Création de la fusion d'un titre boursier.
-     *
-     * @Route("/account/{id}/fusion/stock/{stock}", name="manage_stock__fusion", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/fusion/stock/{stock}', name: 'manage_stock__fusion', methods: ['GET', 'POST'])]
     public function fusion(Request $request, Account $account, Stock $stock, EntityManagerInterface $entityManager, StockPriceRepository $repository): Response
     {
         $form = $this->createForm(StockFusionFormType::class, $stock);

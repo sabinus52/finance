@@ -37,9 +37,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ModelController extends AbstractController
 {
-    /**
-     * @Route("/manage/model", name="manage_model__index")
-     */
+    #[Route(path: '/manage/model', name: 'manage_model__index')]
     public function index(ModelRepository $repository): Response
     {
         return $this->render('manage/model-index.html.twig', [
@@ -47,9 +45,7 @@ class ModelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/model/create/{type}", name="manage_model__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/create/{type}', name: 'manage_model__create', methods: ['GET', 'POST'])]
     public function create(Request $request, string $type, EntityManagerInterface $entityManager): Response
     {
         $model = $this->createModel($entityManager, $type);
@@ -72,9 +68,7 @@ class ModelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/model/edit/{id}", name="manage_model__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/edit/{id}', name: 'manage_model__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $form = $this->getFormModel($model, $model->getAmount() > 0);
@@ -95,9 +89,7 @@ class ModelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/account/model/remove/{id}", name="manage_model__remove", methods={"GET", "POST"})
-     */
+    #[Route(path: '/account/model/remove/{id}', name: 'manage_model__remove', methods: ['GET', 'POST'])]
     public function remove(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createFormBuilder()->getForm();
@@ -117,9 +109,7 @@ class ModelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/model/schedule/{id}", name="manage_model__schedule", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/schedule/{id}', name: 'manage_model__schedule', methods: ['GET', 'POST'])]
     public function updateSchedule(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
@@ -145,9 +135,7 @@ class ModelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/model/schedule/enable/{id}", name="manage_model__schedule_enable", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/schedule/enable/{id}', name: 'manage_model__schedule_enable', methods: ['GET', 'POST'])]
     public function enableSchedule(Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
@@ -168,9 +156,7 @@ class ModelController extends AbstractController
         return $this->redirectToRoute('manage_model__index');
     }
 
-    /**
-     * @Route("/manage/model/schedule/disable/{id}", name="manage_model__schedule_disable", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/schedule/disable/{id}', name: 'manage_model__schedule_disable', methods: ['GET', 'POST'])]
     public function disableSchedule(Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
@@ -186,9 +172,7 @@ class ModelController extends AbstractController
         return $this->redirectToRoute('manage_model__index');
     }
 
-    /**
-     * @Route("/manage/model/schedule/remove/{id}", name="manage_model__schedule_remove", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/schedule/remove/{id}', name: 'manage_model__schedule_remove', methods: ['GET', 'POST'])]
     public function removeSchedule(Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();

@@ -27,9 +27,8 @@ class TransactionController extends BaseController
 {
     /**
      * Création d'une transaction standard par type (recette ou dépense).
-     *
-     * @Route("/account/{id}/create/transaction/bytype/{type}", name="transaction_create_bytype", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transaction/bytype/{type}', name: 'transaction_create_bytype', methods: ['GET', 'POST'])]
     public function createTransactionByType(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -39,9 +38,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une transaction standard par catégorie (interet, etc).
-     *
-     * @Route("/account/{id}/create/transaction/bycat/{codecat}", name="transaction_create_bycat", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transaction/bycat/{codecat}', name: 'transaction_create_bycat', methods: ['GET', 'POST'])]
     public function createTransactionByCategory(Request $request, Account $account, string $codecat, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -51,9 +49,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'un virement.
-     *
-     * @Route("/account/{id}/create/transfer/{type}", name="transfer_create", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transfer/{type}', name: 'transfer_create', methods: ['GET', 'POST'])]
     public function createTransfer(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -63,9 +60,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une valorisation sur un placement.
-     *
-     * @Route("/account/{id}/create/capital", name="capital_create", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/capital', name: 'capital_create', methods: ['GET', 'POST'])]
     public function createValorisation(Request $request, Account $account, EntityManagerInterface $entityManager, TransactionRepository $repository): Response
     {
         // Recherche la dernière transaction de valorisation
@@ -82,9 +78,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une transaction de frais de véhicule.
-     *
-     * @Route("/account/{id}/create/transaction/vehicle/{type}", name="transaction_create_vehicle", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transaction/vehicle/{type}', name: 'transaction_create_vehicle', methods: ['GET', 'POST'])]
     public function createTransactionVehicle(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -94,9 +89,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une transaction d'une opération boursière.
-     *
-     * @Route("/account/{id}/create/transaction/stock/{type}", name="transaction_create_wallet", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transaction/stock/{type}', name: 'transaction_create_wallet', methods: ['GET', 'POST'])]
     public function createTransactionStock(Request $request, Account $account, int $type, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -106,9 +100,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une transaction d'une opération boursière.
-     *
-     * @Route("/account/{id}/create/transaction/stock/{type}/{stock}", name="transaction_create_wallet_stock", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transaction/stock/{type}/{stock}', name: 'transaction_create_wallet_stock', methods: ['GET', 'POST'])]
     public function createTransactionStockWithStock(Request $request, Account $account, int $type, Stock $stock, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -152,9 +145,8 @@ class TransactionController extends BaseController
 
     /**
      * Mets à jour une transaction.
-     *
-     * @Route("/account/transactions/edit/{id}", name="transaction__edit", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/transactions/edit/{id}', name: 'transaction__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         if (null !== $this->checkUpdate($transaction)) {
@@ -193,9 +185,8 @@ class TransactionController extends BaseController
 
     /**
      * Clone une transaction.
-     *
-     * @Route("/account/transactions/clone/{id}", name="transaction__clone", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/transactions/clone/{id}', name: 'transaction__clone', methods: ['GET', 'POST'])]
     public function clone(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -242,9 +233,8 @@ class TransactionController extends BaseController
 
     /**
      * Supprime une transaction.
-     *
-     * @Route("/account/transactions/remove/{id}", name="transaction__remove")
      */
+    #[Route(path: '/account/transactions/remove/{id}', name: 'transaction__remove')]
     public function remove(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         if (null !== $this->checkUpdate($transaction)) {

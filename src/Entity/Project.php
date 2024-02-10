@@ -22,94 +22,77 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Project (Compta d'un projet).
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=ProjectRepository::class)
  */
+#[ORM\Entity(repositoryClass: ProjectRepository::class)]
 class Project implements \Stringable
 {
     final public const CLOSED = false;
     final public const OPENED = true;
 
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Nom du projet.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=50)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(max=50)
      */
+    #[ORM\Column(type: 'string', length: 50)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private $name;
 
     /**
      * Description du projet.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=255, nullable=true)
-     *
-     * @Assert\Length(max=255)
      */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
     private $description;
 
     /**
      * Catégorie du projet.
      *
      * @var ProjectCategory
-     *
-     * @ORM\Column(type="projectcat", options={"default": 0})
      */
+    #[ORM\Column(type: 'projectcat', options: ['default' => 0])]
     private $category;
 
     /**
      * Date de début du projet.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'date')]
+    #[Assert\NotBlank]
     private $startedAt;
 
     /**
      * Date de fin du projet.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'date')]
+    #[Assert\NotBlank]
     private $finishAt;
 
     /**
      * SI le projet est ouvert pour traitement.
      *
      * @var bool
-     *
-     * @ORM\Column(type="boolean", options={"default": 0})
      */
+    #[ORM\Column(type: 'boolean', options: ['default' => 0])]
     private $state;
 
     /**
      * Transcations associées.
      *
      * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="project")
      */
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'project')]
     private $transactions;
 
     public function __construct()

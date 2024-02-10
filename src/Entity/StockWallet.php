@@ -18,94 +18,79 @@ use Doctrine\ORM\Mapping as ORM;
  * Entité de la classe StockWallet (Portefeuille boursier) = 1 ligne du portefeuille.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=StockWalletRepository::class)
  */
+#[ORM\Entity(repositoryClass: StockWalletRepository::class)]
 class StockWallet
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Action boursière du portefeuille.
      *
      * @var Stock
-     *
-     * @ORM\ManyToOne(targetEntity=Stock::class, inversedBy="stockWallets")
-     *
-     * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: Stock::class, inversedBy: 'stockWallets')]
+    #[ORM\JoinColumn(nullable: false)]
     private $stock;
 
     /**
      * Compte titres ou PEA associé.
      *
      * @var Account
-     *
-     * @ORM\ManyToOne(targetEntity=Account::class)
-     *
-     * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: Account::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private $account;
 
     /**
      * Nombre d'actions contenus dans le portefeuille.
      *
      * @var float
-     *
-     * @ORM\Column(type="float")
      */
+    #[ORM\Column(type: 'float')]
     private $volume;
 
     /**
      * Dernier cours en date de l'action.
      *
      * @var float
-     *
-     * @ORM\Column(type="float")
      */
+    #[ORM\Column(type: 'float')]
     private $price;
 
     /**
      * Date du prix en cours.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date", nullable=true)
      */
+    #[ORM\Column(type: 'date', nullable: true)]
     private $priceDate;
 
     /**
      * Montant investi.
      *
      * @var float
-     *
-     * @ORM\Column(type="float")
      */
+    #[ORM\Column(type: 'float')]
     private $invest;
 
     /**
      * Somme des dividendes reçues.
      *
      * @var float
-     *
-     * @ORM\Column(type="float")
      */
+    #[ORM\Column(type: 'float')]
     private $dividend;
 
     /**
      * Commissions.
      *
      * @var float
-     *
-     * @ORM\Column(type="float")
      */
+    #[ORM\Column(type: 'float')]
     private $fee;
 
     /**

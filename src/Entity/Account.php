@@ -24,165 +24,135 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  *
- * @ORM\Entity(repositoryClass=AccountRepository::class)
- *
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  */
+#[ORM\Entity(repositoryClass: AccountRepository::class)]
 class Account implements \Stringable
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Type du compte.
      *
      * @var AccountType
-     *
-     * @ORM\Column(type="account_type")
      */
+    #[ORM\Column(type: 'account_type')]
     private $type;
 
     /**
      * Numéro du compte bancaire.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=20, nullable=true)
-     *
-     * @Assert\Length(max=20)
      */
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    #[Assert\Length(max: 20)]
     private $number;
 
     /**
      * Nom du compte.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=50)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(max=50)
      */
+    #[ORM\Column(type: 'string', length: 50)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private $name;
 
     /**
      * Nom court.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=20)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(max=20)
      */
+    #[ORM\Column(type: 'string', length: 20)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 20)]
     private $shortName;
 
     /**
      * Groupe d'appartenance.
      *
      * @var int
-     *
-     * @ORM\Column(type="smallint", options={"default": 0})
      */
+    #[ORM\Column(type: 'smallint', options: ['default' => 0])]
     private $unit;
 
     /**
      * Solde initial du compte.
      *
      * @var float
-     *
-     * @ORM\Column(type="float", options={"default": 0})
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'float', options: ['default' => 0])]
+    #[Assert\NotBlank]
     private $initial;
 
     /**
      * Devise du compte.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=3)
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'string', length: 3)]
+    #[Assert\NotBlank]
     private $currency;
 
     /**
      * Date d'ouverture du compte.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'date')]
+    #[Assert\NotBlank]
     private $openedAt;
 
     /**
      * Date de fermeture ou null si en cours.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date", nullable=true)
      */
+    #[ORM\Column(type: 'date', nullable: true)]
     private $closedAt;
 
     /**
      * Montant du découvert autorisé.
      *
      * @var float
-     *
-     * @ORM\Column(type="float")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'float')]
+    #[Assert\NotBlank]
     private $overdraft;
 
     /**
      * Metadata des différents soldes calculés.
      *
      * @var AccountBalance
-     *
-     * @ORM\Column(type="object", nullable=true)
      */
+    #[ORM\Column(type: 'object', nullable: true)]
     private $balance;
 
     /**
      * @var Institution
-     *
-     * @ORM\ManyToOne(targetEntity=Institution::class, inversedBy="accounts")
-     *
-     * @ORM\JoinColumn(nullable=false)
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\ManyToOne(targetEntity: Institution::class, inversedBy: 'accounts')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
     private $institution;
 
     /**
      * Compte associé pour les tes transactions (Ex : PEA -> PEA Caisse.
      *
      * @var Account
-     *
-     * @ORM\OneToOne(targetEntity=Account::class, cascade={"persist", "remove"})
      */
+    #[ORM\OneToOne(targetEntity: self::class, cascade: ['persist', 'remove'])]
     private $accAssoc;
 
     /**
      * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="account")
      */
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'account')]
     private $transactions;
 
     /**

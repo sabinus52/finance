@@ -39,9 +39,8 @@ class VehicleController extends AbstractController
 
     /**
      * Page d'accueil du rapport de la liste de tous les véhicules.
-     *
-     * @Route("/rapports/vehicules", name="report_vehicle__index")
      */
+    #[Route(path: '/rapports/vehicules', name: 'report_vehicle__index')]
     public function index(TransactionRepository $repository): Response
     {
         $this->repository = $repository;
@@ -68,9 +67,8 @@ class VehicleController extends AbstractController
 
     /**
      * Page de rapport pour un véhicule.
-     *
-     * @Route("/rapports/vehicules/{id}", name="report_vehicle__item")
      */
+    #[Route(path: '/rapports/vehicules/{id}', name: 'report_vehicle__item')]
     public function reportByVehicle(Vehicle $vehicle, TransactionRepository $repository): Response
     {
         $transactions = $repository->findAllByVehicle($vehicle);

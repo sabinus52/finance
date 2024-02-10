@@ -29,9 +29,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class AccountController extends AbstractController
 {
-    /**
-     * @Route("/manage/account", name="manage_account__index")
-     */
+    #[Route(path: '/manage/account', name: 'manage_account__index')]
     public function index(AccountRepository $repository): Response
     {
         $accounts = [];
@@ -54,9 +52,7 @@ class AccountController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/account/create", name="manage_account__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/account/create', name: 'manage_account__create', methods: ['GET', 'POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $account = new Account();
@@ -79,9 +75,7 @@ class AccountController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/account/edit/{id}", name="manage_account__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/account/edit/{id}', name: 'manage_account__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(AccountType::class, $account, [
@@ -101,9 +95,7 @@ class AccountController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/account/balance/{id}", name="manage_account__balance", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/account/balance/{id}', name: 'manage_account__balance', methods: ['GET', 'POST'])]
     public function calculateBalance(Account $account, EntityManagerInterface $entityManager): Response
     {
         $helper = new Balance($entityManager);

@@ -21,9 +21,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Recipient (Tiers et bénéficiares).
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=RecipientRepository::class)
  */
+#[ORM\Entity(repositoryClass: RecipientRepository::class)]
 class Recipient implements \Stringable
 {
     /**
@@ -31,42 +30,33 @@ class Recipient implements \Stringable
      */
     final public const VIRT_NAME = 'Moi-même';
 
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Nom du bénéficiare.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=100)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(max=100)
      */
+    #[ORM\Column(type: 'string', length: 100)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     private $name;
 
     /**
      * Catégorie la plus utilisé par le bénéficiare.
      *
      * @var Category
-     *
-     * @ORM\ManyToOne(targetEntity=Category::class)
      */
+    #[ORM\ManyToOne(targetEntity: Category::class)]
     private $category;
 
     /**
      * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="recipient")
      */
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'recipient')]
     private $transactions;
 
     public function __construct()

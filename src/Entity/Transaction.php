@@ -17,166 +17,137 @@ use App\Values\TransactionType;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Entity(repositoryClass=TransactionRepository::class)
- */
+#[ORM\Entity(repositoryClass: TransactionRepository::class)]
 class Transaction implements \Stringable
 {
     final public const STATE_NONE = 0;
     final public const STATE_RECONCILIED = 1;
     final public const STATE_RECONTEMP = 9;
 
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Date de la Transaction.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'date')]
+    #[Assert\NotBlank]
     private $date;
 
     /**
      * Montant de la transaction.
      *
      * @var float
-     *
-     * @ORM\Column(type="float")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'float')]
+    #[Assert\NotBlank]
     private $amount;
 
     /**
      * Solde du compte.
      *
      * @var float
-     *
-     * @ORM\Column(type="float", options={"default": 0})
      */
+    #[ORM\Column(type: 'float', options: ['default' => 0])]
     private $balance;
 
     /**
      * Compte bancaire associé.
      *
      * @var Account
-     *
-     * @ORM\ManyToOne(targetEntity=Account::class, inversedBy="transactions")
-     *
-     * @ORM\JoinColumn(nullable=false)
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\ManyToOne(targetEntity: Account::class, inversedBy: 'transactions')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
     private $account;
 
     /**
      * Type de la transaction.
      *
      * @var TransactionType
-     *
-     * @ORM\Column(type="transaction_type", options={"default": 0})
      */
+    #[ORM\Column(type: 'transaction_type', options: ['default' => 0])]
     private $type;
 
     /**
      * Moyen de paiement.
      *
      * @var Payment
-     *
-     * @ORM\Column(type="payment")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'payment')]
+    #[Assert\NotBlank]
     private $payment;
 
     /**
      * Béneficiaire.
      *
      * @var Recipient
-     *
-     * @ORM\ManyToOne(targetEntity=Recipient::class, inversedBy="transactions")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\ManyToOne(targetEntity: Recipient::class, inversedBy: 'transactions')]
+    #[Assert\NotBlank]
     private $recipient;
 
     /**
      * Catégorie de la transaction.
      *
      * @var Category
-     *
-     * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="transactions")
-     *
-     * @ORM\JoinColumn(nullable=false)
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'transactions')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
     private $category;
 
     /**
      * Statut (rapproché, etc).
      *
      * @var int
-     *
-     * @ORM\Column(type="smallint")
      */
+    #[ORM\Column(type: 'smallint')]
     private $state;
 
     /**
      * Information sur la transaction.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $memo;
 
     /**
      * Transaction associé pour les virements.
      *
      * @var Transaction
-     *
-     * @ORM\OneToOne(targetEntity=Transaction::class, cascade={"persist", "remove"})
      */
+    #[ORM\OneToOne(targetEntity: self::class, cascade: ['persist', 'remove'])]
     private $transfer;
 
     /**
      * Projet associé.
      *
      * @var Project
-     *
-     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="transactions")
      */
+    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'transactions')]
     private $project;
 
     /**
      * Transaction du véhicule associé (kilométrage).
      *
      * @var TransactionVehicle
-     *
-     * @ORM\ManyToOne(targetEntity=TransactionVehicle::class, cascade={"persist", "remove"})
-     *
-     * @Assert\Valid
      */
+    #[ORM\ManyToOne(targetEntity: TransactionVehicle::class, cascade: ['persist', 'remove'])]
+    #[Assert\Valid]
     private $transactionVehicle;
 
     /**
      * Transaction de l'opération boursière.
      *
      * @var TransactionStock
-     *
-     * @ORM\ManyToOne(targetEntity=TransactionStock::class, cascade={"persist", "remove"})
      */
+    #[ORM\ManyToOne(targetEntity: TransactionStock::class, cascade: ['persist', 'remove'])]
     private $transactionStock;
 
     /**

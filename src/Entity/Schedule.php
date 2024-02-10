@@ -19,9 +19,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Schedule.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=ScheduleRepository::class)
  */
+#[ORM\Entity(repositoryClass: ScheduleRepository::class)]
 class Schedule
 {
     /**
@@ -36,75 +35,61 @@ class Schedule
         'Y' => ['year', 'Année'],
     ];
 
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Statut de la planification actif ou pas.
      *
      * @var bool
-     *
-     * @ORM\Column(type="boolean")
      */
+    #[ORM\Column(type: 'boolean')]
     private $state;
 
     /**
      * Prochaine date de la transaction.
      *
      * @var \DateTimeImmutable
-     *
-     * @ORM\Column(type="date_immutable")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'date_immutable')]
+    #[Assert\NotBlank]
     private $doAt;
 
     /**
      * Frequence de la périodicité de la planification.
      *
      * @var int
-     *
-     * @ORM\Column(type="smallint")
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Type("int")
      */
+    #[ORM\Column(type: 'smallint')]
+    #[Assert\NotBlank]
+    #[Assert\Type('int')]
     private $frequency;
 
     /**
      * Periode de la planification (jour, semaine, mois ou année).
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=1)
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'string', length: 1)]
+    #[Assert\NotBlank]
     private $period;
 
     /**
      * Nombre de transaction à effectuer.
      *
      * @var int
-     *
-     * @ORM\Column(type="smallint", nullable=true)
      */
+    #[ORM\Column(type: 'smallint', nullable: true)]
     private $number;
 
     /**
      * Modèle associé.
      *
      * @var Model
-     *
-     * @ORM\OneToOne(targetEntity=Model::class, mappedBy="schedule", cascade={"persist"})
      */
+    #[ORM\OneToOne(targetEntity: Model::class, mappedBy: 'schedule', cascade: ['persist'])]
     private $model;
 
     /**

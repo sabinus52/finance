@@ -25,33 +25,25 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class IndexController extends BaseController
 {
-    /**
-     * @Route("/compte-courant/{id}", name="account_1_index")
-     */
+    #[Route(path: '/compte-courant/{id}', name: 'account_1_index')]
     public function indexDeposit(Request $request, Account $account): Response
     {
         return $this->index($request, $account, 'account/1deposit.html.twig');
     }
 
-    /**
-     * @Route("/compte-epargne/{id}", name="account_2_index")
-     */
+    #[Route(path: '/compte-epargne/{id}', name: 'account_2_index')]
     public function indexThrift(Request $request, Account $account): Response
     {
         return $this->index($request, $account, 'account/2thrift.html.twig');
     }
 
-    /**
-     * @Route("/compte-a-terme/{id}", name="account_3_index")
-     */
+    #[Route(path: '/compte-a-terme/{id}', name: 'account_3_index')]
     public function indexTerm(Request $request, Account $account): Response
     {
         return $this->index($request, $account, 'account/3term.html.twig');
     }
 
-    /**
-     * @Route("/portefeuille-boursier/{id}", name="account_4_index")
-     */
+    #[Route(path: '/portefeuille-boursier/{id}', name: 'account_4_index')]
     public function indexWallet(Request $request, Account $account, EntityManagerInterface $manager, TransactionRepository $repository): Response
     {
         $wallet = new Wallet($manager, $account);
@@ -79,9 +71,7 @@ class IndexController extends BaseController
         ]);
     }
 
-    /**
-     * @Route("/contrat-de-capitalisation/{id}", name="account_5_index")
-     */
+    #[Route(path: '/contrat-de-capitalisation/{id}', name: 'account_5_index')]
     public function indexCapital(Request $request, Account $account, TransactionRepository $repository): Response
     {
         $performance = new Performance($repository, $account);

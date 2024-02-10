@@ -19,49 +19,39 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe StockPrice (Cours des actions boursières).
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=StockPriceRepository::class)
  */
+#[ORM\Entity(repositoryClass: StockPriceRepository::class)]
 class StockPrice
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Date du cours de l'action.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date")
      */
+    #[ORM\Column(type: 'date')]
     private $date;
 
     /**
      * Prix du cours.
      *
      * @var float
-     *
-     * @ORM\Column(type="float")
-     *
-     * @Assert\NotBlank
      */
+    #[ORM\Column(type: 'float')]
+    #[Assert\NotBlank]
     private $price;
 
     /**
      * Action associée.
      *
      * @var Stock
-     *
-     * @ORM\ManyToOne(targetEntity=Stock::class, inversedBy="stockPrices")
-     *
-     * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: Stock::class, inversedBy: 'stockPrices')]
+    #[ORM\JoinColumn(nullable: false)]
     private $stock;
 
     public function getId(): ?int

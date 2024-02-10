@@ -21,84 +21,66 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Institution.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=InstitutionRepository::class)
  */
+#[ORM\Entity(repositoryClass: InstitutionRepository::class)]
 class Institution implements \Stringable
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Nom de l'organisme.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=50)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(max=50)
      */
+    #[ORM\Column(type: 'string', length: 50)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private $name;
 
     /**
      * Nom court.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=20)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(max=20)
      */
+    #[ORM\Column(type: 'string', length: 20)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 20)]
     private $shortName;
 
     /**
      * Lien du site web.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=255, nullable=true)
-     *
-     * @Assert\Url
-     *
-     * @Assert\Length(max=255)
      */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Assert\Url]
+    #[Assert\Length(max: 255)]
     private $link;
 
     /**
      * Code SWIFT de la banque.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=12, nullable=true)
-     *
-     * @Assert\Length(max=12)
      */
+    #[ORM\Column(type: 'string', length: 12, nullable: true)]
+    #[Assert\Length(max: 12)]
     private $codeSwift;
 
     /**
      * Image de l'organisme.
      *
      * @var string
-     *
-     * @ORM\Column(type="text", nullable=true)
      */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $logo;
 
     /**
      * @var Collection
-     *
-     * @ORM\OneToMany(targetEntity=Account::class, mappedBy="institution")
      */
+    #[ORM\OneToMany(targetEntity: Account::class, mappedBy: 'institution')]
     private $accounts;
 
     public function __construct()

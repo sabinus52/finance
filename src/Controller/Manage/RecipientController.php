@@ -28,9 +28,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class RecipientController extends AbstractController
 {
-    /**
-     * @Route("/manage/recipient", name="manage_recipient__index")
-     */
+    #[Route(path: '/manage/recipient', name: 'manage_recipient__index')]
     public function index(Request $request, DataTableFactory $factory): Response
     {
         $datatable = $factory->createFromType(RecipientTableType::class)
@@ -46,9 +44,7 @@ class RecipientController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/recipient/create", name="manage_recipient__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/recipient/create', name: 'manage_recipient__create', methods: ['GET', 'POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $recipient = new Recipient();
@@ -72,9 +68,7 @@ class RecipientController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/recipient/edit/{id}", name="manage_recipient__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/recipient/edit/{id}', name: 'manage_recipient__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Recipient $recipient, EntityManagerInterface $entityManager): Response
     {
         // Bénéficiaire réservé pour les virements internes

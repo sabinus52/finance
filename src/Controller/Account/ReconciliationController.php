@@ -32,9 +32,8 @@ class ReconciliationController extends BaseController
 {
     /**
      * Validation du formulaire de saisie du solde à rapprocher.
-     *
-     * @Route("/account/{id}/reconciliation/create", name="reconciliation_create")
      */
+    #[Route(path: '/account/{id}/reconciliation/create', name: 'reconciliation_create')]
     public function create(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createFormReconBalance($account);
@@ -60,9 +59,8 @@ class ReconciliationController extends BaseController
 
     /**
      * Page principale de rapprochement.
-     *
-     * @Route("/account/{id}/reconciliation", name="reconciliation_index")
      */
+    #[Route(path: '/account/{id}/reconciliation', name: 'reconciliation_index')]
     public function index(Account $account, TransactionRepository $repository): Response
     {
         $formDelete = $this->createFormBuilder()->getForm();
@@ -85,9 +83,8 @@ class ReconciliationController extends BaseController
 
     /**
      * Valide le rapprochement.
-     *
-     * @Route("/account/{id}/reconciliation/valid", name="reconciliation_valid")
      */
+    #[Route(path: '/account/{id}/reconciliation/valid', name: 'reconciliation_valid')]
     public function valid(Request $request, Account $account, TransactionRepository $repository, EntityManagerInterface $entityManager): Response
     {
         $formReconValid = $this->createFormBuilder()->getForm();
@@ -127,9 +124,8 @@ class ReconciliationController extends BaseController
 
     /**
      * Rapproche temporairement une transaction.
-     *
-     * @Route("/account/reconciliation/{id}", name="reconciliation_check")
      */
+    #[Route(path: '/account/reconciliation/{id}', name: 'reconciliation_check')]
     public function reconcilie(Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         if (Transaction::STATE_RECONTEMP === $transaction->getState()) {

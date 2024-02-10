@@ -29,9 +29,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class InstitutionController extends AbstractController
 {
-    /**
-     * @Route("/manage/institution", name="manage_institution__index")
-     */
+    #[Route(path: '/manage/institution', name: 'manage_institution__index')]
     public function index(InstitutionRepository $repository): Response
     {
         return $this->render('manage/institution-index.html.twig', [
@@ -39,9 +37,7 @@ class InstitutionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/institution/create", name="manage_institution__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/institution/create', name: 'manage_institution__create', methods: ['GET', 'POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $institution = new Institution();
@@ -71,9 +67,7 @@ class InstitutionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/institution/edit/{id}", name="manage_institution__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/institution/edit/{id}', name: 'manage_institution__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Institution $institution, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(InstitutionType::class, $institution);

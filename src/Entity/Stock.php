@@ -21,92 +21,75 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Stock (Titre boursier).
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=StockRepository::class)
  */
+#[ORM\Entity(repositoryClass: StockRepository::class)]
 class Stock implements \Stringable
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue
-     *
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id; /** @phpstan-ignore-line */
 
     /**
      * Code ISIN.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=12, unique=true)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(max=12)
      */
+    #[ORM\Column(type: 'string', length: 12, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 12)]
     private $codeISIN;
 
     /**
      * Nom de l'action.
      *
      * @var string
-     *
-     * @ORM\Column(type="string", length=100, unique=true)
-     *
-     * @Assert\NotBlank
-     *
-     * @Assert\Length(min=5, max=100)
      */
+    #[ORM\Column(type: 'string', length: 100, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 5, max: 100)]
     private $name;
 
     /**
      * Date de la fermeture.
      *
      * @var \DateTime
-     *
-     * @ORM\Column(type="date", nullable=true)
      */
+    #[ORM\Column(type: 'date', nullable: true)]
     private $closedAt;
 
     /**
      * Titre d'avant qui a été fusionné.
      *
      * @var Stock
-     *
-     * @ORM\OneToOne(targetEntity=Stock::class, inversedBy="fusionTo", cascade={"persist", "remove"})
      */
+    #[ORM\OneToOne(targetEntity: self::class, inversedBy: 'fusionTo', cascade: ['persist', 'remove'])]
     private $fusionFrom;
 
     /**
      * Vers le nouveau titre fusionné.
      *
      * @var Stock
-     *
-     * @ORM\OneToOne(targetEntity=Stock::class, mappedBy="fusionFrom", cascade={"persist", "remove"})
      */
+    #[ORM\OneToOne(targetEntity: self::class, mappedBy: 'fusionFrom', cascade: ['persist', 'remove'])]
     private $fusionTo;
 
     /**
      * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=StockPrice::class, mappedBy="stock", orphanRemoval=true)
      */
+    #[ORM\OneToMany(targetEntity: StockPrice::class, mappedBy: 'stock', orphanRemoval: true)]
     private $stockPrices;
 
     /**
      * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=StockWallet::class, mappedBy="stock", orphanRemoval=true)
      */
+    #[ORM\OneToMany(targetEntity: StockWallet::class, mappedBy: 'stock', orphanRemoval: true)]
     private $stockWallets;
 
     /**
      * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=TransactionStock::class, mappedBy="stock")
      */
+    #[ORM\OneToMany(targetEntity: TransactionStock::class, mappedBy: 'stock')]
     private $transactionStocks;
 
     /**
