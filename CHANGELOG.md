@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### Version 1.0.1
+
+- Mise à jour de Symfony 5.4
+
 ### Version 1.0.0 (initilal development)
 
 - Gestion des organismes
