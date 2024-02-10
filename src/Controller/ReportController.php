@@ -111,8 +111,8 @@ class ReportController extends AbstractController
             'perfoacc' => $perfByAccount,
             'charts' => [
                 'slippery' => $chart3->getChart($totalPerfSlippery),
-                'year' => $chart4->getChart($totalPerfYear),
-                'month' => $chart2->getChart($totalPerfMonth),
+                'year' => $chart4->getChart(array_slice($totalPerfYear, -12, null, true)),
+                'month' => $chart2->getChart(array_slice($totalPerfMonth, -133, 132, true)),
             ],
         ]);
     }
@@ -129,8 +129,10 @@ class ReportController extends AbstractController
             }
             $period = $month->getPeriod();
             $totalPerfItems[$key]->setPeriod($period);
-            $totalPerfItems[$key]->addInvestment($month->getInvestmentCumul());
-            $totalPerfItems[$key]->addValuation($month->getValuation());
+            $totalPerfItems[$key]->addInvestment($month->getInvestment());
+            if ($month->getValuation()) {
+                $totalPerfItems[$key]->addValuation($month->getValuation());
+            }
         }
     }
 

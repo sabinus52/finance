@@ -4,7 +4,7 @@ services:
 ###> doctrine/doctrine-bundle ###
   database:
     image: mariadb:${MARIADB_VERSION:-10.9}
-    container_name: finance.bdd
+    container_name: finance-bdd-devp
     ports:
       - ${MARIADB_PORT:-3306}:3306
     environment:

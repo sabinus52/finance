@@ -13,8 +13,7 @@ import './bootstrap';
 
 import '/vendor/olix/backoffice-bundle/assets/olixbo.js';
 
-/*
-import Transaction from "./scripts/transaction";
-import Reconciliation from "./scripts/reconciliation";
-import OlixModal from "./scripts/modal";
-*/
+// Scripts de l'appli
+import "./scripts/transaction";
+import "./scripts/reconciliation";
+import "./scripts/project";
