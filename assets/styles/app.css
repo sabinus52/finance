@@ -1,1 +1,3 @@
-@import '/vendor/olix/backoffice-bundle/assets/olixbo.css';
+body {
+    background-color: skyblue;
+}
