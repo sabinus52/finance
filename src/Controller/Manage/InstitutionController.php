@@ -119,7 +119,7 @@ class InstitutionController extends AbstractController
         // Déplace le fichier dans le dossier temporaire
         try {
             $logo->move(sys_get_temp_dir(), $filename);
-        } catch (FileException $e) {
+        } catch (FileException) {
             // ... handle exception if something happens during file upload
             return null;
         }

@@ -16,11 +16,11 @@ namespace App\Values;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class ProjectCategory
+class ProjectCategory implements \Stringable
 {
-    public const OTHER = 0;
-    public const TRAVEL = 1;
-    public const WORKS = 2;
+    final public const OTHER = 0;
+    final public const TRAVEL = 1;
+    final public const WORKS = 2;
 
     /**
      * Liste des environnements.
@@ -61,7 +61,7 @@ class ProjectCategory
         $this->value = $value;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getLabel();
     }

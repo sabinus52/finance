@@ -59,7 +59,7 @@ class ProjectController extends AbstractController
             }
             $categories[$idCat]['total'] += $transaction->getAmount();
         }
-        usort($categories, fn ($aaa, $bbb) => $aaa['total'] > $bbb['total']); /** @phpstan-ignore-line */
+        usort($categories, static fn ($aaa, $bbb) => $aaa['total'] > $bbb['total']); /** @phpstan-ignore-line */
 
         // Liste des transactions non sélectionnées durant la période du projet
         $transactions = $repository->createQueryBuilder('trt')

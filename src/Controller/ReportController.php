@@ -23,7 +23,6 @@ use App\Helper\Report\ThriftCapacity;
 use App\Repository\AccountRepository;
 use App\Repository\TransactionRepository;
 use App\Values\AccountType;
-use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -141,7 +140,7 @@ class ReportController extends AbstractController
      */
     public function indecCapacity(TransactionRepository $repository): Response
     {
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
 
         /** @var Transaction[] $transactions */
         $transactions = $repository->createQueryBuilder('trt')

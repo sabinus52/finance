@@ -86,8 +86,6 @@ class SlipperyChart extends ChartBuilder implements ChartBuilderInterface
     /**
      * Retourne le label.
      *
-     * @param int $month
-     *
      * @return string
      */
     public function getLabel(int $month): string

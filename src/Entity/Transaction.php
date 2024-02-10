@@ -14,22 +14,23 @@ namespace App\Entity;
 use App\Repository\TransactionRepository;
 use App\Values\Payment;
 use App\Values\TransactionType;
-use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=TransactionRepository::class)
  */
-class Transaction
+class Transaction implements \Stringable
 {
-    public const STATE_NONE = 0;
-    public const STATE_RECONCILIED = 1;
-    public const STATE_RECONTEMP = 9;
+    final public const STATE_NONE = 0;
+    final public const STATE_RECONCILIED = 1;
+    final public const STATE_RECONTEMP = 9;
 
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -37,9 +38,10 @@ class Transaction
     /**
      * Date de la Transaction.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date")
+     *
      * @Assert\NotBlank
      */
     private $date;
@@ -50,6 +52,7 @@ class Transaction
      * @var float
      *
      * @ORM\Column(type="float")
+     *
      * @Assert\NotBlank
      */
     private $amount;
@@ -69,7 +72,9 @@ class Transaction
      * @var Account
      *
      * @ORM\ManyToOne(targetEntity=Account::class, inversedBy="transactions")
+     *
      * @ORM\JoinColumn(nullable=false)
+     *
      * @Assert\NotBlank
      */
     private $account;
@@ -89,6 +94,7 @@ class Transaction
      * @var Payment
      *
      * @ORM\Column(type="payment")
+     *
      * @Assert\NotBlank
      */
     private $payment;
@@ -99,6 +105,7 @@ class Transaction
      * @var Recipient
      *
      * @ORM\ManyToOne(targetEntity=Recipient::class, inversedBy="transactions")
+     *
      * @Assert\NotBlank
      */
     private $recipient;
@@ -109,7 +116,9 @@ class Transaction
      * @var Category
      *
      * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="transactions")
+     *
      * @ORM\JoinColumn(nullable=false)
+     *
      * @Assert\NotBlank
      */
     private $category;
@@ -156,6 +165,7 @@ class Transaction
      * @var TransactionVehicle
      *
      * @ORM\ManyToOne(targetEntity=TransactionVehicle::class, cascade={"persist", "remove"})
+     *
      * @Assert\Valid
      */
     private $transactionVehicle;
@@ -176,11 +186,11 @@ class Transaction
     {
         $this->balance = 0;
         $this->state = 0;
-        $this->date = new DateTime();
+        $this->date = new \DateTime();
         $this->type = new TransactionType(TransactionType::STANDARD);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if (!$this->getId()) {
             return '';
@@ -194,12 +204,12 @@ class Transaction
         return $this->id;
     }
 
-    public function getDate(): ?DateTime
+    public function getDate(): ?\DateTime
     {
         return $this->date;
     }
 
-    public function setDate(?DateTime $date): self
+    public function setDate(?\DateTime $date): self
     {
         $this->date = $date;
 

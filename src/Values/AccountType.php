@@ -11,44 +11,42 @@ declare(strict_types=1);
 
 namespace App\Values;
 
-use Exception;
-
 /**
  * Classe statique sur les types de comptes.
  *
  * @author Olivier <sabinus52@gmail.com>
  */
-class AccountType
+class AccountType implements \Stringable
 {
     /**
      * Constantes des groupes de types de conptes.
      */
-    public const COURANT = 1;
-    public const EPARGNE_LIQUIDE = 2;
-    public const EPARGNE_A_TERME = 3;
-    public const EPARGNE_FINANCIERE = 4;
-    public const EPARGNE_ASSURANCE_VIE = 5;
+    final public const COURANT = 1;
+    final public const EPARGNE_LIQUIDE = 2;
+    final public const EPARGNE_A_TERME = 3;
+    final public const EPARGNE_FINANCIERE = 4;
+    final public const EPARGNE_ASSURANCE_VIE = 5;
 
-    public const ACC_CURRENT = 11;
-    public const ACC_EPOSIT = 12;
-    public const CREDIT_CARD = 13;
-    public const PEA_CAISSE = 14;
-    public const CEL = 21;
-    public const LIVRET_A = 22;
-    public const LDD = 23;
-    public const LEP = 24;
-    public const BOOKLET_JEUNE = 25;
-    public const BOOKLET = 26;
-    public const PEL = 31;
-    public const CAT = 32;
-    public const ACC_TITRES = 41;
-    public const PEA_TITRES = 42;
-    public const INVEST_ASSVIE = 51;
-    public const INVEST_CONTRACT = 52;
-    public const INVEST_PEP = 53;
-    public const INVEST_PERP = 54;
-    public const INVEST_PEE = 55;
-    public const INVEST_OTHER = 59;
+    final public const ACC_CURRENT = 11;
+    final public const ACC_EPOSIT = 12;
+    final public const CREDIT_CARD = 13;
+    final public const PEA_CAISSE = 14;
+    final public const CEL = 21;
+    final public const LIVRET_A = 22;
+    final public const LDD = 23;
+    final public const LEP = 24;
+    final public const BOOKLET_JEUNE = 25;
+    final public const BOOKLET = 26;
+    final public const PEL = 31;
+    final public const CAT = 32;
+    final public const ACC_TITRES = 41;
+    final public const PEA_TITRES = 42;
+    final public const INVEST_ASSVIE = 51;
+    final public const INVEST_CONTRACT = 52;
+    final public const INVEST_PEP = 53;
+    final public const INVEST_PERP = 54;
+    final public const INVEST_PEE = 55;
+    final public const INVEST_OTHER = 59;
 
     /**
      * Liste des types de comptes.
@@ -125,7 +123,7 @@ class AccountType
     public function __construct(int $value)
     {
         if (!array_key_exists($value, self::$values)) {
-            throw new Exception('La valeur "'.$value.'" est inconue, Valeur possible : '.implode(',', array_keys(self::$values)));
+            throw new \Exception('La valeur "'.$value.'" est inconue, Valeur possible : '.implode(',', array_keys(self::$values)));
         }
         $this->value = $value;
     }
@@ -133,7 +131,7 @@ class AccountType
     /**
      * Retourne le label.
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getLabel();
     }
@@ -164,7 +162,7 @@ class AccountType
      */
     public function getTypeCode(): int
     {
-        return (int) (floor($this->value / 10));
+        return (int) floor($this->value / 10);
     }
 
     /**

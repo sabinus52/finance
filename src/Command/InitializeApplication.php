@@ -15,8 +15,6 @@ use App\Entity\Category;
 use App\Entity\Recipient;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use SplFileObject;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
@@ -196,8 +194,8 @@ class InitializeApplication extends Command
         $catLevel1 = null;
         $number = 0;
 
-        $fileCSV = new SplFileObject($this->kernel->getProjectDir().'/'.self::CSV_CATEGORIES);
-        $fileCSV->setFlags(SplFileObject::READ_CSV);
+        $fileCSV = new \SplFileObject($this->kernel->getProjectDir().'/'.self::CSV_CATEGORIES);
+        $fileCSV->setFlags(\SplFileObject::READ_CSV);
         $fileCSV->setCsvControl(';');
 
         /** @var array<string> $line */
@@ -218,8 +216,6 @@ class InitializeApplication extends Command
     /**
      * Retourne si dépenses ou recettes.
      *
-     * @param string $type
-     *
      * @return bool
      */
     private function isTypeCategory(string $type): bool
@@ -230,6 +226,6 @@ class InitializeApplication extends Command
         if ('-' === $type) {
             return Category::DEPENSES;
         }
-        throw new Exception('Type de la catégorie inconnu (+/-)');
+        throw new \Exception('Type de la catégorie inconnu (+/-)');
     }
 }

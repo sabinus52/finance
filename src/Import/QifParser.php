@@ -12,9 +12,6 @@ declare(strict_types=1);
 namespace App\Import;
 
 use App\Entity\Category;
-use ArrayObject;
-use SplFileObject;
-use Throwable;
 
 /**
  * Classe pour parser les fichiers QIF.
@@ -26,38 +23,23 @@ use Throwable;
  */
 class QifParser
 {
-    public const DATE_FORMAT = 'm/d/Y';
+    final public const DATE_FORMAT = 'm/d/Y';
 
-    public const ACCOUNT = '!Account';
-    public const TRANST_BANK = '!Type:Bank';
-    public const TRANST_CASH = '!Type:Cash';
-    public const TRANST_CCARD = '!Type:CCard';
-    public const TRANST_INVST = '!Type:Invst';
-    public const TRANST_OTH_A = '!Type:Oth A';
-    public const TRANST_OTH_L = '!Type:Oth L';
-    public const CATEGORY = '!Type:Cat';
-    public const TCLASS = '!Type:Class';
-    public const MEMORIZED = '!Type:Memorized';
-
-    /**
-     * @var SplFileObject
-     */
-    private $file;
-
-    /**
-     * @var Helper
-     */
-    private $helper;
+    final public const ACCOUNT = '!Account';
+    final public const TRANST_BANK = '!Type:Bank';
+    final public const TRANST_CASH = '!Type:Cash';
+    final public const TRANST_CCARD = '!Type:CCard';
+    final public const TRANST_INVST = '!Type:Invst';
+    final public const TRANST_OTH_A = '!Type:Oth A';
+    final public const TRANST_OTH_L = '!Type:Oth L';
+    final public const CATEGORY = '!Type:Cat';
+    final public const TCLASS = '!Type:Class';
+    final public const MEMORIZED = '!Type:Memorized';
 
     /**
      * @var MemoParser
      */
     private $memoParser;
-
-    /**
-     * @var bool
-     */
-    private $isParseMemo;
 
     /**
      * Mode du type de section à ajouter (ACCOUNT, TRANST_BANK, ...).
@@ -69,24 +51,17 @@ class QifParser
     /**
      * Compte en cours d'importation.
      *
-     * @var ArrayObject
+     * @var \ArrayObject
      */
     private $account;
 
     /**
      * Constructeur.
-     *
-     * @param SplFileObject $file
-     * @param Helper        $helper
-     * @param bool          $isParseMemo
      */
-    public function __construct(SplFileObject $file, Helper $helper, bool $isParseMemo)
+    public function __construct(private readonly \SplFileObject $file, private readonly Helper $helper, private readonly bool $isParseMemo)
     {
-        $this->file = $file;
-        $this->helper = $helper;
-        $this->isParseMemo = $isParseMemo;
-        $this->memoParser = new MemoParser($helper);
-        $this->account = new ArrayObject();
+        $this->memoParser = new MemoParser($this->helper);
+        $this->account = new \ArrayObject();
     }
 
     /**
@@ -181,7 +156,7 @@ class QifParser
      */
     public function parseAccount(array $item): void
     {
-        $this->account = new ArrayObject();
+        $this->account = new \ArrayObject();
         foreach ($item as $line) {
             switch ($line[0]) {
                 case 'N':
@@ -258,7 +233,7 @@ class QifParser
              */
             try {
                 $isTransactStandard = $this->memoParser->parse($itemFound);
-            } catch (Throwable $th) {
+            } catch (\Throwable $th) {
                 $this->helper->statistic->addMemoAlert($itemFound->getDate(), $itemFound->getAccount(), $itemFound->getAmount(), $itemFound->getMemo(), $th->getMessage());
             }
         }

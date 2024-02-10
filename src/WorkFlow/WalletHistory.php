@@ -14,20 +14,18 @@ namespace App\WorkFlow;
 use App\Entity\StockWallet;
 use App\Entity\Transaction;
 use App\Values\StockPosition;
-use DateTime;
-use Iterator;
 
 /**
  * Historique du portefeuille d'un mois donné.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class WalletHistory implements Iterator
+class WalletHistory implements \Iterator
 {
     /**
      * Date de fin de mois de l'historique du portefeuille.
      *
-     * @var DateTime
+     * @var \DateTime
      */
     private $date;
 
@@ -83,10 +81,8 @@ class WalletHistory implements Iterator
 
     /**
      * Affecte la date du portefeuille.
-     *
-     * @param DateTime $date
      */
-    public function setDate(DateTime $date): void
+    public function setDate(\DateTime $date): void
     {
         $this->date = $date->modify('last day of this month');
     }
@@ -94,17 +90,15 @@ class WalletHistory implements Iterator
     /**
      * Retourne la date du portefeuille.
      *
-     * @return DateTime
+     * @return \DateTime
      */
-    public function getDate(): DateTime
+    public function getDate(): \DateTime
     {
         return $this->date;
     }
 
     /**
      * Ajoute une nouvelle opération boursière.
-     *
-     * @param Transaction $transaction
      */
     public function addPosition(Transaction $transaction): void
     {

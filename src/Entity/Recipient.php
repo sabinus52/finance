@@ -24,16 +24,18 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @ORM\Entity(repositoryClass=RecipientRepository::class)
  */
-class Recipient
+class Recipient implements \Stringable
 {
     /**
      * Nom du bénéficiaire pour les virements internes.
      */
-    public const VIRT_NAME = 'Moi-même';
+    final public const VIRT_NAME = 'Moi-même';
 
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -44,7 +46,9 @@ class Recipient
      * @var string
      *
      * @ORM\Column(type="string", length=100)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(max=100)
      */
     private $name;
@@ -70,7 +74,7 @@ class Recipient
         $this->transactions = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name ?: '';
     }

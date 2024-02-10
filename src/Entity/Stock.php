@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\StockRepository;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -25,11 +24,13 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @ORM\Entity(repositoryClass=StockRepository::class)
  */
-class Stock
+class Stock implements \Stringable
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -40,7 +41,9 @@ class Stock
      * @var string
      *
      * @ORM\Column(type="string", length=12, unique=true)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(max=12)
      */
     private $codeISIN;
@@ -51,7 +54,9 @@ class Stock
      * @var string
      *
      * @ORM\Column(type="string", length=100, unique=true)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(min=5, max=100)
      */
     private $name;
@@ -59,7 +64,7 @@ class Stock
     /**
      * Date de la fermeture.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date", nullable=true)
      */
@@ -114,13 +119,13 @@ class Stock
         $this->transactionStocks = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if (!$this->name) {
             return '';
         }
 
-        return $this->getName();
+        return (string) $this->getName();
     }
 
     public function getId(): ?int
@@ -152,12 +157,12 @@ class Stock
         return $this;
     }
 
-    public function getClosedAt(): ?DateTime
+    public function getClosedAt(): ?\DateTime
     {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?DateTime $closedAt): self
+    public function setClosedAt(?\DateTime $closedAt): self
     {
         $this->closedAt = $closedAt;
 

@@ -15,7 +15,6 @@ use App\Entity\Account;
 use App\Entity\Category;
 use App\Values\AccountType;
 use App\Values\StockPosition;
-use Exception;
 
 /**
  * Classe pour parser le champs "Mémo" du fichier QIF
@@ -25,12 +24,7 @@ use Exception;
  */
 class MemoParser
 {
-    public const ACC_WALLET_DEFAULT = 'MyBank Compte Titres';
-
-    /**
-     * @var Helper
-     */
-    private $helper;
+    final public const ACC_WALLET_DEFAULT = 'MyBank Compte Titres';
 
     /**
      * @var Account
@@ -49,13 +43,9 @@ class MemoParser
 
     /**
      * Constructeur.
-     *
-     * @param Helper $helper
      */
-    public function __construct(Helper $helper)
+    public function __construct(private readonly Helper $helper)
     {
-        $this->helper = $helper;
-
         // Si on parse le champs mémo, alors on utilise les comptes Titres
         $this->accountTitres = $this->helper->assocDatas->getAccountSpecial(AccountType::ACC_TITRES);
         if (null === $this->accountTitres) {
@@ -69,8 +59,6 @@ class MemoParser
     /**
      * Parse le Mémo et retourne l'indiquation s'il faut créer à la suite une transaction standard.
      *
-     * @param QifItem $item
-     *
      * @return bool
      */
     public function parse(QifItem $item): bool
@@ -80,7 +68,7 @@ class MemoParser
         if (!isset($matches[1])) {
             $operation = strstr($item->getMemo(), ':', true);
             if ($operation) {
-                throw new Exception('Memo est peut être incorrect');
+                throw new \Exception('Memo est peut être incorrect');
             }
 
             return true;
@@ -111,8 +99,8 @@ class MemoParser
                 return false;
 
             default:
-                if (false !== strpos($item->getMemo(), ':')) {
-                    throw new Exception('Memo est peut être incorrect');
+                if (str_contains($item->getMemo(), ':')) {
+                    throw new \Exception('Memo est peut être incorrect');
                 }
 
                 return true;
@@ -121,15 +109,13 @@ class MemoParser
 
     /**
      * Parse dans le cas d'un versement sur un compte de capitalisation.
-     *
-     * @param QifItem $item
      */
     private function parseVersement(QifItem $item): void
     {
         $memo = new MemoHelper($item->getMemo());
         $accountPlacement = $memo->getLabelMemo();
         if (null === $accountPlacement) {
-            throw new Exception('Compte de placement introuvable dans le memo');
+            throw new \Exception('Compte de placement introuvable dans le memo');
         }
         $amountPlacement = $memo->getAmountVersement($item->getAmount());
 
@@ -141,23 +127,21 @@ class MemoParser
 
     /**
      * Parse dans le cas d'un achat ou d'une vente d'un titre boursier.
-     *
-     * @param QifItem $item
      */
     private function parseStockPosition(QifItem $item): void
     {
         $memo = new MemoHelper($item->getMemo());
         $stock = $memo->getLabelMemo();
         if (null === $stock) {
-            throw new Exception('Compte de placement introuvable dans le memo');
+            throw new \Exception('Compte de placement introuvable dans le memo');
         }
         $volume = $memo->getStockVolume();
         if (null === $volume) {
-            throw new Exception('Volume de titre (v=*) introuvable dans le memo');
+            throw new \Exception('Volume de titre (v=*) introuvable dans le memo');
         }
         $price = $memo->getStockPrice();
         if (null === $price) {
-            throw new Exception('Prix du titre (p=*) introuvable dans le memo');
+            throw new \Exception('Prix du titre (p=*) introuvable dans le memo');
         }
 
         $position = ($item->getAmount() < 0) ? StockPosition::BUYING : StockPosition::SELLING;
@@ -166,15 +150,13 @@ class MemoParser
 
     /**
      * Parse dans le cas d'un versement de dividende.
-     *
-     * @param QifItem $item
      */
     private function parseStockDividende(QifItem $item): void
     {
         $memo = new MemoHelper($item->getMemo());
         $stock = $memo->getLabelMemo();
         if (null === $stock) {
-            throw new Exception('Compte de placement introuvable dans le memo');
+            throw new \Exception('Compte de placement introuvable dans le memo');
         }
 
         $this->helper->createTransationStockPosition($item, $this->getWallet($item), StockPosition::DIVIDEND, $stock, null, null);
@@ -182,23 +164,19 @@ class MemoParser
 
     /**
      * Parse dans le cas d'un projet.
-     *
-     * @param QifItem $item
      */
     private function parseProject(QifItem $item): void
     {
         $memo = new MemoHelper($item->getMemo());
         $project = $memo->getLabelMemo();
         if (null === $project) {
-            throw new Exception('Nom du projet introuvable dans le memo');
+            throw new \Exception('Nom du projet introuvable dans le memo');
         }
         $this->helper->createTransationStandard($item, $project);
     }
 
     /**
      * Retourne le compte de portefeuille à utiliser.
-     *
-     * @param QifItem $item
      *
      * @return Account
      */
@@ -216,8 +194,6 @@ class MemoParser
 
     /**
      * Affecte le type de placement en tant que "Assurance Vie" par défaut.
-     *
-     * @param string $account
      */
     private function setAccountType(string $account): void
     {

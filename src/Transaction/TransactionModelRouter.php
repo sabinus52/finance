@@ -17,9 +17,7 @@ use App\Entity\Transaction;
 use App\Values\StockPosition;
 use App\Values\TransactionType;
 use App\WorkFlow\Transfer;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 
 /**
  * Classe du router des différents modèles de transaction.
@@ -29,27 +27,17 @@ use Exception;
  * @SuppressWarnings(PHPMD.StaticAccess)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-final class TransactionModelRouter
+final readonly class TransactionModelRouter
 {
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $manager
      */
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(private EntityManagerInterface $entityManager)
     {
-        $this->entityManager = $manager;
     }
 
     /**
      * Crée le modèle de transaction en fonction des données de la transaction (mode UPDATE).
-     *
-     * @param Transaction $transaction
      *
      * @return TransactionModelInterface
      */
@@ -79,7 +67,7 @@ final class TransactionModelRouter
                 break;
 
             default:
-                throw new Exception(sprintf('Type de transaction inconnu : %s. Valeurs possibles (%s)', $transaction->getType()->getValue(), implode(', ', TransactionType::getValues())));
+                throw new \Exception(sprintf('Type de transaction inconnu : %s. Valeurs possibles (%s)', $transaction->getType()->getValue(), implode(', ', TransactionType::getValues())));
         }
         $modelTransac->setTransaction($transaction);
 
@@ -88,8 +76,6 @@ final class TransactionModelRouter
 
     /**
      * Crée le modèle de transaction standard en fonction de son type (recette ou dépense).
-     *
-     * @param bool $type
      *
      * @return TransactionModelInterface
      */
@@ -108,25 +94,16 @@ final class TransactionModelRouter
     /**
      * Crée le modèle de transaction standard en fonction de sa catégorie.
      *
-     * @param string $codeCat
-     *
      * @return TransactionModelInterface
      */
     public function createStandardByCategory(string $codeCat): TransactionModelInterface
     {
-        switch ($codeCat) {
-            case Category::INTERET:
-                $modelTransac = new InterestTransaction($this->entityManager);
-                break;
-            case Category::TAXE_CSG:
-                $modelTransac = new ContributionTransaction($this->entityManager);
-                break;
-            case Category::TAXE:
-                $modelTransac = new TaxTransaction($this->entityManager);
-                break;
-            default:
-                throw new Exception(sprintf('Type de catégorie inconnu : %s.', $codeCat));
-        }
+        $modelTransac = match ($codeCat) {
+            Category::INTERET => new InterestTransaction($this->entityManager),
+            Category::TAXE_CSG => new ContributionTransaction($this->entityManager),
+            Category::TAXE => new TaxTransaction($this->entityManager),
+            default => throw new \Exception(sprintf('Type de catégorie inconnu : %s.', $codeCat)),
+        };
         $modelTransac->init();
 
         return $modelTransac;
@@ -141,23 +118,13 @@ final class TransactionModelRouter
      */
     public function createVehicle(?string $codeCat): TransactionModelInterface
     {
-        switch ($codeCat) {
-            case Category::CARBURANT:
-                $modelTransac = new VehicleFuelTransaction($this->entityManager);
-                break;
-            case Category::VEHICULEREPAIR:
-                $modelTransac = new VehicleRepairTransaction($this->entityManager);
-                break;
-            case Category::VEHICULEFUNDING:
-                $modelTransac = new VehicleFundingTransaction($this->entityManager);
-                break;
-            case Category::RESALE:
-                $modelTransac = new VehicleResaleTransaction($this->entityManager);
-                break;
-            default:
-                $modelTransac = new VehicleOtherTransaction($this->entityManager);
-                break;
-        }
+        $modelTransac = match ($codeCat) {
+            Category::CARBURANT => new VehicleFuelTransaction($this->entityManager),
+            Category::VEHICULEREPAIR => new VehicleRepairTransaction($this->entityManager),
+            Category::VEHICULEFUNDING => new VehicleFundingTransaction($this->entityManager),
+            Category::RESALE => new VehicleResaleTransaction($this->entityManager),
+            default => new VehicleOtherTransaction($this->entityManager),
+        };
         $modelTransac->init();
 
         return $modelTransac;
@@ -165,26 +132,14 @@ final class TransactionModelRouter
 
     public function createStock(?StockPosition $position): TransactionModelInterface
     {
-        switch ($position->getValue()) {
-            case StockPosition::BUYING:
-                $modelTransac = new StockBuyingTransaction($this->entityManager);
-                break;
-            case StockPosition::SELLING:
-                $modelTransac = new StockSellingTransaction($this->entityManager);
-                break;
-            case StockPosition::DIVIDEND:
-                $modelTransac = new StockDividendTransaction($this->entityManager);
-                break;
-            case StockPosition::FUSION_BUY:
-                $modelTransac = new StockFusionBuyingTransaction($this->entityManager);
-                break;
-            case StockPosition::FUSION_SALE:
-                $modelTransac = new StockFusionSellingTransaction($this->entityManager);
-                break;
-
-            default:
-                throw new Exception(sprintf('Position bouorsière inconnu : %s.', $position));
-        }
+        $modelTransac = match ($position->getValue()) {
+            StockPosition::BUYING => new StockBuyingTransaction($this->entityManager),
+            StockPosition::SELLING => new StockSellingTransaction($this->entityManager),
+            StockPosition::DIVIDEND => new StockDividendTransaction($this->entityManager),
+            StockPosition::FUSION_BUY => new StockFusionBuyingTransaction($this->entityManager),
+            StockPosition::FUSION_SALE => new StockFusionSellingTransaction($this->entityManager),
+            default => throw new \Exception(sprintf('Position bouorsière inconnu : %s.', $position)),
+        };
         $modelTransac->init();
 
         return $modelTransac;
@@ -193,25 +148,16 @@ final class TransactionModelRouter
     /**
      * Crée le modèle de transaction d'un virement en fonction de sa catégorie (virement, investissement ou rachat).
      *
-     * @param string $codeCat
-     *
      * @return TransactionModelInterface
      */
     public function createTransferByCategory(string $codeCat): TransactionModelInterface
     {
-        switch ($codeCat) {
-            case Category::VIREMENT:
-                $modelTransac = new TransferTransaction($this->entityManager);
-                break;
-            case Category::INVESTMENT:
-                $modelTransac = new InvestmentTransaction($this->entityManager);
-                break;
-            case Category::REPURCHASE:
-                $modelTransac = new RepurchaseTransaction($this->entityManager);
-                break;
-            default:
-                throw new Exception(sprintf('Type de catégorie du transfert inconnu : %s. Valeurs possibles (%s)', $codeCat, implode(', ', Transfer::getCategoryValues())));
-        }
+        $modelTransac = match ($codeCat) {
+            Category::VIREMENT => new TransferTransaction($this->entityManager),
+            Category::INVESTMENT => new InvestmentTransaction($this->entityManager),
+            Category::REPURCHASE => new RepurchaseTransaction($this->entityManager),
+            default => throw new \Exception(sprintf('Type de catégorie du transfert inconnu : %s. Valeurs possibles (%s)', $codeCat, implode(', ', Transfer::getCategoryValues()))),
+        };
         $modelTransac->init();
 
         return $modelTransac;
@@ -220,11 +166,11 @@ final class TransactionModelRouter
     /**
      * Crée le modèle de transaction de valorisation du capital en fin de mois.
      *
-     * @param DateTime|null $date
+     * @param \DateTime|null $date
      *
      * @return TransactionModelInterface
      */
-    public function createRevaluation(?DateTime $date = null): TransactionModelInterface
+    public function createRevaluation(\DateTime $date = null): TransactionModelInterface
     {
         $modelTransac = new ReValuationTransaction($this->entityManager);
         $modelTransac->init();
@@ -242,8 +188,6 @@ final class TransactionModelRouter
     /**
      * Crée le modèle de transaction à partir d'un modèle.
      *
-     * @param Model $model
-     *
      * @return TransactionModelInterface
      */
     public function createFromModel(Model $model): TransactionModelInterface
@@ -259,13 +203,13 @@ final class TransactionModelRouter
                 ],
             ]);
         } else {
-            $modelTransac = $this->createStandardByType(($model->getAmount() > 0));
+            $modelTransac = $this->createStandardByType($model->getAmount() > 0);
         }
 
         // Remplissage des données
         $modelTransac->setAccount($model->getAccount());
         $modelTransac->setDatas([
-            'date' => DateTime::createFromImmutable($model->getSchedule()->getDoAt()),
+            'date' => \DateTime::createFromImmutable($model->getSchedule()->getDoAt()),
             'amount' => $model->getAmount(),
             'payment' => $model->getPayment(),
             'recipient' => $model->getRecipient(),

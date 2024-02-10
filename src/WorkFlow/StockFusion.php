@@ -18,7 +18,6 @@ use App\Entity\StockWallet;
 use App\Transaction\TransactionModelInterface;
 use App\Transaction\TransactionModelRouter;
 use App\Values\StockPosition;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -29,19 +28,9 @@ use Doctrine\ORM\EntityManagerInterface;
 final class StockFusion
 {
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
      * @var TransactionModelRouter
      */
     private $router;
-
-    /**
-     * @var Account
-     */
-    private $account;
 
     /**
      * Ancien titre boursier qui sera fusionné.
@@ -79,15 +68,10 @@ final class StockFusion
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $manager
-     * @param Account                $account
      */
-    public function __construct(EntityManagerInterface $manager, Account $account)
+    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly Account $account)
     {
-        $this->entityManager = $manager;
-        $this->account = $account;
-        $this->router = new TransactionModelRouter($manager);
+        $this->router = new TransactionModelRouter($this->entityManager);
     }
 
     /**
@@ -117,9 +101,6 @@ final class StockFusion
     /**
      * Affecte les données de l'ancien titre qui sera fusionné.
      *
-     * @param Stock $stock
-     * @param float $price
-     *
      * @return self
      */
     public function setOldStock(Stock $stock, float $price): self
@@ -144,8 +125,6 @@ final class StockFusion
      * @param Stock|null  $stock    Nouveau titre si renseigné
      * @param string|null $name     Nom du nouveau titre à créer
      * @param string|null $codeIsin Code du nouveau titre à créer
-     * @param float       $volume
-     * @param float       $price
      *
      * @return self
      */
@@ -204,12 +183,9 @@ final class StockFusion
     /**
      * Création de la transaction de vente de l'ancien titre.
      *
-     * @param DateTime $date
-     * @param float    $amount
-     *
      * @return TransactionModelInterface
      */
-    private function createTransactionSelling(DateTime $date, float $amount): TransactionModelInterface
+    private function createTransactionSelling(\DateTime $date, float $amount): TransactionModelInterface
     {
         $model = $this->router->createStock(new StockPosition(StockPosition::FUSION_SALE));
         $model->setAccount($this->account);
@@ -229,12 +205,9 @@ final class StockFusion
     /**
      * Création de la transaction d'achat du nouveau titre.
      *
-     * @param DateTime $date
-     * @param float    $amount
-     *
      * @return TransactionModelInterface
      */
-    private function createTransactionBuying(DateTime $date, float $amount): TransactionModelInterface
+    private function createTransactionBuying(\DateTime $date, float $amount): TransactionModelInterface
     {
         $model = $this->router->createStock(new StockPosition(StockPosition::FUSION_BUY));
         $model->setAccount($this->account);

@@ -24,11 +24,13 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @ORM\Entity(repositoryClass=InstitutionRepository::class)
  */
-class Institution
+class Institution implements \Stringable
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -39,7 +41,9 @@ class Institution
      * @var string
      *
      * @ORM\Column(type="string", length=50)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(max=50)
      */
     private $name;
@@ -50,7 +54,9 @@ class Institution
      * @var string
      *
      * @ORM\Column(type="string", length=20)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(max=20)
      */
     private $shortName;
@@ -61,7 +67,9 @@ class Institution
      * @var string
      *
      * @ORM\Column(type="string", length=255, nullable=true)
+     *
      * @Assert\Url
+     *
      * @Assert\Length(max=255)
      */
     private $link;
@@ -72,6 +80,7 @@ class Institution
      * @var string
      *
      * @ORM\Column(type="string", length=12, nullable=true)
+     *
      * @Assert\Length(max=12)
      */
     private $codeSwift;
@@ -97,7 +106,7 @@ class Institution
         $this->accounts = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name ?: '';
     }

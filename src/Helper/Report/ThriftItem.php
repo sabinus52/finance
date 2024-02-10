@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace App\Helper\Report;
 
-use DateTime;
-
 /**
  * Element de la capacité d'épargne sur les dépenses et revenues durant le mois.
  *
@@ -20,13 +18,6 @@ use DateTime;
  */
 class ThriftItem
 {
-    /**
-     * Date de la période.
-     *
-     * @var DateTime
-     */
-    private $period;
-
     /**
      * Total des dépenses durant la période.
      *
@@ -55,16 +46,15 @@ class ThriftItem
      */
     private $thrift;
 
-    public function __construct(DateTime $period)
+    public function __construct(private readonly \DateTime $period)
     {
         $this->income = 0.0;
         $this->expense = 0.0;
         $this->invest = 0.0;
         $this->thrift = 0.0;
-        $this->period = $period;
     }
 
-    public function getPeriod(): DateTime
+    public function getPeriod(): \DateTime
     {
         return $this->period;
     }

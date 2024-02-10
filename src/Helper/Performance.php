@@ -16,7 +16,6 @@ use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
 use App\Values\TransactionType;
-use DateTimeImmutable;
 
 /**
  * Classe pour le calcul de la performance des placements.
@@ -27,23 +26,9 @@ use DateTimeImmutable;
  */
 class Performance
 {
-    public const MONTH = 1;
-    public const QUARTER = 3;
-    public const YEAR = 12;
-
-    /**
-     * Repository des transactions.
-     *
-     * @var TransactionRepository
-     */
-    private $repository;
-
-    /**
-     * Contrat.
-     *
-     * @var Account
-     */
-    private $account;
+    final public const MONTH = 1;
+    final public const QUARTER = 3;
+    final public const YEAR = 12;
 
     /**
      * Liste des transactions.
@@ -54,15 +39,10 @@ class Performance
 
     /**
      * Constructeur.
-     *
-     * @param TransactionRepository $repository
-     * @param Account               $account
      */
-    public function __construct(TransactionRepository $repository, Account $account)
+    public function __construct(private readonly TransactionRepository $repository, private readonly Account $account)
     {
-        $this->repository = $repository;
-        $this->account = $account;
-        $date = new DateTimeImmutable();
+        $date = new \DateTimeImmutable();
         $date = $date->modify('first day of this month');
 
         // Récupération des transactions du placement
@@ -84,8 +64,6 @@ class Performance
     /**
      * Génération de la performance pour un type de période donné.
      *
-     * @param int $typePeriod
-     *
      * @return PerfItem[]
      */
     private function generate(int $typePeriod): array
@@ -95,7 +73,7 @@ class Performance
 
         foreach ($this->transactions as $transaction) {
             // Crée la performance si elle n'existe pas
-            $date = DateTimeImmutable::createFromMutable($transaction->getDate());
+            $date = \DateTimeImmutable::createFromMutable($transaction->getDate());
             $period = $this->getPeriod($date, $typePeriod);
 
             // On a investi durant la période
@@ -120,19 +98,17 @@ class Performance
     /**
      * Initialise les items de performance de chaque période.
      *
-     * @param int $typePeriod
-     *
      * @return PerfItem[]
      */
     private function initializePerfItems(int $typePeriod): array
     {
         $results = [];
         $prevPerfItem = null;
-        $start = DateTimeImmutable::createFromMutable($this->transactions[0]->getDate());
+        $start = \DateTimeImmutable::createFromMutable($this->transactions[0]->getDate());
         $start = $start->modify('first day of this month');
-        $end = new DateTimeImmutable();
+        $end = new \DateTimeImmutable();
         if (null !== $this->account->getClosedAt()) {
-            $end = DateTimeImmutable::createFromMutable($this->account->getClosedAt());
+            $end = \DateTimeImmutable::createFromMutable($this->account->getClosedAt());
         }
 
         while ($this->getPeriod($start, $typePeriod) <= $this->getPeriod($end, $typePeriod)) {
@@ -195,12 +171,9 @@ class Performance
     /**
      * Retourn la clé de la période en cours.
      *
-     * @param DateTimeImmutable $date
-     * @param int               $typePeriod
-     *
      * @return string
      */
-    private function getPeriod(DateTimeImmutable $date, int $typePeriod): string
+    private function getPeriod(\DateTimeImmutable $date, int $typePeriod): string
     {
         if (self::YEAR === $typePeriod) {
             return $date->format('Y');
@@ -228,7 +201,7 @@ class Performance
         }
 
         $result = [];
-        $date = new DateTimeImmutable();
+        $date = new \DateTimeImmutable();
 
         // Recherche la dernière valorisation et sa date
         $idx = 0;
@@ -255,12 +228,11 @@ class Performance
     /**
      * Recherche et retourne une Perf d'une période donnée.
      *
-     * @param PerfItem[]        $items
-     * @param DateTimeImmutable $date
+     * @param PerfItem[] $items
      *
      * @return PerfItem|null
      */
-    public static function searchByPeriod(array $items, DateTimeImmutable $date): ?PerfItem
+    public static function searchByPeriod(array $items, \DateTimeImmutable $date): ?PerfItem
     {
         if (!isset($items[$date->format('Y-m')])) {
             return null;

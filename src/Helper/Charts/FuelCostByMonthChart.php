@@ -14,8 +14,6 @@ namespace App\Helper\Charts;
 use App\Entity\Transaction;
 use App\Entity\Vehicle;
 use App\Helper\Report\VehicleReport;
-use DateInterval;
-use DateTime;
 use Symfony\UX\Chartjs\Model\Chart;
 
 /**
@@ -135,20 +133,19 @@ class FuelCostByMonthChart extends ChartBuilder implements ChartBuilderInterface
     /**
      * Retoune le tableau par mois dans un intervalle donné.
      *
-     * @param DateTime      $dateBegin
-     * @param DateTime|null $dateEnd
+     * @param \DateTime|null $dateEnd
      *
      * @return array<string>
      */
-    private function getArrayByMonth(DateTime $dateBegin, ?DateTime $dateEnd): array
+    private function getArrayByMonth(\DateTime $dateBegin, ?\DateTime $dateEnd): array
     {
         $results = [];
         if (null === $dateEnd) {
-            $dateEnd = new DateTime();
+            $dateEnd = new \DateTime();
         }
         while ($dateBegin <= $dateEnd) {
             $results[$dateBegin->format('m/Y')] = $dateBegin->format('m/Y');
-            $dateBegin->add(new DateInterval('P1M')); // Ajoute un mois à la date de début
+            $dateBegin->add(new \DateInterval('P1M')); // Ajoute un mois à la date de début
         }
 
         return $results;

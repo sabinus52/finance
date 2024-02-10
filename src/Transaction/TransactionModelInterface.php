@@ -112,21 +112,21 @@ interface TransactionModelInterface
      *
      * @param FormInterface|null $form
      */
-    public function insert(?FormInterface $form = null): void;
+    public function insert(FormInterface $form = null): void;
 
     /**
      * Ajoute la transacion en base lors d'un import.
      *
      * @param array<mixed>|null $datas
      */
-    public function insertModeImport(?array $datas = null): void;
+    public function insertModeImport(array $datas = null): void;
 
     /**
      * Mets à jour une transaction.
      *
      * @param FormInterface|null $form
      */
-    public function update(?FormInterface $form = null): void;
+    public function update(FormInterface $form = null): void;
 
     /**
      * Supprime une transaction.

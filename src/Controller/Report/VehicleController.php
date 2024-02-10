@@ -99,8 +99,6 @@ class VehicleController extends AbstractController
     /**
      * Retourne le résumé du rapport des coûts par véhicule.
      *
-     * @param Query $query
-     *
      * @return array<mixed>
      */
     private function getReportResults(Query $query): array

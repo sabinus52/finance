@@ -24,7 +24,7 @@ use Doctrine\DBAL\Types\Type;
  */
 class StockPositionType extends Type
 {
-    public const TYPE = 'position';
+    final public const TYPE = 'position';
 
     /**
      * {@inheritdoc}

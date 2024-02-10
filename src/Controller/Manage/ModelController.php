@@ -21,9 +21,7 @@ use App\Form\ScheduleFormType;
 use App\Repository\ModelRepository;
 use App\Values\Payment;
 use App\Values\TransactionType;
-use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -79,7 +77,7 @@ class ModelController extends AbstractController
      */
     public function update(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->getFormModel($model, ($model->getAmount() > 0));
+        $form = $this->getFormModel($model, $model->getAmount() > 0);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -160,7 +158,7 @@ class ModelController extends AbstractController
         }
         $schedule->setState(true);
         // Réactive en remettant la prochaine date de la planification
-        $period = new DateInterval(sprintf('P%s%s', $schedule->getFrequency(), $schedule->getPeriod()));
+        $period = new \DateInterval(sprintf('P%s%s', $schedule->getFrequency(), $schedule->getPeriod()));
         while ($schedule->getDoAt()->format('Y-m-d') < date('Y-m-d')) {
             $schedule->setDoAt($schedule->getDoAt()->add($period));
         }
@@ -210,9 +208,6 @@ class ModelController extends AbstractController
     /**
      * Crée et initialise le nouveau medèle en fonction de son type.
      *
-     * @param EntityManagerInterface $entityManager
-     * @param string                 $type
-     *
      * @return Model
      */
     private function createModel(EntityManagerInterface $entityManager, string $type): Model
@@ -226,7 +221,7 @@ class ModelController extends AbstractController
             $model->setRecipient($recipient);
         } else {
             if ('1' !== $type && '0' !== $type) {
-                throw new Exception('Type de modèle inconnu');
+                throw new \Exception('Type de modèle inconnu');
             }
         }
 
@@ -235,9 +230,6 @@ class ModelController extends AbstractController
 
     /**
      * Retourne le formulaire en fonction de son type.
-     *
-     * @param Model $model
-     * @param bool  $income
      *
      * @return FormInterface
      */
@@ -248,7 +240,7 @@ class ModelController extends AbstractController
             $options['category'] = sprintf('cat.type = 0 AND cat1.code = \'%s\'', Category::MOVEMENT);
             $formClass = ModelTransferFormType::class;
         } else {
-            $options['category'] = sprintf('cat.type = %s AND (cat1.code <> \'%s\' OR cat1.code IS NULL)', (int) ($income), Category::MOVEMENT);
+            $options['category'] = sprintf('cat.type = %s AND (cat1.code <> \'%s\' OR cat1.code IS NULL)', (int) $income, Category::MOVEMENT);
             $formClass = ModelStandardFormType::class;
         }
 

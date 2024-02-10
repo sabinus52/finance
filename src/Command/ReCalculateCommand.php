@@ -159,9 +159,6 @@ class ReCalculateCommand extends Command
 
     /**
      * Affiche le portefeuille.
-     *
-     * @param Account       $account
-     * @param WalletHistory $wallet
      */
     private function printWallet(Account $account, WalletHistory $wallet): void
     {

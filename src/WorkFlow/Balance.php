@@ -19,7 +19,6 @@ use App\Repository\TransactionRepository;
 use App\Values\AccountBalance;
 use App\Values\AccountType;
 use App\Values\TransactionType;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -30,22 +29,12 @@ use Doctrine\ORM\EntityManagerInterface;
 class Balance
 {
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
      * @var TransactionRepository
      */
     private $repository;
 
-    /**
-     * @param EntityManagerInterface $manager
-     */
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(private readonly EntityManagerInterface $entityManager)
     {
-        $this->entityManager = $manager;
-
         /** @var TransactionRepository $repository */
         $repository = $this->entityManager->getRepository(Transaction::class);
         $this->repository = $repository;
@@ -74,7 +63,7 @@ class Balance
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
                 $variation = $item->getBalance() - $balance;
                 $item->setAmount($variation);
-                $item->setCategory($this->getCategory(($variation >= 0.0)));
+                $item->setCategory($this->getCategory($variation >= 0.0));
                 $balance = $item->getBalance();
             } else {
                 $balance += $item->getAmount();
@@ -110,8 +99,6 @@ class Balance
     /**
      * Mets à jour le solde de tout le compte défini.
      *
-     * @param Account $account
-     *
      * @return int
      */
     public function updateBalanceFromScratch(Account $account): int
@@ -132,7 +119,7 @@ class Balance
      *
      * @param bool|null $isOpened
      */
-    public function updateAllAccounts(?bool $isOpened = null): void
+    public function updateAllAccounts(bool $isOpened = null): void
     {
         /** @var AccountRepository $repository */
         $repository = $this->entityManager->getRepository(Account::class);
@@ -154,7 +141,7 @@ class Balance
      *
      * @param bool|null $isOpened
      */
-    public function updateAllWallets(?bool $isOpened = null): void
+    public function updateAllWallets(bool $isOpened = null): void
     {
         /** @var AccountRepository $repository */
         $repository = $this->entityManager->getRepository(Account::class);
@@ -169,8 +156,6 @@ class Balance
 
     /**
      * Retourne les soldes d'un compte à la fin de chaque mois.
-     *
-     * @param Account $account
      *
      * @return array<float>
      */
@@ -188,7 +173,7 @@ class Balance
         // Bouche les mois manquants
         $start = clone $account->getOpenedAt();
         $end = $account->getClosedAt();
-        $end ??= new DateTime();
+        $end ??= new \DateTime();
         $balance = 0.0;
         while ($start->format('Y-m') <= $end->format('Y-m')) {
             if (!isset($results[$start->format('Y-m')])) {
@@ -204,8 +189,6 @@ class Balance
 
     /**
      * Retourne les soldes d'un compte à la fin de chaque année.
-     *
-     * @param Account $account
      *
      * @return array<float>
      */
@@ -223,7 +206,7 @@ class Balance
         // Bouche les années manquantes
         $start = clone $account->getOpenedAt();
         $end = $account->getClosedAt();
-        $end ??= new DateTime();
+        $end ??= new \DateTime();
         $balance = 0.0;
         while ($start->format('Y') <= $end->format('Y')) {
             if (!isset($results[$start->format('Y')])) {
@@ -240,8 +223,6 @@ class Balance
     /**
      * Mets à jour le solde d'un compte standard.
      *
-     * @param Account $account
-     *
      * @return int
      */
     private function updateBalanceAccount(Account $account): int
@@ -254,13 +235,13 @@ class Balance
 
         // Liste des transactions par compte
         /** @var Transaction[] $results */
-        $results = $this->repository->findAfterDate($account, new DateTime('1970-01-01'));
+        $results = $this->repository->findAfterDate($account, new \DateTime('1970-01-01'));
         foreach ($results as $item) {
             if (TransactionType::REVALUATION === $item->getType()->getValue()) {
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
                 $variation = $item->getBalance() - $balance;
                 $item->setAmount($variation);
-                $item->setCategory($this->getCategory(($variation >= 0.0)));
+                $item->setCategory($this->getCategory($variation >= 0.0));
                 $balance = $item->getBalance();
             } else {
                 $balance += $item->getAmount();
@@ -291,8 +272,6 @@ class Balance
     /**
      * Mets à jour le solde d'un portefeuille.
      *
-     * @param Account $account
-     *
      * @return int
      */
     private function updateBalanceWallet(Account $account): int
@@ -318,8 +297,6 @@ class Balance
 
     /**
      * Retourne la catgorie de Valorisation.
-     *
-     * @param bool $type
      *
      * @return Category
      */

@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\StockWalletRepository;
-use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -26,7 +25,9 @@ class StockWallet
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -37,6 +38,7 @@ class StockWallet
      * @var Stock
      *
      * @ORM\ManyToOne(targetEntity=Stock::class, inversedBy="stockWallets")
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private $stock;
@@ -47,6 +49,7 @@ class StockWallet
      * @var Account
      *
      * @ORM\ManyToOne(targetEntity=Account::class)
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private $account;
@@ -72,7 +75,7 @@ class StockWallet
     /**
      * Date du prix en cours.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date", nullable=true)
      */
@@ -184,12 +187,12 @@ class StockWallet
         return $this;
     }
 
-    public function getPriceDate(): ?DateTime
+    public function getPriceDate(): ?\DateTime
     {
         return $this->priceDate;
     }
 
-    public function setPriceDate(DateTime $priceDate): self
+    public function setPriceDate(\DateTime $priceDate): self
     {
         $this->priceDate = clone $priceDate;
         $this->priceDate->modify('last day of this month');
@@ -276,10 +279,6 @@ class StockWallet
     /**
      * Traitement de l'achat d'un titre boursier.
      *
-     * @param float $volume
-     * @param float $price
-     * @param float $fee
-     *
      * @return self
      */
     public function doBuying(float $volume, float $price, float $fee): self
@@ -293,10 +292,6 @@ class StockWallet
 
     /**
      * Traitement de la vente d'un titre boursier.
-     *
-     * @param float $volume
-     * @param float $price
-     * @param float $fee
      *
      * @return self
      */
@@ -312,10 +307,6 @@ class StockWallet
     /**
      * Traitement d'une fusion d'un titre boursier (vente de l'ancien).
      *
-     * @param float $volume
-     * @param float $price
-     * @param float $fee
-     *
      * @return self
      */
     public function doFusionSelling(float $volume, float $price, float $fee): self
@@ -330,9 +321,6 @@ class StockWallet
     /**
      * Traitement d'une fusion d'un titre boursier (achat du nouveau).
      *
-     * @param float       $volume
-     * @param float       $price
-     * @param float       $fee
      * @param StockWallet $stockWallet Aancien titre pour récuperer l'investissement
      *
      * @return self
@@ -349,8 +337,6 @@ class StockWallet
 
     /**
      * Traitement d'une reception de dividendes.
-     *
-     * @param float $dividend
      *
      * @return self
      */

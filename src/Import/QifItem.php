@@ -16,7 +16,6 @@ use App\Entity\Category;
 use App\Entity\Recipient;
 use App\Values\Payment;
 use App\Values\TransactionType;
-use DateTime;
 
 /**
  * Element trouvé à importer.
@@ -25,17 +24,10 @@ use DateTime;
  *
  * @SuppressWarnings(PHPMD.StaticAccess)
  */
-class QifItem
+class QifItem implements \Stringable
 {
     /**
-     * Liste des données associées (Account, Recepient, Category).
-     *
-     * @var AssocDatas
-     */
-    private $assocDatas;
-
-    /**
-     * @var DateTime
+     * @var \DateTime
      */
     private $date;
 
@@ -79,22 +71,24 @@ class QifItem
      */
     private $memo;
 
-    public function __construct(AssocDatas $assocDatas)
+    /**
+     * @param AssocDatas $assocDatas liste des données associées (Account, Recepient, Category)
+     */
+    public function __construct(private readonly AssocDatas $assocDatas)
     {
-        $this->assocDatas = $assocDatas;
         $this->setType(TransactionType::STANDARD);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return sprintf('%s | %s | %s | %s | %s', $this->date->format('d/m/Y'), $this->getAccount()->getFullName(), $this->amount, $this->getRecipient()->getName(), $this->getCategory()->getFullName());
     }
 
     public function setDate(string $date, string $format = QifParser::DATE_FORMAT): self
     {
-        $this->date = DateTime::createFromFormat($format, $date); /** @phpstan-ignore-line */
+        $this->date = \DateTime::createFromFormat($format, $date); /** @phpstan-ignore-line */
         if (false === $this->date) {
-            $this->date = new DateTime('1970-01-01');
+            $this->date = new \DateTime('1970-01-01');
         }
 
         return $this;
@@ -165,7 +159,7 @@ class QifItem
         return $this;
     }
 
-    public function getDate(): DateTime
+    public function getDate(): \DateTime
     {
         return $this->date;
     }

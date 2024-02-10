@@ -90,15 +90,12 @@ class AccountType extends AbstractType
             ->add('accAssoc', EntityType::class, [
                 'label' => 'Compte associé',
                 'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) {
-                    return $er->createQueryBuilder('acc')
-                        ->addSelect('ist')
-                        ->innerJoin('acc.institution', 'ist')
-                        ->orderBy('ist.name')
-                        ->addOrderBy('acc.name')
-                    ;
-                },
-                'choice_label' => function (Account $choice) {
+                'query_builder' => static fn (AccountRepository $er) => $er->createQueryBuilder('acc')
+                    ->addSelect('ist')
+                    ->innerJoin('acc.institution', 'ist')
+                    ->orderBy('ist.name')
+                    ->addOrderBy('acc.name'),
+                'choice_label' => static function (Account $choice) {
                     $result = $choice->getFullName();
                     if (null !== $choice->getClosedAt()) {
                         $result .= ' (fermé)';
@@ -106,7 +103,7 @@ class AccountType extends AbstractType
 
                     return $result;
                 },
-                'choice_attr' => function (Account $choice) {
+                'choice_attr' => static function (Account $choice) {
                     if (null !== $choice->getClosedAt()) {
                         return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
                     }

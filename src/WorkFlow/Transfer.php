@@ -35,11 +35,6 @@ class Transfer
     ];
 
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
      * Transaction créditeur.
      *
      * @var Transaction
@@ -55,14 +50,9 @@ class Transfer
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $manager
-     * @param Transaction            $transaction
      */
-    public function __construct(EntityManagerInterface $manager, Transaction $transaction)
+    public function __construct(private readonly EntityManagerInterface $entityManager, Transaction $transaction)
     {
-        $this->entityManager = $manager;
-
         $this->setTransaction($transaction);
     }
 
@@ -117,8 +107,6 @@ class Transfer
     /**
      * Affecte les transactions de débit et de crédit en fonction de la transaction transmise.
      *
-     * @param Transaction $transaction
-     *
      * @return Transfer
      */
     public function setTransaction(Transaction $transaction): self
@@ -146,8 +134,6 @@ class Transfer
 
     /**
      * Création de la transaction de crédit avec la transaction courante du formulaire.
-     *
-     * @param Transaction $transaction
      */
     private function createCredit(Transaction $transaction): void
     {
@@ -167,11 +153,9 @@ class Transfer
     /**
      * Effectue le virement.
      *
-     * @param Account    $source
-     * @param Account    $target
      * @param float|null $amountTarget Montant investi pour les placements
      */
-    public function makeTransfer(Account $source, Account $target, ?float $amountTarget = null): void
+    public function makeTransfer(Account $source, Account $target, float $amountTarget = null): void
     {
         if (null === $amountTarget) {
             $amountTarget = $this->credit->getAmount();
@@ -185,9 +169,6 @@ class Transfer
 
     /**
      * Retourne la catégorie à utiliser.
-     *
-     * @param bool   $type
-     * @param string $code
      *
      * @return Category
      */

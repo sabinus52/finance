@@ -44,46 +44,37 @@ class ModelTransferFormType extends AbstractType
                 'required' => false,
                 'class' => Category::class,
                 'choice_label' => 'fullname',
-                'query_builder' => function (CategoryRepository $er) use ($options) {
-                    return $er->createQueryBuilder('cat')
-                        ->addSelect('cat1')
-                        ->innerJoin('cat.parent', 'cat1')
-                        ->where($options['category'])
-                        ->orderBy('cat1.name')
-                        ->addOrderBy('cat.name')
-                    ;
-                },
-                'group_by' => fn (Category $category) => $category->getParent()->getName(),
+                'query_builder' => static fn (CategoryRepository $er) => $er->createQueryBuilder('cat')
+                    ->addSelect('cat1')
+                    ->innerJoin('cat.parent', 'cat1')
+                    ->where($options['category'])
+                    ->orderBy('cat1.name')
+                    ->addOrderBy('cat.name'),
+                'group_by' => static fn (Category $category) => $category->getParent()->getName(),
                 'empty_data' => null,
             ])
             ->add('account', EntityType::class, [
                 'label' => 'Du compte',
                 'required' => false,
                 'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) {
-                    return $er->createQueryBuilder('acc')
-                        ->addSelect('ist')
-                        ->innerJoin('acc.institution', 'ist')
-                        ->where('acc.closedAt IS NULL')
-                        ->orderBy('ist.name')
-                        ->addOrderBy('acc.name')
-                    ;
-                },
+                'query_builder' => static fn (AccountRepository $er) => $er->createQueryBuilder('acc')
+                    ->addSelect('ist')
+                    ->innerJoin('acc.institution', 'ist')
+                    ->where('acc.closedAt IS NULL')
+                    ->orderBy('ist.name')
+                    ->addOrderBy('acc.name'),
                 'empty_data' => null,
             ])
             ->add('transfer', EntityType::class, [
                 'label' => 'Vers le compte',
                 'required' => false,
                 'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) {
-                    return $er->createQueryBuilder('acc')
-                        ->addSelect('ist')
-                        ->innerJoin('acc.institution', 'ist')
-                        ->where('acc.closedAt IS NULL')
-                        ->orderBy('ist.name')
-                        ->addOrderBy('acc.name')
-                    ;
-                },
+                'query_builder' => static fn (AccountRepository $er) => $er->createQueryBuilder('acc')
+                    ->addSelect('ist')
+                    ->innerJoin('acc.institution', 'ist')
+                    ->where('acc.closedAt IS NULL')
+                    ->orderBy('ist.name')
+                    ->addOrderBy('acc.name'),
                 'constraints' => new NotBlank(),
                 'empty_data' => null,
             ])

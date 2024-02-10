@@ -14,7 +14,6 @@ namespace App\Entity;
 use App\Repository\VehicleRepository;
 use App\Values\Fuel;
 use App\Values\VehicleType;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -27,11 +26,13 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @ORM\Entity(repositoryClass=VehicleRepository::class)
  */
-class Vehicle
+class Vehicle implements \Stringable
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -42,7 +43,9 @@ class Vehicle
      * @var string
      *
      * @ORM\Column(type="string", length=20)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(max=20)
      */
     private $brand;
@@ -53,7 +56,9 @@ class Vehicle
      * @var string
      *
      * @ORM\Column(type="string", length=20)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(max=20)
      */
     private $model;
@@ -73,6 +78,7 @@ class Vehicle
      * @var string
      *
      * @ORM\Column(type="string", length=10, nullable=true)
+     *
      * @Assert\Length(max=10)
      */
     private $matriculation;
@@ -89,7 +95,7 @@ class Vehicle
     /**
      * Date de 1ère circulation.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date", nullable=true)
      */
@@ -101,6 +107,7 @@ class Vehicle
      * @var int
      *
      * @ORM\Column(type="integer", options={"default": 0})
+     *
      * @Assert\NotBlank
      */
     private $kilometer;
@@ -108,9 +115,10 @@ class Vehicle
     /**
      * Date d'achat.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date")
+     *
      * @Assert\NotBlank
      */
     private $boughtAt;
@@ -118,7 +126,7 @@ class Vehicle
     /**
      * Date de vente.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date", nullable=true)
      */
@@ -139,7 +147,7 @@ class Vehicle
         $this->transactionVehicles = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if (!$this->brand) {
             return '';
@@ -213,12 +221,12 @@ class Vehicle
         return $this;
     }
 
-    public function getRegisteredAt(): ?DateTime
+    public function getRegisteredAt(): ?\DateTime
     {
         return $this->registeredAt;
     }
 
-    public function setRegisteredAt(?DateTime $registeredAt): self
+    public function setRegisteredAt(?\DateTime $registeredAt): self
     {
         $this->registeredAt = $registeredAt;
 
@@ -237,24 +245,24 @@ class Vehicle
         return $this;
     }
 
-    public function getBoughtAt(): ?DateTime
+    public function getBoughtAt(): ?\DateTime
     {
         return $this->boughtAt;
     }
 
-    public function setBoughtAt(?DateTime $boughtAt): self
+    public function setBoughtAt(?\DateTime $boughtAt): self
     {
         $this->boughtAt = $boughtAt;
 
         return $this;
     }
 
-    public function getSoldAt(): ?DateTime
+    public function getSoldAt(): ?\DateTime
     {
         return $this->soldAt;
     }
 
-    public function setSoldAt(?DateTime $soldAt): self
+    public function setSoldAt(?\DateTime $soldAt): self
     {
         $this->soldAt = $soldAt;
 

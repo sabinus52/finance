@@ -15,8 +15,6 @@ use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Values\Payment;
-use ArrayObject;
-use DateTime;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
@@ -34,21 +32,21 @@ class Statistic
     /**
      * Liste des alertes trouvées.
      *
-     * @var ArrayObject
+     * @var \ArrayObject
      */
     private $alerts;
 
     /**
      * Liste des comptes trouvés.
      *
-     * @var ArrayObject
+     * @var \ArrayObject
      */
     private $accounts;
 
     /**
      * Liste des catégories trouvés.
      *
-     * @var ArrayObject
+     * @var \ArrayObject
      */
     private $categories;
 
@@ -62,15 +60,13 @@ class Statistic
         if (null !== $style) {
             $this->inOut = $style;
         }
-        $this->alerts = new ArrayObject();
-        $this->accounts = new ArrayObject();
-        $this->categories = new ArrayObject();
+        $this->alerts = new \ArrayObject();
+        $this->accounts = new \ArrayObject();
+        $this->categories = new \ArrayObject();
     }
 
     /**
      * Affecte le style de Symfony Command.
-     *
-     * @param SymfonyStyle $style
      */
     public function setStyle(SymfonyStyle $style): self
     {
@@ -81,8 +77,6 @@ class Statistic
 
     /**
      * Incrémente les données de la transaction.
-     *
-     * @param Transaction $transaction
      */
     public function incTransaction(Transaction $transaction): void
     {
@@ -111,10 +105,8 @@ class Statistic
 
     /**
      * Ajoute un message d'alerte.
-     *
-     * @param string $message
      */
-    public function addMemoAlert(DateTime $date, Account $account, float $amount, string $memo, string $message): void
+    public function addMemoAlert(\DateTime $date, Account $account, float $amount, string $memo, string $message): void
     {
         $this->alerts->append([
             'date' => $date->format('d/m/Y'),
@@ -153,8 +145,6 @@ class Statistic
 
     /**
      * Ajoute un nouveau compte trouvé.
-     *
-     * @param Account $account
      */
     private function addAccount(Account $account): void
     {
@@ -173,8 +163,6 @@ class Statistic
 
     /**
      * Met à jour les données du compte.
-     *
-     * @param Account $account
      */
     public function setAccountData(Account $account): void
     {
@@ -190,8 +178,6 @@ class Statistic
 
     /**
      * Ajoute une nouvelle catégorie trouvée.
-     *
-     * @param Category $category
      */
     private function addCategory(Category $category): void
     {

@@ -23,13 +23,16 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Sabinus52 <sabinus52@gmail.com>
  *
  * @ORM\Entity(repositoryClass=ModelRepository::class)
+ *
  * @ORM\HasLifecycleCallbacks
  */
-class Model
+class Model implements \Stringable
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id;  /** @phpstan-ignore-line */
@@ -40,6 +43,7 @@ class Model
      * @var float
      *
      * @ORM\Column(type="float")
+     *
      * @Assert\NotBlank
      */
     private $amount;
@@ -50,7 +54,9 @@ class Model
      * @var Account
      *
      * @ORM\ManyToOne(targetEntity=Account::class)
+     *
      * @ORM\JoinColumn(nullable=false)
+     *
      * @Assert\NotBlank
      */
     private $account;
@@ -61,6 +67,7 @@ class Model
      * @var TransactionType
      *
      * @ORM\Column(type="transaction_type")
+     *
      * @Assert\NotBlank
      */
     private $type;
@@ -71,6 +78,7 @@ class Model
      * @var Payment
      *
      * @ORM\Column(type="payment")
+     *
      * @Assert\NotBlank
      */
     private $payment;
@@ -81,7 +89,9 @@ class Model
      * @var Recipient
      *
      * @ORM\ManyToOne(targetEntity=Recipient::class)
+     *
      * @ORM\JoinColumn(nullable=false)
+     *
      * @Assert\NotBlank
      */
     private $recipient;
@@ -92,7 +102,9 @@ class Model
      * @var Category
      *
      * @ORM\ManyToOne(targetEntity=Category::class)
+     *
      * @ORM\JoinColumn(nullable=false)
+     *
      * @Assert\NotBlank
      */
     private $category;
@@ -141,7 +153,7 @@ class Model
         $this->type = new TransactionType(TransactionType::STANDARD);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if (!$this->getId()) {
             return '';
@@ -272,6 +284,7 @@ class Model
      * Corrige le signe du montant (+/-) en fonction de la catégorie.
      *
      * @ORM\PrePersist
+     *
      * @ORM\PreUpdate
      */
     public function correctAmount(): void

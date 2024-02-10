@@ -104,9 +104,6 @@ class IndexController extends BaseController
     }
 
     /**
-     * @param Request      $request
-     * @param Account      $account
-     * @param string       $template
      * @param array<mixed> $parameters
      *
      * @return Response

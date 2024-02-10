@@ -51,7 +51,7 @@ class BaseController extends AbstractController
                     'Non rapproché' => Transaction::STATE_NONE,
                     'Rapproché' => Transaction::STATE_RECONCILIED,
                 ],
-                'choice_value' => fn ($value) => $value,
+                'choice_value' => static fn ($value) => $value,
             ])
             ->getForm()
         ;

@@ -14,7 +14,6 @@ namespace App\Entity;
 use App\Repository\AccountRepository;
 use App\Values\AccountBalance;
 use App\Values\AccountType;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -31,11 +30,13 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  */
-class Account
+class Account implements \Stringable
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -55,6 +56,7 @@ class Account
      * @var string
      *
      * @ORM\Column(type="string", length=20, nullable=true)
+     *
      * @Assert\Length(max=20)
      */
     private $number;
@@ -65,7 +67,9 @@ class Account
      * @var string
      *
      * @ORM\Column(type="string", length=50)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(max=50)
      */
     private $name;
@@ -76,7 +80,9 @@ class Account
      * @var string
      *
      * @ORM\Column(type="string", length=20)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(max=20)
      */
     private $shortName;
@@ -96,6 +102,7 @@ class Account
      * @var float
      *
      * @ORM\Column(type="float", options={"default": 0})
+     *
      * @Assert\NotBlank
      */
     private $initial;
@@ -106,6 +113,7 @@ class Account
      * @var string
      *
      * @ORM\Column(type="string", length=3)
+     *
      * @Assert\NotBlank
      */
     private $currency;
@@ -113,9 +121,10 @@ class Account
     /**
      * Date d'ouverture du compte.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date")
+     *
      * @Assert\NotBlank
      */
     private $openedAt;
@@ -123,7 +132,7 @@ class Account
     /**
      * Date de fermeture ou null si en cours.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date", nullable=true)
      */
@@ -135,6 +144,7 @@ class Account
      * @var float
      *
      * @ORM\Column(type="float")
+     *
      * @Assert\NotBlank
      */
     private $overdraft;
@@ -152,7 +162,9 @@ class Account
      * @var Institution
      *
      * @ORM\ManyToOne(targetEntity=Institution::class, inversedBy="accounts")
+     *
      * @ORM\JoinColumn(nullable=false)
+     *
      * @Assert\NotBlank
      */
     private $institution;
@@ -186,7 +198,7 @@ class Account
         $this->transactions = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if (!$this->name) {
             return '';
@@ -289,24 +301,24 @@ class Account
         return $this;
     }
 
-    public function getOpenedAt(): ?DateTime
+    public function getOpenedAt(): ?\DateTime
     {
         return $this->openedAt;
     }
 
-    public function setOpenedAt(?DateTime $openedAt): self
+    public function setOpenedAt(?\DateTime $openedAt): self
     {
         $this->openedAt = $openedAt;
 
         return $this;
     }
 
-    public function getClosedAt(): ?DateTime
+    public function getClosedAt(): ?\DateTime
     {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?DateTime $closedAt): self
+    public function setClosedAt(?\DateTime $closedAt): self
     {
         $this->closedAt = $closedAt;
 

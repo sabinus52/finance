@@ -22,6 +22,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Category|null findOneBy(array $criteria, array $orderBy = null)
  * @method Category[]    findAll()
  * @method Category[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ *
  * @SuppressWarnings(PHPMD.StaticAccess)
  */
 class CategoryRepository extends ServiceEntityRepository
@@ -41,7 +42,7 @@ class CategoryRepository extends ServiceEntityRepository
      *
      * @return Category
      */
-    public function create(bool $type, string $name, ?Category $parent = null, ?string $code = null): Category
+    public function create(bool $type, string $name, Category $parent = null, string $code = null): Category
     {
         $category = new Category();
 
@@ -76,8 +77,7 @@ class CategoryRepository extends ServiceEntityRepository
     /**
      * Retourne la catégorie en fonction de son code.
      *
-     * @param bool   $type (recette|depense)
-     * @param string $code
+     * @param bool $type (recette|depense)
      *
      * @return Category|null
      */

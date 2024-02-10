@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\StockPriceRepository;
-use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -27,7 +26,9 @@ class StockPrice
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -35,7 +36,7 @@ class StockPrice
     /**
      * Date du cours de l'action.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date")
      */
@@ -47,6 +48,7 @@ class StockPrice
      * @var float
      *
      * @ORM\Column(type="float")
+     *
      * @Assert\NotBlank
      */
     private $price;
@@ -57,6 +59,7 @@ class StockPrice
      * @var Stock
      *
      * @ORM\ManyToOne(targetEntity=Stock::class, inversedBy="stockPrices")
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private $stock;
@@ -66,12 +69,12 @@ class StockPrice
         return $this->id;
     }
 
-    public function getDate(): ?DateTime
+    public function getDate(): ?\DateTime
     {
         return $this->date;
     }
 
-    public function setDate(DateTime $date): self
+    public function setDate(\DateTime $date): self
     {
         $this->date = $date;
 

@@ -87,8 +87,6 @@ class ThriftChart extends ChartBuilder implements ChartBuilderInterface
     /**
      * Retourne la couleur de chaque barre en fonction de la valeur.
      *
-     * @param float $value
-     *
      * @return string
      */
     private function getBackgroundColor(float $value): string

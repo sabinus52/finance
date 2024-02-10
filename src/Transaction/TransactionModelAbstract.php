@@ -37,11 +37,6 @@ use Symfony\Component\PropertyAccess\PropertyAccessor;
 abstract class TransactionModelAbstract implements TransactionModelInterface
 {
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
      * @var TransactionRepository
      */
     protected $repository;
@@ -62,12 +57,9 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $manager
      */
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(private readonly EntityManagerInterface $entityManager)
     {
-        $this->entityManager = $manager;
         $this->repository = $this->entityManager->getRepository(Transaction::class); /** @phpstan-ignore-line */
         $this->transaction = new Transaction();
         $this->workflow = new Workflow($this->entityManager, $this->transaction);
@@ -181,7 +173,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
      *
      * @param FormInterface|null $form
      */
-    public function insert(?FormInterface $form = null): void
+    public function insert(FormInterface $form = null): void
     {
         $this->workflow->insert($form);
     }
@@ -191,7 +183,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
      *
      * @param array<mixed>|null $datas
      */
-    public function insertModeImport(?array $datas = null): void
+    public function insertModeImport(array $datas = null): void
     {
         $this->workflow->insertModeImport($datas);
     }
@@ -201,7 +193,7 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
      *
      * @param FormInterface|null $form
      */
-    public function update(?FormInterface $form = null): void
+    public function update(FormInterface $form = null): void
     {
         $this->workflow->update($form);
     }
@@ -298,9 +290,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Retourne la catégorie à utiliser.
-     *
-     * @param bool   $type
-     * @param string $code
      *
      * @return Category
      */

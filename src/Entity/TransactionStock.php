@@ -27,7 +27,9 @@ class TransactionStock
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -38,6 +40,7 @@ class TransactionStock
      * @var Stock
      *
      * @ORM\ManyToOne(targetEntity=Stock::class, inversedBy="transactionStocks")
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private $stock;
@@ -48,6 +51,7 @@ class TransactionStock
      * @var Account
      *
      * @ORM\ManyToOne(targetEntity=Account::class, cascade={"persist", "remove"})
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private $account;
@@ -85,6 +89,7 @@ class TransactionStock
      * @var float
      *
      * @ORM\Column(type="float")
+     *
      * @Assert\NotBlank
      */
     private $fee;

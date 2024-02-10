@@ -16,21 +16,13 @@ namespace App\Import;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class MemoHelper
+class MemoHelper implements \Stringable
 {
     /**
-     * @var string
-     */
-    private $memo;
-
-    /**
      * Constructeur.
-     *
-     * @param string $memo
      */
-    public function __construct(string $memo)
+    public function __construct(private readonly string $memo)
     {
-        $this->memo = $memo;
     }
 
     /**
@@ -66,13 +58,11 @@ class MemoHelper
      * ( <> montant débité sur le compte courant)
      * Exemple : Versement:[Mon placement] €1000 -> 1000.
      *
-     * @param float $amount
-     *
      * @return float
      */
     public function getAmountVersement(float $amount): float
     {
-        $amount = $amount * -1;
+        $amount *= -1;
 
         preg_match('/€([0-9]*[.]?[0-9]+)/', $this->memo, $matches);
         if (isset($matches[1])) {

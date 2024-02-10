@@ -11,10 +11,6 @@ declare(strict_types=1);
 
 namespace App\Helper;
 
-use DateInterval;
-use DateTimeImmutable;
-use Exception;
-
 /**
  * Classe de gestion d'un interval prédéfini de date.
  *
@@ -22,17 +18,17 @@ use Exception;
  */
 class DateRange
 {
-    public const LAST_30D = 'lastday:30';
-    public const LAST_60D = 'lastday:60';
-    public const LAST_90D = 'lastday:90';
-    public const LAST_6M = 'lastmonth:5';
-    public const LAST_12M = 'lastmonth:11';
-    public const MONTH_CURRENT = 'month:current';
-    public const MONTH_LAST = 'month:last';
-    public const QUARTER_CURRENT = 'quarter:current';
-    public const QUARTER_LAST = 'quarter:last';
-    public const YEAR_CURRENT = 'year:current';
-    public const YEAR_LAST = 'year:last';
+    final public const LAST_30D = 'lastday:30';
+    final public const LAST_60D = 'lastday:60';
+    final public const LAST_90D = 'lastday:90';
+    final public const LAST_6M = 'lastmonth:5';
+    final public const LAST_12M = 'lastmonth:11';
+    final public const MONTH_CURRENT = 'month:current';
+    final public const MONTH_LAST = 'month:last';
+    final public const QUARTER_CURRENT = 'quarter:current';
+    final public const QUARTER_LAST = 'quarter:last';
+    final public const YEAR_CURRENT = 'year:current';
+    final public const YEAR_LAST = 'year:last';
 
     /**
      * @var array<mixed>
@@ -52,42 +48,35 @@ class DateRange
     ];
 
     /**
-     * Code de l'intervalle.
-     *
-     * @var string
-     */
-    private $range;
-
-    /**
      * Date du jour.
      *
-     * @var DateTimeImmutable
+     * @var \DateTimeImmutable
      */
     private $now;
 
     /**
      * Date de debut calculée.
      *
-     * @var DateTimeImmutable
+     * @var \DateTimeImmutable
      */
     private $dateBegin;
 
     /**
      * Date de fin calculée.
      *
-     * @var DateTimeImmutable
+     * @var \DateTimeImmutable
      */
     private $dateEnd;
 
     /**
      * Constructeur.
      *
+     * @param string $range code de l'intervalle
      * @param string $range Code de l'instervalle à utiliser
      */
-    public function __construct(string $range)
+    public function __construct(private readonly string $range)
     {
-        $this->range = $range;
-        $this->now = new DateTimeImmutable();
+        $this->now = new \DateTimeImmutable();
 
         $this->calculate();
     }
@@ -146,26 +135,14 @@ class DateRange
     {
         [$action, $interval] = explode(':', $this->range);
 
-        switch ($action) {
-            case 'lastday':
-                $result = $this->getLastDays($interval);
-                break;
-            case 'lastmonth':
-                $result = $this->getLastMonths($interval);
-                break;
-            case 'month':
-                $result = ('last' === $interval) ? $this->getLastMonth() : $this->getCurrentMonth();
-                break;
-            case 'quarter':
-                $result = ('last' === $interval) ? $this->getLastQuarter() : $this->getCurrentQuarter();
-                break;
-            case 'year':
-                $result = ('last' === $interval) ? $this->getLastYear() : $this->getCurrentYear();
-                break;
-
-            default:
-                throw new Exception(sprintf('Type d\'intervalle inconnu pour calculer la date de début et de fin : %s', $action));
-        }
+        $result = match ($action) {
+            'lastday' => $this->getLastDays($interval),
+            'lastmonth' => $this->getLastMonths($interval),
+            'month' => ('last' === $interval) ? $this->getLastMonth() : $this->getCurrentMonth(),
+            'quarter' => ('last' === $interval) ? $this->getLastQuarter() : $this->getCurrentQuarter(),
+            'year' => ('last' === $interval) ? $this->getLastYear() : $this->getCurrentYear(),
+            default => throw new \Exception(sprintf('Type d\'intervalle inconnu pour calculer la date de début et de fin : %s', $action)),
+        };
 
         [$this->dateBegin, $this->dateEnd] = $result;
     }
@@ -173,14 +150,12 @@ class DateRange
     /**
      * Retourne les dates de début et fin des X derniers jours.
      *
-     * @param string $interval
-     *
-     * @return DateTimeImmutable[]
+     * @return \DateTimeImmutable[]
      */
     private function getLastDays(string $interval): array
     {
         return [
-            $this->now->sub(new DateInterval('P'.$interval.'D')),
+            $this->now->sub(new \DateInterval('P'.$interval.'D')),
             $this->now,
         ];
     }
@@ -188,9 +163,7 @@ class DateRange
     /**
      * Retourne les dates de début et fin des X derniers mois.
      *
-     * @param string $interval
-     *
-     * @return DateTimeImmutable[]
+     * @return \DateTimeImmutable[]
      */
     private function getLastMonths(string $interval): array
     {
@@ -203,7 +176,7 @@ class DateRange
     /**
      * Retourne les dates de début et de fin du mois courant.
      *
-     * @return DateTimeImmutable[]
+     * @return \DateTimeImmutable[]
      */
     private function getCurrentMonth(): array
     {
@@ -216,7 +189,7 @@ class DateRange
     /**
      * Retourne les dates de début et de fin du mois dernier.
      *
-     * @return DateTimeImmutable[]
+     * @return \DateTimeImmutable[]
      */
     private function getLastMonth(): array
     {
@@ -231,7 +204,7 @@ class DateRange
     /**
      * Retourne les dates de début et de fin du trimestre courant.
      *
-     * @return DateTimeImmutable[]
+     * @return \DateTimeImmutable[]
      */
     private function getCurrentQuarter(): array
     {
@@ -244,7 +217,7 @@ class DateRange
     /**
      * Retourne les dates de début et de fin du trimestre dernièr.
      *
-     * @return DateTimeImmutable[]
+     * @return \DateTimeImmutable[]
      */
     private function getLastQuarter(): array
     {
@@ -259,7 +232,7 @@ class DateRange
     /**
      * Retourne les dates de début et de fin de l'année courante.
      *
-     * @return DateTimeImmutable[]
+     * @return \DateTimeImmutable[]
      */
     private function getCurrentYear(): array
     {
@@ -272,7 +245,7 @@ class DateRange
     /**
      * Retourne les dates de début et de fin de l'année dernière.
      *
-     * @return DateTimeImmutable[]
+     * @return \DateTimeImmutable[]
      */
     private function getLastYear(): array
     {
@@ -287,11 +260,9 @@ class DateRange
     /**
      * Retourne le premier jour du trimestre.
      *
-     * @param DateTimeImmutable $date
-     *
-     * @return DateTimeImmutable
+     * @return \DateTimeImmutable
      */
-    public static function getFirstDayOfQuarter(DateTimeImmutable $date): DateTimeImmutable
+    public static function getFirstDayOfQuarter(\DateTimeImmutable $date): \DateTimeImmutable
     {
         $month = $date->format('n');
 
@@ -311,11 +282,9 @@ class DateRange
     /**
      * Retourne le dernier jour du trimestre.
      *
-     * @param DateTimeImmutable $date
-     *
-     * @return DateTimeImmutable
+     * @return \DateTimeImmutable
      */
-    public static function getLastDayOfQuarter(DateTimeImmutable $date): DateTimeImmutable
+    public static function getLastDayOfQuarter(\DateTimeImmutable $date): \DateTimeImmutable
     {
         $month = $date->format('n');
 

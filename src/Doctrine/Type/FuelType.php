@@ -24,7 +24,7 @@ use Doctrine\DBAL\Types\Type;
  */
 class FuelType extends Type
 {
-    public const TYPE = 'fuel';
+    final public const TYPE = 'fuel';
 
     /**
      * {@inheritdoc}

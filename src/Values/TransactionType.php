@@ -23,11 +23,11 @@ class TransactionType
     /**
      * Constantes des types de transactions.
      */
-    public const STANDARD = 0;
-    public const STOCKEXCHANGE = 4;
-    public const VEHICLE = 5;
-    public const TRANSFER = 9;
-    public const REVALUATION = 7;
+    final public const STANDARD = 0;
+    final public const STOCKEXCHANGE = 4;
+    final public const VEHICLE = 5;
+    final public const TRANSFER = 9;
+    final public const REVALUATION = 7;
 
     /**
      * Liste des types de transaction.
@@ -43,8 +43,6 @@ class TransactionType
 
     /**
      * Constructeur.
-     *
-     * @param int $value
      */
     public function __construct(int $value)
     {
@@ -52,15 +50,13 @@ class TransactionType
             throw new Exception('La valeur "'.$value.'" est inconue, Valeur possible : '.implode(',', array_keys(self::$values)));
         }*/
         if (!in_array($value, self::$values, true)) {
-            throw new Exception('La valeur "'.$value.'" est inconue, Valeur possible : '.implode(',', self::$values));
+            throw new \Exception('La valeur "'.$value.'" est inconue, Valeur possible : '.implode(',', self::$values));
         }
         $this->value = $value;
     }
 
     /**
      * Affecte la valeur.
-     *
-     * @param int $value
      */
     public function setValue(int $value): void
     {

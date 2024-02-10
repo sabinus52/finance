@@ -14,8 +14,6 @@ namespace App\Helper\Report;
 use App\Entity\Category;
 use App\Entity\Vehicle;
 use App\Repository\TransactionRepository;
-use DateInterval;
-use DateTime;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -25,20 +23,6 @@ use Doctrine\ORM\QueryBuilder;
  */
 class VehicleReport
 {
-    /**
-     * Repository des transactions.
-     *
-     * @var TransactionRepository
-     */
-    private $repository;
-
-    /**
-     * Entité du véhicule.
-     *
-     * @var Vehicle
-     */
-    private $vehicle;
-
     /**
      * Coût par catégorie.
      *
@@ -69,14 +53,9 @@ class VehicleReport
 
     /**
      * Constructeur.
-     *
-     * @param Vehicle               $vehicle
-     * @param TransactionRepository $repository
      */
-    public function __construct(Vehicle $vehicle, TransactionRepository $repository)
+    public function __construct(private readonly Vehicle $vehicle, private readonly TransactionRepository $repository)
     {
-        $this->repository = $repository;
-        $this->vehicle = $vehicle;
     }
 
     /**
@@ -85,20 +64,20 @@ class VehicleReport
     public function fetchStatistic(): void
     {
         $result = $this->fetchFuelStatistic();
-        $this->cost['fuel'] = (float) ($result['totalCost']);
-        $this->mileAge = (int) ($result['mileage']);
-        $this->volume['number'] = (float) ($result['number']);
-        $this->volume['total'] = (float) ($result['totalVolume']);
-        $this->volume['average'] = (float) ($result['averageVolume']);
+        $this->cost['fuel'] = (float) $result['totalCost'];
+        $this->mileAge = (int) $result['mileage'];
+        $this->volume['number'] = (float) $result['number'];
+        $this->volume['total'] = (float) $result['totalVolume'];
+        $this->volume['average'] = (float) $result['averageVolume'];
 
         $result = $this->fetchRepairStatistic();
-        $this->cost['repair'] = (float) ($result['totalCost']);
+        $this->cost['repair'] = (float) $result['totalCost'];
 
         $result = $this->fetchFundingStatistic();
-        $this->cost['funding'] = (float) ($result['totalCost']);
+        $this->cost['funding'] = (float) $result['totalCost'];
 
         $result = $this->fetchOtherStatistic();
-        $this->cost['other'] = (float) ($result['totalCost']);
+        $this->cost['other'] = (float) $result['totalCost'];
 
         $this->totalCost = array_sum($this->cost);
     }
@@ -120,7 +99,7 @@ class VehicleReport
      */
     public function getNumberDays(): int
     {
-        $today = ($this->vehicle->getSoldAt()) ?: new DateTime();
+        $today = ($this->vehicle->getSoldAt()) ?: new \DateTime();
         $interval = $today->diff($this->vehicle->getBoughtAt());
 
         return (int) $interval->days;
@@ -133,7 +112,7 @@ class VehicleReport
      */
     public function getNumberMonths(): int
     {
-        $today = ($this->vehicle->getSoldAt()) ?: new DateTime();
+        $today = ($this->vehicle->getSoldAt()) ?: new \DateTime();
         $interval = $today->diff($this->vehicle->getBoughtAt());
 
         return (int) $interval->y * 12 + $interval->m;
@@ -142,19 +121,17 @@ class VehicleReport
     /**
      * Retourne l'intervalle de la période d'utilisation.
      *
-     * @return DateInterval
+     * @return \DateInterval
      */
-    public function getPeriod(): DateInterval
+    public function getPeriod(): \DateInterval
     {
-        $today = ($this->vehicle->getSoldAt()) ?: new DateTime();
+        $today = ($this->vehicle->getSoldAt()) ?: new \DateTime();
 
         return $today->diff($this->vehicle->getBoughtAt());
     }
 
     /**
      * Kilométrage actuelle.
-     *
-     * @param int $mileage
      *
      * @return self
      */
@@ -178,8 +155,6 @@ class VehicleReport
     /**
      * Affecte le volume total de carburant.
      *
-     * @param float $volume
-     *
      * @return self
      */
     public function setTotalVolume(float $volume): self
@@ -201,8 +176,6 @@ class VehicleReport
 
     /**
      * Affecte le coût total du véhicule.
-     *
-     * @param float $cost
      *
      * @return self
      */

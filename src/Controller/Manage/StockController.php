@@ -22,7 +22,6 @@ use App\Repository\StockPriceRepository;
 use App\Repository\StockRepository;
 use App\WorkFlow\Balance;
 use App\WorkFlow\StockFusion;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -110,8 +109,8 @@ class StockController extends AbstractController
             'stock' => $stock,
             'price' => [
                 'last' => current($prices),
-                'max' => array_reduce($prices, fn ($a, $b) => $a ? ($a->getPrice() > $b->getPrice() ? $a : $b) : $b),
-                'min' => array_reduce($prices, fn ($a, $b) => $a ? ($a->getPrice() < $b->getPrice() ? $a : $b) : $b),
+                'max' => array_reduce($prices, static fn ($a, $b) => $a ? ($a->getPrice() > $b->getPrice() ? $a : $b) : $b),
+                'min' => array_reduce($prices, static fn ($a, $b) => $a ? ($a->getPrice() < $b->getPrice() ? $a : $b) : $b),
             ],
             'prices' => $prices,
             'chart' => $chart->getChart($prices),
@@ -125,7 +124,7 @@ class StockController extends AbstractController
     {
         // Recherche la dernière cotation
         $last = $repository->findOneLastPrice($stock);
-        $date = new DateTime();
+        $date = new \DateTime();
         if (null !== $last) {
             $date = clone $last->getDate()->modify('+ 15 days');
         }
@@ -218,8 +217,6 @@ class StockController extends AbstractController
 
     /**
      * Vérifie la formulaire de la fusion.
-     *
-     * @param FormInterface $form
      *
      * @return bool
      */

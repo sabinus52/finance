@@ -123,8 +123,6 @@ class ScheduleCommand extends Command
 
     /**
      * Création de la transaction à partir du modèle.
-     *
-     * @param Model $model
      */
     private function createTransaction(Model $model): void
     {

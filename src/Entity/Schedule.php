@@ -12,8 +12,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ScheduleRepository;
-use DateInterval;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -40,7 +38,9 @@ class Schedule
 
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -57,9 +57,10 @@ class Schedule
     /**
      * Prochaine date de la transaction.
      *
-     * @var DateTimeImmutable
+     * @var \DateTimeImmutable
      *
      * @ORM\Column(type="date_immutable")
+     *
      * @Assert\NotBlank
      */
     private $doAt;
@@ -70,7 +71,9 @@ class Schedule
      * @var int
      *
      * @ORM\Column(type="smallint")
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Type("int")
      */
     private $frequency;
@@ -81,6 +84,7 @@ class Schedule
      * @var string
      *
      * @ORM\Column(type="string", length=1)
+     *
      * @Assert\NotBlank
      */
     private $period;
@@ -130,12 +134,12 @@ class Schedule
         return $this;
     }
 
-    public function getDoAt(): ?DateTimeImmutable
+    public function getDoAt(): ?\DateTimeImmutable
     {
         return $this->doAt;
     }
 
-    public function setDoAt(?DateTimeImmutable $doAt): self
+    public function setDoAt(?\DateTimeImmutable $doAt): self
     {
         $this->doAt = $doAt;
 
@@ -153,7 +157,7 @@ class Schedule
             return '<span class="badge badge-danger">Désactivé</span>';
         }
 
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $color = 'success';
         if ($this->doAt < $now->modify('+ 10 days')) {
             $color = 'warning';
@@ -169,7 +173,7 @@ class Schedule
      */
     public function setNextDoAt(): self
     {
-        $period = new DateInterval(sprintf('P%s%s', $this->getFrequency(), $this->getPeriod()));
+        $period = new \DateInterval(sprintf('P%s%s', $this->getFrequency(), $this->getPeriod()));
         $this->doAt = $this->doAt->add($period);
 
         return $this;

@@ -13,7 +13,6 @@ namespace App\Entity;
 
 use App\Repository\ProjectRepository;
 use App\Values\ProjectCategory;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -26,14 +25,16 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @ORM\Entity(repositoryClass=ProjectRepository::class)
  */
-class Project
+class Project implements \Stringable
 {
-    public const CLOSED = false;
-    public const OPENED = true;
+    final public const CLOSED = false;
+    final public const OPENED = true;
 
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -44,7 +45,9 @@ class Project
      * @var string
      *
      * @ORM\Column(type="string", length=50)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(max=50)
      */
     private $name;
@@ -55,6 +58,7 @@ class Project
      * @var string
      *
      * @ORM\Column(type="string", length=255, nullable=true)
+     *
      * @Assert\Length(max=255)
      */
     private $description;
@@ -71,9 +75,10 @@ class Project
     /**
      * Date de début du projet.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date")
+     *
      * @Assert\NotBlank
      */
     private $startedAt;
@@ -81,9 +86,10 @@ class Project
     /**
      * Date de fin du projet.
      *
-     * @var DateTime
+     * @var \DateTime
      *
      * @ORM\Column(type="date")
+     *
      * @Assert\NotBlank
      */
     private $finishAt;
@@ -109,14 +115,14 @@ class Project
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
-        $now = new DateTime();
+        $now = new \DateTime();
         $this->startedAt = $now;
         $this->finishAt = $now->modify('+ 10 days');
         $this->category = new ProjectCategory(ProjectCategory::OTHER);
         $this->state = self::OPENED;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name ?: '';
     }
@@ -162,24 +168,24 @@ class Project
         return $this;
     }
 
-    public function getStartedAt(): ?DateTime
+    public function getStartedAt(): ?\DateTime
     {
         return $this->startedAt;
     }
 
-    public function setStartedAt(?DateTime $startedAt): self
+    public function setStartedAt(?\DateTime $startedAt): self
     {
         $this->startedAt = $startedAt;
 
         return $this;
     }
 
-    public function getFinishAt(): ?DateTime
+    public function getFinishAt(): ?\DateTime
     {
         return $this->finishAt;
     }
 
-    public function setFinishAt(?DateTime $finishAt): self
+    public function setFinishAt(?\DateTime $finishAt): self
     {
         $this->finishAt = $finishAt;
 

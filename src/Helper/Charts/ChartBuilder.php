@@ -28,11 +28,9 @@ abstract class ChartBuilder implements ChartBuilderInterface
     /**
      * Retourne le graphique avec les données.
      *
-     * @param mixed $data
-     *
      * @return Chart
      */
-    public function getChart($data): Chart
+    public function getChart(mixed $data): Chart
     {
         $this->chart->setOptions($this->getOptions());
         $this->chart->setData($this->getData($data));

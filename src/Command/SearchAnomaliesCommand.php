@@ -14,7 +14,6 @@ namespace App\Command;
 use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Values\Payment;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Symfony\Component\Console\Command\Command;
@@ -159,7 +158,7 @@ class SearchAnomaliesCommand extends Command
             ->select('trt')
             ->from(Transaction::class, 'trt')
             ->andWhere('trt.date = :date')
-            ->setParameter('date', new DateTime('1970-01-01'))
+            ->setParameter('date', new \DateTime('1970-01-01'))
             ->getQuery()
         ;
 
@@ -287,8 +286,6 @@ class SearchAnomaliesCommand extends Command
 
     /**
      * Retourne la liste des anomalies.
-     *
-     * @param Query $query
      */
     private function findAndPrintAnomlies(Query $query): void
     {

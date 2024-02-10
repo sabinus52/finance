@@ -18,7 +18,6 @@ use App\Entity\StockWallet;
 use App\Entity\Transaction;
 use App\Values\AccountType;
 use App\Values\TransactionType;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -29,26 +28,14 @@ use Doctrine\ORM\EntityManagerInterface;
 class Wallet
 {
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var Account
-     */
-    private $account;
-
-    /**
      * Historique du portefeuille.
      *
      * @var WalletHistory[]
      */
     private $histories;
 
-    public function __construct(EntityManagerInterface $manager, Account $account)
+    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly Account $account)
     {
-        $this->entityManager = $manager;
-        $this->account = $account;
         $this->histories = [];
     }
 
@@ -222,7 +209,7 @@ class Wallet
     {
         // Liste des transactions sur les opérations boursières
         $transactions = $this->getTransactions();
-        /** @var DateTime $lastDate */
+        /** @var \DateTime $lastDate */
         $lastDate = null;
 
         // Construit les portefeuilles par mois en fonction des transactions
@@ -251,18 +238,15 @@ class Wallet
         }
 
         // Créé jusqu'à ce jour
-        $this->addIntermediateHistories(clone $lastDate, new DateTime());
+        $this->addIntermediateHistories(clone $lastDate, new \DateTime());
 
         $this->setAllPriceWallet();
     }
 
     /**
      * Créé des portefeuille intermédiare entre 2 dates avec comme portefeuille de référence la date de début.
-     *
-     * @param DateTime $start
-     * @param DateTime $end
      */
-    private function addIntermediateHistories(DateTime $start, DateTime $end): void
+    private function addIntermediateHistories(\DateTime $start, \DateTime $end): void
     {
         $start->modify('first day of this month');
         $refDate = clone $start;
@@ -276,12 +260,12 @@ class Wallet
     /**
      * Créé un nouveau portefeuille d'une date donnée à partir d'un autre portefeuille.
      *
-     * @param DateTime      $date      Date du nouveau portefeuille
+     * @param \DateTime     $date      Date du nouveau portefeuille
      * @param WalletHistory $refWallet Porefeuille de référence à partir duquel le nouveau sera créé
      *
      * @return WalletHistory
      */
-    private function createWalletHistory(DateTime $date, WalletHistory $refWallet): WalletHistory
+    private function createWalletHistory(\DateTime $date, WalletHistory $refWallet): WalletHistory
     {
         $month = $date->format('Y-m');
         $this->histories[$month] = clone $refWallet;
@@ -292,8 +276,6 @@ class Wallet
 
     /**
      * Sauvegarde en base le dernier portefeuille en cours.
-     *
-     * @param WalletHistory $wallet
      */
     private function saveCurrentWallet(WalletHistory $wallet): void
     {

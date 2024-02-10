@@ -11,8 +11,6 @@ declare(strict_types=1);
 
 namespace App\Helper;
 
-use DateTimeImmutable;
-
 /**
  * Element d'une période (mois, trimestre, année) de performance.
  *
@@ -23,16 +21,9 @@ use DateTimeImmutable;
 class PerfItem
 {
     /**
-     * Type de la période (Performance::MONTH).
-     *
-     * @var int
-     */
-    private $typePeriod;
-
-    /**
      * Période de la performance (= dernier jour de la période).
      *
-     * @var DateTimeImmutable
+     * @var \DateTimeImmutable
      */
     private $period;
 
@@ -80,17 +71,14 @@ class PerfItem
 
     /**
      * Constructeur.
-     *
-     * @param int $typePeriod
      */
-    public function __construct(int $typePeriod)
+    public function __construct(private readonly int $typePeriod)
     {
-        $this->typePeriod = $typePeriod;
         $this->investment = 0.0;
         $this->repurchase = 0.0;
     }
 
-    public function setPeriod(DateTimeImmutable $period): self
+    public function setPeriod(\DateTimeImmutable $period): self
     {
         switch ($this->typePeriod) {
             case Performance::MONTH:
@@ -109,7 +97,7 @@ class PerfItem
         return $this;
     }
 
-    public function getPeriod(): DateTimeImmutable
+    public function getPeriod(): \DateTimeImmutable
     {
         return $this->period;
     }
@@ -198,8 +186,6 @@ class PerfItem
     /**
      * Ajoute un montant investi durant la période.
      *
-     * @param float $amount
-     *
      * @return self
      */
     public function addInvestment(float $amount): self
@@ -212,8 +198,6 @@ class PerfItem
     /**
      * Ajoute un montant de rachat durant la période.
      *
-     * @param float $amount
-     *
      * @return self
      */
     public function addRepurchase(float $amount): self
@@ -225,8 +209,6 @@ class PerfItem
 
     /**
      * Ajoute un montant de valorisation durant la période.
-     *
-     * @param float $amount
      *
      * @return self
      */
@@ -280,7 +262,7 @@ class PerfItem
     public function getVariation(): float
     {
         if (null === $this->previous) {
-            return (float) ($this->getValuation());
+            return (float) $this->getValuation();
         }
 
         return $this->getValuation() - $this->previous->getValuation() + $this->getRepurchaseCumul() - $this->previous->getRepurchaseCumul();

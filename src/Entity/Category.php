@@ -23,34 +23,35 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Sabinus52 <sabinus52@gmail.com>
  *
  * @ORM\Entity(repositoryClass=CategoryRepository::class)
+ *
  * @ORM\HasLifecycleCallbacks
  */
-class Category
+class Category implements \Stringable
 {
-    public const RECETTES = true;
-    public const DEPENSES = false;
-    public const INCOME = true;
-    public const EXPENSE = false;
+    final public const RECETTES = true;
+    final public const DEPENSES = false;
+    final public const INCOME = true;
+    final public const EXPENSE = false;
 
     /**
      * Constantes des catégories de mouvements internes.
      */
-    public const MOVEMENT = 'MVT';
-    public const BALANCE = 'BLCE';
-    public const VIREMENT = 'VIRT';
-    public const INVESTMENT = 'INVS';
-    public const REPURCHASE = 'RCHA';
-    public const REVALUATION = 'EVAL';
-    public const STOCKTRANSAC = 'OPST';
+    final public const MOVEMENT = 'MVT';
+    final public const BALANCE = 'BLCE';
+    final public const VIREMENT = 'VIRT';
+    final public const INVESTMENT = 'INVS';
+    final public const REPURCHASE = 'RCHA';
+    final public const REVALUATION = 'EVAL';
+    final public const STOCKTRANSAC = 'OPST';
 
-    public const DIVIDENDES = 'DIVD';
-    public const CARBURANT = 'FUEL';
-    public const VEHICULEREPAIR = 'VRPR';
-    public const VEHICULEFUNDING = 'VFDG';
-    public const RESALE = 'RSAL';
-    public const INTERET = 'INTR';
-    public const TAXE = 'TAXE';
-    public const TAXE_CSG = 'CSSG';
+    final public const DIVIDENDES = 'DIVD';
+    final public const CARBURANT = 'FUEL';
+    final public const VEHICULEREPAIR = 'VRPR';
+    final public const VEHICULEFUNDING = 'VFDG';
+    final public const RESALE = 'RSAL';
+    final public const INTERET = 'INTR';
+    final public const TAXE = 'TAXE';
+    final public const TAXE_CSG = 'CSSG';
 
     /**
      * Listes des catégories de niveau 1 de mouvements internes.
@@ -78,7 +79,9 @@ class Category
 
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -98,7 +101,9 @@ class Category
      * @var string
      *
      * @ORM\Column(type="string", length=100)
+     *
      * @Assert\NotBlank
+     *
      * @Assert\Length(max=100)
      */
     private $name;
@@ -127,6 +132,7 @@ class Category
      * @var Category
      *
      * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="children")
+     *
      * @ORM\JoinColumn(referencedColumnName="id", onDelete="CASCADE")
      */
     private $parent;
@@ -137,6 +143,7 @@ class Category
      * @var ArrayCollection
      *
      * @ORM\OneToMany(targetEntity=Category::class, mappedBy="parent")
+     *
      * @ORM\OrderBy({"name": "ASC"})
      */
     private $children;
@@ -155,7 +162,7 @@ class Category
         $this->transactions = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if (!$this->name) {
             return '';
@@ -296,14 +303,11 @@ class Category
      */
     public function getFullName(): string
     {
-        switch ($this->getLevel()) {
-            case 1:
-                return $this->getName();
-            case 2:
-                return $this->getParent()->getName().':'.$this->getName();
-            default:
-                return $this->getName();
-        }
+        return match ($this->getLevel()) {
+            1 => $this->getName(),
+            2 => $this->getParent()->getName().':'.$this->getName(),
+            default => $this->getName(),
+        };
     }
 
     public function getTypeBadge(): string
@@ -318,6 +322,7 @@ class Category
 
     /**
      * @ORM\PrePersist
+     *
      * @ORM\PreUpdate
      */
     public function setTree(): void

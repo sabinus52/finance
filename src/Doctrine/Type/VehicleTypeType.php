@@ -24,7 +24,7 @@ use Doctrine\DBAL\Types\Type;
  */
 class VehicleTypeType extends Type
 {
-    public const TYPE = 'vehicle_type';
+    final public const TYPE = 'vehicle_type';
 
     /**
      * {@inheritdoc}

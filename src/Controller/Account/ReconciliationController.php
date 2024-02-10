@@ -170,7 +170,6 @@ class ReconciliationController extends BaseController
     /**
      * Calcule l'écart entre le solde du rapprochement courant et le dernier.
      *
-     * @param Account       $account
      * @param Transaction[] $transactions
      *
      * @return float

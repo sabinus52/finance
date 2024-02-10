@@ -18,7 +18,6 @@ use App\Import\Helper;
 use App\Import\QifParser;
 use Doctrine\ORM\EntityManagerInterface;
 use Olix\BackOfficeBundle\Helper\DoctrineHelper;
-use SplFileObject;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -153,7 +152,7 @@ class ImportQIFCommand extends Command
             }
 
             // Ouverture du parseur du fichier
-            $file = new SplFileObject($fileQIF);
+            $file = new \SplFileObject($fileQIF);
             $parser = new QifParser($file, $this->helper, $input->getOption('parse-memo'));
 
             // Parse le fichier QIF

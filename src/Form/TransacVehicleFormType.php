@@ -42,12 +42,9 @@ class TransacVehicleFormType extends AbstractType
                 'required' => false,
                 'class' => Vehicle::class,
                 'choice_label' => 'name',
-                'query_builder' => function (VehicleRepository $er) {
-                    return $er->createQueryBuilder('vhc')
-                        ->orderBy('vhc.brand')
-                        ->addOrderBy('vhc.model')
-                    ;
-                },
+                'query_builder' => static fn (VehicleRepository $er) => $er->createQueryBuilder('vhc')
+                    ->orderBy('vhc.brand')
+                    ->addOrderBy('vhc.model'),
                 'empty_data' => null,
             ])
             ->add('distance', IntegerType::class, [

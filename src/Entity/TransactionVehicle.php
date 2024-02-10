@@ -22,7 +22,9 @@ class TransactionVehicle
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue
+     *
      * @ORM\Column(type="integer")
      */
     private $id; /** @phpstan-ignore-line */
@@ -33,7 +35,9 @@ class TransactionVehicle
      * @var Vehicle
      *
      * @ORM\ManyToOne(targetEntity=Vehicle::class, inversedBy="transactionVehicles")
+     *
      * @ORM\JoinColumn(nullable=false)
+     *
      * @Assert\NotBlank
      */
     private $vehicle;

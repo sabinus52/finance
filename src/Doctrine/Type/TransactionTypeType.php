@@ -24,7 +24,7 @@ use Doctrine\DBAL\Types\Type;
  */
 class TransactionTypeType extends Type
 {
-    public const TYPE = 'transaction_type';
+    final public const TYPE = 'transaction_type';
 
     /**
      * {@inheritdoc}

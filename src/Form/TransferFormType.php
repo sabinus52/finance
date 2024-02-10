@@ -93,7 +93,7 @@ class TransferFormType extends AbstractType
             'label' => $label,
             'required' => false,
             'class' => Account::class,
-            'query_builder' => function (AccountRepository $repository) use ($where, $isNew) {
+            'query_builder' => static function (AccountRepository $repository) use ($where, $isNew) {
                 $query = $repository->createQueryBuilder('acc')
                     ->addSelect('ist')
                     ->innerJoin('acc.institution', 'ist')
@@ -107,7 +107,7 @@ class TransferFormType extends AbstractType
 
                 return $query;
             },
-            'choice_label' => function (Account $choice) {
+            'choice_label' => static function (Account $choice) {
                 $result = $choice->getFullName();
                 if (null !== $choice->getClosedAt()) {
                     $result .= ' (fermé)';
@@ -115,7 +115,7 @@ class TransferFormType extends AbstractType
 
                 return $result;
             },
-            'choice_attr' => function (Account $choice) {
+            'choice_attr' => static function (Account $choice) {
                 if (null !== $choice->getClosedAt()) {
                     return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
                 }

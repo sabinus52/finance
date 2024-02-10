@@ -14,8 +14,6 @@ namespace App\Helper\Charts;
 use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Entity\Vehicle;
-use DateInterval;
-use DateTime;
 use Symfony\UX\Chartjs\Model\Chart;
 
 /**
@@ -131,20 +129,19 @@ class VehicleCostByYearChart extends ChartBuilder implements ChartBuilderInterfa
     /**
      * Retoune le tableau par an dans un intervalle donné.
      *
-     * @param DateTime      $dateBegin
-     * @param DateTime|null $dateEnd
+     * @param \DateTime|null $dateEnd
      *
      * @return array<string>
      */
-    private function getArrayByYear(DateTime $dateBegin, ?DateTime $dateEnd): array
+    private function getArrayByYear(\DateTime $dateBegin, ?\DateTime $dateEnd): array
     {
         $results = [];
         if (null === $dateEnd) {
-            $dateEnd = new DateTime();
+            $dateEnd = new \DateTime();
         }
         while ($dateBegin->format('Y') <= $dateEnd->format('Y')) {
             $results[$dateBegin->format('Y')] = $dateBegin->format('Y');
-            $dateBegin->add(new DateInterval('P1Y')); // Ajoute un an à la date de début
+            $dateBegin->add(new \DateInterval('P1Y')); // Ajoute un an à la date de début
         }
 
         return $results;

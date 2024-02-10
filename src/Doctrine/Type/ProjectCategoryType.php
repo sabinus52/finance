@@ -24,7 +24,7 @@ use Doctrine\DBAL\Types\Type;
  */
 class ProjectCategoryType extends Type
 {
-    public const TYPE = 'projectcat';
+    final public const TYPE = 'projectcat';
 
     /**
      * {@inheritdoc}

@@ -53,15 +53,12 @@ class TransactionStandardFormType extends AbstractType
                 'label' => 'Compte bancaire',
                 'required' => false,
                 'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) use ($options) {
-                    return $er->createQueryBuilder('acc')
-                        ->addSelect('ist')
-                        ->innerJoin('acc.institution', 'ist')
-                        ->where($options['filter']['account'])
-                        ->orderBy('ist.name')
-                        ->addOrderBy('acc.name')
-                    ;
-                },
+                'query_builder' => static fn (AccountRepository $er) => $er->createQueryBuilder('acc')
+                    ->addSelect('ist')
+                    ->innerJoin('acc.institution', 'ist')
+                    ->where($options['filter']['account'])
+                    ->orderBy('ist.name')
+                    ->addOrderBy('acc.name'),
                 'empty_data' => null,
             ])
             ->add('amount', MoneyType::class, [
@@ -81,11 +78,8 @@ class TransactionStandardFormType extends AbstractType
                 'required' => false,
                 'class' => Recipient::class,
                 'choice_label' => 'name',
-                'query_builder' => function (RecipientRepository $er) {
-                    return $er->createQueryBuilder('rpt')
-                        ->orderBy('rpt.name')
-                    ;
-                },
+                'query_builder' => static fn (RecipientRepository $er) => $er->createQueryBuilder('rpt')
+                    ->orderBy('rpt.name'),
                 'empty_data' => null,
             ])
             ->add('category', Select2EntityType::class, [
@@ -93,7 +87,7 @@ class TransactionStandardFormType extends AbstractType
                 'required' => false,
                 'class' => Category::class,
                 'choice_label' => 'fullname',
-                'query_builder' => function (CategoryRepository $er) use ($options) {
+                'query_builder' => static function (CategoryRepository $er) use ($options) {
                     $query = $er->createQueryBuilder('cat')
                         ->addSelect('cat1')
                         ->innerJoin('cat.parent', 'cat1')
@@ -106,7 +100,7 @@ class TransactionStandardFormType extends AbstractType
 
                     return $query;
                 },
-                'group_by' => fn (Category $category) => $category->getParent()->getName(),
+                'group_by' => static fn (Category $category) => $category->getParent()->getName(),
                 'empty_data' => null,
             ])
             ->add('memo', TextType::class, [
@@ -118,7 +112,7 @@ class TransactionStandardFormType extends AbstractType
                 'required' => false,
                 'class' => Project::class,
                 'choice_label' => 'name',
-                'query_builder' => function (ProjectRepository $er) use ($options) {
+                'query_builder' => static function (ProjectRepository $er) use ($options) {
                     $query = $er->createQueryBuilder('pjt')
                         ->orderBy('pjt.name')
                     ;

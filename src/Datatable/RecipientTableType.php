@@ -41,7 +41,7 @@ class RecipientTableType implements DataTableTypeInterface
             ])
             ->add('category', TextColumn::class, [
                 'label' => 'Catégorie',
-                'data' => fn ($row) => sprintf('%s', $row->getCategory()),
+                'data' => static fn ($row) => sprintf('%s', $row->getCategory()),
             ])
             ->add('buttons', TwigColumn::class, [
                 'label' => '',
@@ -50,16 +50,13 @@ class RecipientTableType implements DataTableTypeInterface
             ])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => Recipient::class,
-                'query' => function (QueryBuilder $builder) {
-                    return $builder
-                        ->select('r')
-                        ->addSelect('c')
-                        ->addSelect('p')
-                        ->from(Recipient::class, 'r')
-                        ->leftJoin('r.category', 'c')
-                        ->leftJoin('c.parent', 'p')
-                    ;
-                },
+                'query' => static fn (QueryBuilder $builder) => $builder
+                    ->select('r')
+                    ->addSelect('c')
+                    ->addSelect('p')
+                    ->from(Recipient::class, 'r')
+                    ->leftJoin('r.category', 'c')
+                    ->leftJoin('c.parent', 'p'),
             ])
         ;
     }

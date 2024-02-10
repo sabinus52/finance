@@ -18,7 +18,6 @@ use App\Repository\TransactionRepository;
 use App\Transaction\TransactionModelInterface;
 use App\Transaction\TransactionModelRouter;
 use App\Values\StockPosition;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -71,7 +70,7 @@ class TransactionController extends BaseController
     {
         // Recherche la dernière transaction de valorisation
         $last = $repository->findOneLastValorisation($account);
-        $date = new DateTime();
+        $date = new \DateTime();
         if (null !== $last) {
             $date = clone $last->getDate()->modify('+ 15 days');
         }
@@ -122,9 +121,6 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une transaction.
-     *
-     * @param Request                   $request
-     * @param TransactionModelInterface $modelTransaction
      *
      * @return Response
      */
@@ -205,7 +201,7 @@ class TransactionController extends BaseController
         $router = new TransactionModelRouter($entityManager);
         $modelTransaction = $router->load($transaction);
         $transaction = clone $modelTransaction->getTransaction();
-        $transaction->setDate(new DateTime());
+        $transaction->setDate(new \DateTime());
         $transaction->setState(Transaction::STATE_NONE);
         // Cas d'une transaction de véhicule
         if ($transaction->getTransactionVehicle()) {
@@ -275,8 +271,6 @@ class TransactionController extends BaseController
 
     /**
      * Vérifie si on peut supprimer ou modifier la transaction.
-     *
-     * @param Transaction $transaction
      *
      * @return Response|null
      */

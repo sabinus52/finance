@@ -118,10 +118,6 @@ class VehicleController extends AbstractController
     /**
      * Création du formulaire de la transaction.
      *
-     * @param Request                   $request
-     * @param Vehicle                   $vehicle
-     * @param TransactionModelInterface $modelTransaction
-     *
      * @return Response
      */
     private function createTransaction(Request $request, Vehicle $vehicle, TransactionModelInterface $modelTransaction): Response
