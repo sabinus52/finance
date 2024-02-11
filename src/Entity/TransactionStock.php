@@ -13,6 +13,7 @@ namespace App\Entity;
 
 use App\Repository\TransactionStockRepository;
 use App\Values\StockPosition;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -26,67 +27,47 @@ class TransactionStock
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Titre associé.
-     *
-     * @var Stock
      */
     #[ORM\ManyToOne(targetEntity: Stock::class, inversedBy: 'transactionStocks')]
     #[ORM\JoinColumn(nullable: false)]
-    private $stock;
+    private ?Stock $stock = null;
 
     /**
      * Compte titre associé.
-     *
-     * @var Account
      */
     #[ORM\ManyToOne(targetEntity: Account::class, cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
-    private $account;
+    private ?Account $account = null;
 
     /**
      * Position d'achat/vente ou autre.
-     *
-     * @var StockPosition
      */
     #[ORM\Column(type: 'position')]
-    private $position;
+    private ?StockPosition $position = null;
 
     /**
      * Nombre d'actions achétés ou vendus.
-     *
-     * @var float
      */
-    #[ORM\Column(type: 'float', nullable: true)]
-    private $volume;
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $volume = null;
 
     /**
      * Cours au moment de l'opération.
-     *
-     * @var float
      */
-    #[ORM\Column(type: 'float', nullable: true)]
-    private $price;
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $price = null;
 
     /**
      * Commmissions ou frais.
-     *
-     * @var float
      */
-    #[ORM\Column(type: 'float')]
+    #[ORM\Column(type: Types::FLOAT)]
     #[Assert\NotBlank]
-    private $fee;
-
-    /**
-     * Constructeur.
-     */
-    public function __construct()
-    {
-        $this->fee = 0;
-    }
+    private ?float $fee = 0;
 
     public function getId(): ?int
     {

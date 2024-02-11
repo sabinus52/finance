@@ -26,7 +26,7 @@ class SlipperyChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultOpts = [
+    private static array $defaultOpts = [
         'responsive' => true,
         'maintainAspectRatio' => false,
         'datasetFill' => false,
@@ -42,7 +42,7 @@ class SlipperyChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultData = [
+    private static array $defaultData = [
         'backgroundColor' => [],
         'borderColor' => 'rgba(60,141,188,0.8)',
         'pointRadius' => false,
@@ -65,7 +65,9 @@ class SlipperyChart extends ChartBuilder implements ChartBuilderInterface
 
     public function getData($datas): array
     {
-        $labels = $values = $colors = [];
+        $labels = [];
+        $values = [];
+        $colors = [];
         /** @var PerfItem[] $datas */
         foreach ($datas as $month => $item) {
             $labels[] = $this->getLabel($month);
@@ -85,8 +87,6 @@ class SlipperyChart extends ChartBuilder implements ChartBuilderInterface
 
     /**
      * Retourne le label.
-     *
-     * @return string
      */
     public function getLabel(int $month): string
     {
@@ -104,8 +104,6 @@ class SlipperyChart extends ChartBuilder implements ChartBuilderInterface
      * Retourne la couleur de chaque barre en fonction de la valeur.
      *
      * @param float $value
-     *
-     * @return string
      */
     private function getBackgroundColor(?float $value): string
     {

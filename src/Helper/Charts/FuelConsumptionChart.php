@@ -29,7 +29,7 @@ class FuelConsumptionChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultOpts = [
+    private static array $defaultOpts = [
         'maintainAspectRatio' => false,
         'responsive' => true,
         'plugins' => [
@@ -44,7 +44,7 @@ class FuelConsumptionChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultData = [
+    private static array $defaultData = [
         'label' => null,
         'borderColor' => 'rgba(60,141,188,0.8)',
         'borderWidth' => 1,
@@ -59,7 +59,7 @@ class FuelConsumptionChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $averageData = [
+    private static array $averageData = [
         'label' => null,
         'borderColor' => 'darkorange',
         'borderDash' => [3, 3],
@@ -89,8 +89,9 @@ class FuelConsumptionChart extends ChartBuilder implements ChartBuilderInterface
         /** @var Vehicle $vehicle */
         $vehicle = $datas[2];
         $lastMileAge = $vehicle->getKilometer();
-
-        $labels = $values = $colors = [];
+        $labels = [];
+        $values = [];
+        $colors = [];
         foreach ($transactions as $item) {
             if (Category::CARBURANT !== $item->getCategory()->getCode()) {
                 continue;

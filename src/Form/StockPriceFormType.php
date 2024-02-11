@@ -35,7 +35,7 @@ class StockPriceFormType extends AbstractType
                 'format' => 'dd/MM/yyyy',
                 'disabled' => true,
                 'required' => false,
-                'help' => 'Choisir n\'importe quel jour du mois',
+                'help' => "Choisir n'importe quel jour du mois",
             ])
             ->add('price', MoneyType::class, [
                 'label' => 'Valeur',

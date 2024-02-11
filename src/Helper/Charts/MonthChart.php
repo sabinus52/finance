@@ -26,7 +26,7 @@ class MonthChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultOpts = [
+    private static array $defaultOpts = [
         'maintainAspectRatio' => false,
         'responsive' => true,
         'plugins' => [
@@ -53,7 +53,7 @@ class MonthChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultData = [
+    private static array $defaultData = [
         'label' => null,
         'borderColor' => 'rgba(60,141,188,0.8)',
         'pointRadius' => false,
@@ -77,7 +77,8 @@ class MonthChart extends ChartBuilder implements ChartBuilderInterface
 
     public function getData($datas): array
     {
-        $labels = $values = [];
+        $labels = [];
+        $values = [];
         /** @var PerfItem[] $datas */
         foreach ($datas as $month => $item) {
             if (null === $item->getValuation()) {

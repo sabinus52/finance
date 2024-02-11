@@ -25,7 +25,7 @@ class CategoryChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultOpts = [
+    private static array $defaultOpts = [
         'responsive' => true,
         'maintainAspectRatio' => false,
         'datasetFill' => false,
@@ -44,7 +44,7 @@ class CategoryChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultData = [
+    private static array $defaultData = [
         'backgroundColor' => ['crimson', 'tomato', 'orange', 'gold', 'greenyellow', 'yellowgreen', 'limegreen'],
         'borderColor' => 'rgba(60,141,188,0.8)',
         'pointRadius' => false,
@@ -68,8 +68,8 @@ class CategoryChart extends ChartBuilder implements ChartBuilderInterface
 
     public function getData($datas): array
     {
-        $labels = $values = [];
-
+        $labels = [];
+        $values = [];
         foreach (array_slice($datas, 0, 7) as $item) {
             $labels[] = $item['datas']->getFullName();
             $values[] = abs(round($item['total'], 0));

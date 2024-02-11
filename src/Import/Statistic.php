@@ -24,31 +24,22 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 class Statistic
 {
-    /**
-     * @var SymfonyStyle
-     */
-    private $inOut;
+    private ?SymfonyStyle $inOut = null;
 
     /**
      * Liste des alertes trouvées.
-     *
-     * @var \ArrayObject
      */
-    private $alerts;
+    private readonly \ArrayObject $alerts;
 
     /**
      * Liste des comptes trouvés.
-     *
-     * @var \ArrayObject
      */
-    private $accounts;
+    private \ArrayObject $accounts;
 
     /**
      * Liste des catégories trouvés.
-     *
-     * @var \ArrayObject
      */
-    private $categories;
+    private \ArrayObject $categories;
 
     /**
      * Constructeur.
@@ -57,7 +48,7 @@ class Statistic
      */
     public function __construct(SymfonyStyle $style = null)
     {
-        if (null !== $style) {
+        if ($style instanceof SymfonyStyle) {
             $this->inOut = $style;
         }
         $this->alerts = new \ArrayObject();

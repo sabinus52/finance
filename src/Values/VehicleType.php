@@ -30,16 +30,13 @@ class VehicleType implements \Stringable
      *
      * @var array<mixed>
      */
-    private static $values = [
+    private static array $values = [
         self::AUTO => ['label' => 'Auto', 'icon' => 'fas fa-car'],
         self::MOTO => ['label' => 'Moto', 'icon' => 'fas fa-biking'],
         self::QUAD => ['label' => 'Quad', 'icon' => 'fas fa-truck-monster'],
     ];
 
-    /**
-     * @var int
-     */
-    private $value;
+    private int $value;
 
     /**
      * Constructeur.

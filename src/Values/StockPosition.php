@@ -38,13 +38,6 @@ class StockPosition implements \Stringable
     ];
 
     /**
-     * Valeur de l'environnement.
-     *
-     * @var int
-     */
-    protected $value;
-
-    /**
      * Retourne la liste pour le ChoiceType des formulaires.
      *
      * @return StockPosition[]
@@ -60,9 +53,8 @@ class StockPosition implements \Stringable
         return $result;
     }
 
-    public function __construct(int $value)
+    public function __construct(protected int $value)
     {
-        $this->value = $value;
     }
 
     public function setValue(int $value): void

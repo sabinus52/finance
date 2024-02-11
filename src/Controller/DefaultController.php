@@ -28,7 +28,6 @@ class DefaultController extends AbstractController
     #[Route(path: '/', name: 'home')]
     public function index(AccountRepository $repository, ModelRepository $repotModel): Response
     {
-        $accounts = [];
         /** @var Account[] $accounts */
         $accounts = $repository->findBy([], ['institution' => 'ASC', 'name' => 'ASC']);
 
@@ -48,7 +47,7 @@ class DefaultController extends AbstractController
     #[Route(path: '/dump-base', name: 'dump_base')]
     public function dumpBase(Request $request, EntityManagerInterface $manager): Response
     {
-        $pathRoot = (string) $this->getParameter('olix.backup.path');
+        $pathRoot = (string) $this->getParameter('olix.backup.path'); /** @phpstan-ignore-line */
 
         // Sauvegarde
         $helper = new DoctrineHelper($manager);

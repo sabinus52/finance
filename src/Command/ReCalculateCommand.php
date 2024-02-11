@@ -30,16 +30,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
+#[\Symfony\Component\Console\Attribute\AsCommand('app:recalcul', 'Recalcul des soldes de tous les comptes')]
 class ReCalculateCommand extends Command
 {
-    protected static $defaultName = 'app:recalcul';
-    protected static $defaultDescription = 'Recalcul des soldes de tous les comptes';
-
-    /**
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
-
     /**
      * @var SymfonyStyle
      */
@@ -54,13 +47,10 @@ class ReCalculateCommand extends Command
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(protected EntityManagerInterface $entityManager)
     {
         parent::__construct();
-        $this->entityManager = $entityManager;
     }
 
     /**
@@ -76,11 +66,6 @@ class ReCalculateCommand extends Command
 
     /**
      * Execute la commande.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -170,7 +155,7 @@ class ReCalculateCommand extends Command
                 $item->getStock(),
                 $item->getVolume(),
                 $item->getPrice().' €',
-                ($item->getPriceDate()) ? $item->getPriceDate()->format('d/m/Y') : '',
+                (null !== $item->getPriceDate()) ? $item->getPriceDate()->format('d/m/Y') : '',
                 $item->getInvest().' €',
                 $item->getDividend(),
                 $item->getFee(),

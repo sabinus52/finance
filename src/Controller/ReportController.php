@@ -73,7 +73,7 @@ class ReportController extends AbstractController
 
         ksort($totalPerfYear);
         $previous = null;
-        foreach ($totalPerfYear as $key => $perf) {
+        foreach ($totalPerfYear as $perf) {
             if (null !== $previous) {
                 $perf->setPrevious($previous);
             }
@@ -83,7 +83,7 @@ class ReportController extends AbstractController
 
         ksort($totalPerfMonth);
         $previous = null;
-        foreach ($totalPerfMonth as $key => $perf) {
+        foreach ($totalPerfMonth as $perf) {
             if (null !== $previous) {
                 $perf->setPrevious($previous);
             }

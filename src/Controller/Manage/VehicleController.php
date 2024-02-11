@@ -56,7 +56,7 @@ class VehicleController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer un nouveau véhicule',
@@ -77,7 +77,7 @@ class VehicleController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier un véhicule',
@@ -109,8 +109,6 @@ class VehicleController extends AbstractController
 
     /**
      * Création du formulaire de la transaction.
-     *
-     * @return Response
      */
     private function createTransaction(Request $request, Vehicle $vehicle, TransactionModelInterface $modelTransaction): Response
     {
@@ -134,7 +132,7 @@ class VehicleController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Créer %s', $modelTransaction->getFormTitle()),

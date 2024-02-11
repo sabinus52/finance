@@ -43,12 +43,12 @@ final class InterestTransaction extends TransactionModelAbstract implements Tran
         return 'un intérêt bancaire';
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::INCOME, Category::INTERET);
     }
 
-    public function getPayment(): ?Payment
+    protected function getPayment(): ?Payment
     {
         return new Payment(Payment::DEPOT);
     }

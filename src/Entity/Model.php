@@ -14,6 +14,7 @@ namespace App\Entity;
 use App\Repository\ModelRepository;
 use App\Values\Payment;
 use App\Values\TransactionType;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -28,97 +29,77 @@ class Model implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;  /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Montant de la transaction.
-     *
-     * @var float
      */
-    #[ORM\Column(type: 'float')]
+    #[ORM\Column(type: Types::FLOAT)]
     #[Assert\NotBlank]
-    private $amount;
+    private ?float $amount = null;
 
     /**
      * Compte bancaire associé.
-     *
-     * @var Account
      */
     #[ORM\ManyToOne(targetEntity: Account::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotBlank]
-    private $account;
+    private ?Account $account = null;
 
     /**
      * Type de la transaction.
-     *
-     * @var TransactionType
      */
     #[ORM\Column(type: 'transaction_type')]
     #[Assert\NotBlank]
-    private $type;
+    private TransactionType $type;
 
     /**
      * Moyen de paiement.
-     *
-     * @var Payment
      */
     #[ORM\Column(type: 'payment')]
     #[Assert\NotBlank]
-    private $payment;
+    private ?Payment $payment = null;
 
     /**
      * Béneficiaire.
-     *
-     * @var Recipient
      */
     #[ORM\ManyToOne(targetEntity: Recipient::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotBlank]
-    private $recipient;
+    private ?Recipient $recipient = null;
 
     /**
      * Catégorie de la transaction.
-     *
-     * @var Category
      */
     #[ORM\ManyToOne(targetEntity: Category::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotBlank]
-    private $category;
+    private ?Category $category = null;
 
     /**
      * Information sur la transaction.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $memo;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $memo = null;
 
     /**
      * Véhicule associé.
-     *
-     * @var Vehicle
      */
     #[ORM\ManyToOne(targetEntity: Vehicle::class)]
-    private $vehicle;
+    private ?Vehicle $vehicle = null;
 
     /**
      * Compte cible de virement.
-     *
-     * @var Account
      */
     #[ORM\ManyToOne(targetEntity: Account::class)]
-    private $transfer;
+    private ?Account $transfer = null;
 
     /**
      * Planification associé.
-     *
-     * @var Schedule
      */
     #[ORM\OneToOne(targetEntity: Schedule::class, inversedBy: 'model', cascade: ['persist', 'remove'])]
-    private $schedule;
+    private ?Schedule $schedule = null;
 
     /**
      * Constructeur.
@@ -130,7 +111,7 @@ class Model implements \Stringable
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if (null === $this->getId()) {
             return '';
         }
 

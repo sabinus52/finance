@@ -26,7 +26,7 @@ class StockPriceChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultOpts = [
+    private static array $defaultOpts = [
         'maintainAspectRatio' => false,
         'responsive' => true,
         'plugins' => [
@@ -41,7 +41,7 @@ class StockPriceChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultData = [
+    private static array $defaultData = [
         'label' => null,
         'borderColor' => 'rgba(60,141,188,0.8)',
         'borderWidth' => 2,
@@ -64,8 +64,8 @@ class StockPriceChart extends ChartBuilder implements ChartBuilderInterface
     {
         /** @var StockPrice[] $prices */
         $prices = array_reverse($datas);
-
-        $labels = $values = [];
+        $labels = [];
+        $values = [];
         foreach ($prices as $item) {
             $labels[] = $item->getDate()->format('d/m/y');
             $values[] = $item->getPrice();

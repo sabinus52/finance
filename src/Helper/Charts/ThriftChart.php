@@ -26,7 +26,7 @@ class ThriftChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultOpts = [
+    private static array $defaultOpts = [
         'responsive' => true,
         'maintainAspectRatio' => false,
         'datasetFill' => false,
@@ -42,7 +42,7 @@ class ThriftChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultData = [
+    private static array $defaultData = [
         'backgroundColor' => [],
         'label' => '',
         'data' => [],
@@ -60,7 +60,10 @@ class ThriftChart extends ChartBuilder implements ChartBuilderInterface
 
     public function getData($datas): array
     {
-        $labels = $values1 = $values2 = $colors = [];
+        $labels = [];
+        $values1 = [];
+        $values2 = [];
+        $colors = [];
         /** @var ThriftItem[] $datas */
         foreach ($datas as $year => $item) {
             $labels[] = $year;
@@ -86,16 +89,13 @@ class ThriftChart extends ChartBuilder implements ChartBuilderInterface
 
     /**
      * Retourne la couleur de chaque barre en fonction de la valeur.
-     *
-     * @return string
      */
     private function getBackgroundColor(float $value): string
     {
-        $result = 'green';
         if ($value < 0.0) {
-            $result = 'red';
+            return 'red';
         }
 
-        return $result;
+        return 'green';
     }
 }

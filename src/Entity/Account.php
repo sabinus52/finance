@@ -16,6 +16,7 @@ use App\Values\AccountBalance;
 use App\Values\AccountType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -33,144 +34,113 @@ class Account implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Type du compte.
-     *
-     * @var AccountType
      */
     #[ORM\Column(type: 'account_type')]
-    private $type;
+    private ?AccountType $type = null;
 
     /**
      * Numéro du compte bancaire.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: true)]
     #[Assert\Length(max: 20)]
-    private $number;
+    private ?string $number = null;
 
     /**
      * Nom du compte.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(type: Types::STRING, length: 50)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 50)]
-    private $name;
+    private ?string $name = null;
 
     /**
      * Nom court.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 20)]
+    #[ORM\Column(type: Types::STRING, length: 20)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 20)]
-    private $shortName;
+    private ?string $shortName = null;
 
     /**
      * Groupe d'appartenance.
-     *
-     * @var int
      */
-    #[ORM\Column(type: 'smallint', options: ['default' => 0])]
-    private $unit;
+    #[ORM\Column(type: Types::SMALLINT, options: ['default' => 0])]
+    private ?int $unit = 0;
 
     /**
      * Solde initial du compte.
-     *
-     * @var float
      */
-    #[ORM\Column(type: 'float', options: ['default' => 0])]
+    #[ORM\Column(type: Types::FLOAT, options: ['default' => 0])]
     #[Assert\NotBlank]
-    private $initial;
+    private ?float $initial = 0;
 
     /**
      * Devise du compte.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 3)]
+    #[ORM\Column(type: Types::STRING, length: 3)]
     #[Assert\NotBlank]
-    private $currency;
+    private string $currency = 'EUR';
 
     /**
      * Date d'ouverture du compte.
-     *
-     * @var \DateTime
      */
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Assert\NotBlank]
-    private $openedAt;
+    private ?\DateTime $openedAt = null;
 
     /**
      * Date de fermeture ou null si en cours.
-     *
-     * @var \DateTime
      */
-    #[ORM\Column(type: 'date', nullable: true)]
-    private $closedAt;
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTime $closedAt = null;
 
     /**
      * Montant du découvert autorisé.
-     *
-     * @var float
      */
-    #[ORM\Column(type: 'float')]
+    #[ORM\Column(type: Types::FLOAT)]
     #[Assert\NotBlank]
-    private $overdraft;
+    private ?float $overdraft = 0;
 
     /**
      * Metadata des différents soldes calculés.
-     *
-     * @var AccountBalance
      */
-    #[ORM\Column(type: 'object', nullable: true)]
-    private $balance;
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private AccountBalance $balance;
 
-    /**
-     * @var Institution
-     */
     #[ORM\ManyToOne(targetEntity: Institution::class, inversedBy: 'accounts')]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotBlank]
-    private $institution;
+    private ?Institution $institution = null;
 
     /**
      * Compte associé pour les tes transactions (Ex : PEA -> PEA Caisse.
-     *
-     * @var Account
      */
     #[ORM\OneToOne(targetEntity: self::class, cascade: ['persist', 'remove'])]
-    private $accAssoc;
+    private ?Account $accAssoc = null;
 
     /**
-     * @var ArrayCollection
+     * @var Collection|Transaction[]
      */
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'account')]
-    private $transactions;
+    private Collection $transactions;
 
     /**
      * Constructeur.
      */
     public function __construct()
     {
-        $this->unit = 0;
-        $this->initial = 0;
         $this->balance = new AccountBalance();
-        $this->currency = 'EUR';
-        $this->overdraft = 0;
         $this->transactions = new ArrayCollection();
     }
 
     public function __toString(): string
     {
-        if (!$this->name) {
+        if ('' === $this->name || '0' === $this->name) {
             return '';
         }
 
@@ -309,10 +279,6 @@ class Account implements \Stringable
 
     public function getBalance(): AccountBalance
     {
-        if (null === $this->balance) {
-            return new AccountBalance();
-        }
-
         return $this->balance;
     }
 
@@ -348,7 +314,7 @@ class Account implements \Stringable
     }
 
     /**
-     * @return Collection<int, Transaction>
+     * @return Collection|Transaction[]
      */
     public function getTransactions(): Collection
     {
@@ -367,11 +333,9 @@ class Account implements \Stringable
 
     public function removeTransaction(Transaction $transaction): self
     {
-        if ($this->transactions->removeElement($transaction)) {
-            // set the owning side to null (unless already changed)
-            if ($transaction->getAccount() === $this) {
-                $transaction->setAccount(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->transactions->removeElement($transaction) && $transaction->getAccount() === $this) {
+            $transaction->setAccount(null);
         }
 
         return $this;
@@ -379,8 +343,6 @@ class Account implements \Stringable
 
     /**
      * Retourne le nom complet organisme + nom du compte.
-     *
-     * @return string
      */
     public function getFullName(): string
     {
@@ -399,18 +361,14 @@ class Account implements \Stringable
 
     /**
      * Indique si le compte est fermé ou pas.
-     *
-     * @return bool
      */
     public function isClosed(): bool
     {
-        return null !== $this->closedAt;
+        return $this->closedAt instanceof \DateTime;
     }
 
     /**
      * Affiche le badge du statut du compte ou contrat.
-     *
-     * @return string
      */
     public function getStatusBadge(): string
     {
@@ -423,8 +381,6 @@ class Account implements \Stringable
 
     /**
      * Retourne la performance du placement.
-     *
-     * @return float|null
      */
     public function getInvestPerformance(): ?float
     {

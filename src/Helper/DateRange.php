@@ -33,7 +33,7 @@ class DateRange
     /**
      * @var array<mixed>
      */
-    private static $ranges = [
+    private static array $ranges = [
         self::LAST_30D => '30 derniers jours',
         self::LAST_60D => '60 derniers jours',
         self::LAST_90D => '90 derniers jours',
@@ -49,10 +49,8 @@ class DateRange
 
     /**
      * Date du jour.
-     *
-     * @var \DateTimeImmutable
      */
-    private $now;
+    private readonly \DateTimeImmutable $now;
 
     /**
      * Date de debut calculée.
@@ -110,8 +108,6 @@ class DateRange
 
     /**
      * Retourne la date de fin.
-     *
-     * @return string
      */
     public function getDateStart(): string
     {
@@ -120,8 +116,6 @@ class DateRange
 
     /**
      * Retourne la date de début.
-     *
-     * @return string
      */
     public function getDateEnd(): string
     {
@@ -259,8 +253,6 @@ class DateRange
 
     /**
      * Retourne le premier jour du trimestre.
-     *
-     * @return \DateTimeImmutable
      */
     public static function getFirstDayOfQuarter(\DateTimeImmutable $date): \DateTimeImmutable
     {
@@ -281,8 +273,6 @@ class DateRange
 
     /**
      * Retourne le dernier jour du trimestre.
-     *
-     * @return \DateTimeImmutable
      */
     public static function getLastDayOfQuarter(\DateTimeImmutable $date): \DateTimeImmutable
     {

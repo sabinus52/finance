@@ -33,8 +33,6 @@ class BaseController extends AbstractController
 {
     /**
      * Retourne le formulaire du filtre.
-     *
-     * @return FormInterface
      */
     protected function createFormFilter(): FormInterface
     {
@@ -79,7 +77,10 @@ class BaseController extends AbstractController
         $filters = [];
         foreach ($datas as $key => $value) {
             // Si null alors pas de filtre
-            if ('' === $value || null === $value) {
+            if ('' === $value) {
+                continue;
+            }
+            if (null === $value) {
                 continue;
             }
             if ('range' === $key) {

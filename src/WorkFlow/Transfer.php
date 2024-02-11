@@ -28,7 +28,7 @@ class Transfer
      *
      * @var array<mixed>
      */
-    private static $categories = [
+    private static array $categories = [
         Category::VIREMENT,
         Category::INVESTMENT,
         Category::REPURCHASE,
@@ -36,17 +36,13 @@ class Transfer
 
     /**
      * Transaction créditeur.
-     *
-     * @var Transaction
      */
-    private $credit;
+    private ?Transaction $credit = null;
 
     /**
      * Transaction débiteur.
-     *
-     * @var Transaction
      */
-    private $debit;
+    private ?Transaction $debit = null;
 
     /**
      * Constructeur.
@@ -86,8 +82,6 @@ class Transfer
 
     /**
      * Retourne la transaction du virement créditeur.
-     *
-     * @return Transaction
      */
     public function getCredit(): Transaction
     {
@@ -96,8 +90,6 @@ class Transfer
 
     /**
      * Retourne la transaction du virement débiteur.
-     *
-     * @return Transaction
      */
     public function getDebit(): Transaction
     {
@@ -106,13 +98,11 @@ class Transfer
 
     /**
      * Affecte les transactions de débit et de crédit en fonction de la transaction transmise.
-     *
-     * @return Transfer
      */
     public function setTransaction(Transaction $transaction): self
     {
         // Si on déjà en présence d'un virement
-        if ($transaction->getTransfer()) {
+        if ($transaction->getTransfer() instanceof Transaction) {
             // En fonction du montant, on dispatch sur les transactions débit ou crédit
             if ($transaction->getAmount() < 0) {
                 $this->debit = $transaction;
@@ -163,14 +153,13 @@ class Transfer
         $this->debit->setAccount($source);
         $this->debit->setAmount(abs($this->credit->getAmount()) * -1);
         $this->debit->setDate($this->credit->getDate());
+
         $this->credit->setAccount($target);
         $this->credit->setAmount(abs($amountTarget));
     }
 
     /**
      * Retourne la catégorie à utiliser.
-     *
-     * @return Category
      */
     private function getCategory(bool $type, string $code): Category
     {

@@ -27,44 +27,25 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 final class StockFusion
 {
-    /**
-     * @var TransactionModelRouter
-     */
-    private $router;
+    private readonly TransactionModelRouter $router;
 
     /**
      * Ancien titre boursier qui sera fusionné.
-     *
-     * @var Stock
      */
-    private $oldStock;
+    private ?Stock $oldStock = null;
 
-    /**
-     * @var float
-     */
-    private $oldVolume;
+    private ?float $oldVolume = null;
 
-    /**
-     * @var float
-     */
-    private $oldPrice;
+    private ?float $oldPrice = null;
 
     /**
      * Nouveau titre boursier fusionné.
-     *
-     * @var Stock
      */
-    private $newStock;
+    private ?Stock $newStock = null;
 
-    /**
-     * @var float
-     */
-    private $newVolume;
+    private ?float $newVolume = null;
 
-    /**
-     * @var float
-     */
-    private $newPrice;
+    private ?float $newPrice = null;
 
     /**
      * Constructeur.
@@ -100,8 +81,6 @@ final class StockFusion
 
     /**
      * Affecte les données de l'ancien titre qui sera fusionné.
-     *
-     * @return self
      */
     public function setOldStock(Stock $stock, float $price): self
     {
@@ -125,13 +104,11 @@ final class StockFusion
      * @param Stock|null  $stock    Nouveau titre si renseigné
      * @param string|null $name     Nom du nouveau titre à créer
      * @param string|null $codeIsin Code du nouveau titre à créer
-     *
-     * @return self
      */
     public function setNewStock(?Stock $stock, ?string $name, ?string $codeIsin, float $volume, float $price): self
     {
         // Si le nouveau stock est déjà existant ou pas
-        if ($stock) {
+        if ($stock instanceof Stock) {
             $this->newStock = $stock;
         } else {
             $this->newStock = new Stock();
@@ -150,8 +127,6 @@ final class StockFusion
 
     /**
      * Retourne le nouveau titre boursier.
-     *
-     * @return Stock
      */
     public function getNewStock(): Stock
     {
@@ -177,13 +152,12 @@ final class StockFusion
         $stockPrice->setStock($this->oldStock);
         $stockPrice->setDate($date);
         $stockPrice->setPrice($this->oldPrice);
+
         $this->entityManager->persist($stockPrice);
     }
 
     /**
      * Création de la transaction de vente de l'ancien titre.
-     *
-     * @return TransactionModelInterface
      */
     private function createTransactionSelling(\DateTime $date, float $amount): TransactionModelInterface
     {
@@ -204,8 +178,6 @@ final class StockFusion
 
     /**
      * Création de la transaction d'achat du nouveau titre.
-     *
-     * @return TransactionModelInterface
      */
     private function createTransactionBuying(\DateTime $date, float $amount): TransactionModelInterface
     {

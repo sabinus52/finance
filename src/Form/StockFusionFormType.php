@@ -89,7 +89,7 @@ class StockFusionFormType extends AbstractType
                 ],
             ])
             ->add('price2', MoneyType::class, [
-                'label' => 'Valeur d\'ouverture',
+                'label' => "Valeur d'ouverture",
                 'required' => false,
                 'mapped' => false,
                 'constraints' => [

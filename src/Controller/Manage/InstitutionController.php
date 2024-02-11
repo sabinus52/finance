@@ -54,12 +54,12 @@ class InstitutionController extends AbstractController
 
             $entityManager->persist($institution);
             $entityManager->flush();
-            $this->addFlash('success', 'La création de l\'organisme <strong>'.$institution.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf("La création de l'organisme <strong>%s</strong> a bien été prise en compte", $institution));
 
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer une nouvelle institution',
@@ -82,12 +82,12 @@ class InstitutionController extends AbstractController
             }
 
             $entityManager->flush();
-            $this->addFlash('success', 'La modification de l\'organisme <strong>'.$institution.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf("La modification de l'organisme <strong>%s</strong> a bien été prise en compte", $institution));
 
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier une institution',
@@ -99,12 +99,10 @@ class InstitutionController extends AbstractController
      * Retoune le fichier téléchargé en base64.
      *
      * @param UploadedFile $logo
-     *
-     * @return string
      */
     private function getLogoBase64(?UploadedFile $logo): ?string
     {
-        if (null === $logo) {
+        if (!$logo instanceof UploadedFile) {
             return null;
         }
 

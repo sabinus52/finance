@@ -57,12 +57,12 @@ class StockController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($stock);
             $entityManager->flush();
-            $this->addFlash('success', 'La création de l\'action <strong>'.$stock.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf("La création de l'action <strong>%s</strong> a bien été prise en compte", $stock));
 
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer une nouvelle action',
@@ -78,12 +78,12 @@ class StockController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'La modification de l\'action <strong>'.$stock.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf("La modification de l'action <strong>%s</strong> a bien été prise en compte", $stock));
 
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier une action',
@@ -115,13 +115,14 @@ class StockController extends AbstractController
         // Recherche la dernière cotation
         $last = $repository->findOneLastPrice($stock);
         $date = new \DateTime();
-        if (null !== $last) {
+        if ($last instanceof StockPrice) {
             $date = clone $last->getDate()->modify('+ 15 days');
         }
 
         $stockPrice = new StockPrice();
         $stockPrice->setStock($stock);
         $stockPrice->setDate($date->modify('last day of this month'));
+
         $form = $this->createForm(StockPriceFormType::class, $stockPrice);
 
         $form->handleRequest($request);
@@ -135,7 +136,7 @@ class StockController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer une nouvelle cotation',
@@ -159,7 +160,7 @@ class StockController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier la cotation',
@@ -177,7 +178,7 @@ class StockController extends AbstractController
 
         // Recherche la dernière cotation
         $last = $repository->findOneLastPrice($stock);
-        if ($last) {
+        if ($last instanceof StockPrice) {
             $form->get('price')->setData($last->getPrice());
         }
 
@@ -193,7 +194,7 @@ class StockController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Fusion de %s', $stock),
@@ -204,8 +205,6 @@ class StockController extends AbstractController
 
     /**
      * Vérifie la formulaire de la fusion.
-     *
-     * @return bool
      */
     private function checkFormFusion(FormInterface $form): bool
     {

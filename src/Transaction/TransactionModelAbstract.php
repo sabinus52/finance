@@ -43,17 +43,13 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Transaction en cours et valider par le formulaire.
-     *
-     * @var Transaction
      */
-    protected $transaction;
+    protected Transaction $transaction;
 
     /**
      * Worklow des transactions.
-     *
-     * @var Workflow
      */
-    private $workflow;
+    private Workflow $workflow;
 
     /**
      * Constructeur.
@@ -67,8 +63,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Initialise la transaction lors de sa création.
-     *
-     * @return TransactionModelInterface
      */
     public function init(): TransactionModelInterface
     {
@@ -93,20 +87,14 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Affecte la transaction.
-     *
-     * @param Transaction $transaction
-     *
-     * @return TransactionModelInterface
      */
     public function setTransaction(Transaction $transaction): TransactionModelInterface
     {
         $this->transaction = $transaction;
 
-        if ($transaction->getTransfer()) {
-            // Dans le cas d'un virement, on prend la transaction de crédit
-            if ($transaction->getAmount() < 0) {
-                $this->transaction = $transaction->getTransfer();
-            }
+        // Dans le cas d'un virement, on prend la transaction de crédit
+        if ($transaction->getTransfer() instanceof Transaction && $transaction->getAmount() < 0) {
+            $this->transaction = $transaction->getTransfer();
         }
 
         $this->workflow = new Workflow($this->entityManager, $this->transaction);
@@ -116,10 +104,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Affecte un compte à la transaction.
-     *
-     * @param Account $account
-     *
-     * @return TransactionModelInterface
      */
     public function setAccount(Account $account): TransactionModelInterface
     {
@@ -137,8 +121,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
      * Affecte des données contenu dans un tableau.
      *
      * @param array<mixed> $datas
-     *
-     * @return TransactionModelInterface
      */
     public function setDatas(array $datas): TransactionModelInterface
     {
@@ -208,8 +190,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Retourne la transaction.
-     *
-     * @return Transaction
      */
     public function getTransaction(): Transaction
     {
@@ -218,10 +198,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Vérifie le formulaire.
-     *
-     * @param FormInterface $form
-     *
-     * @return bool
      */
     public function checkForm(FormInterface $form): bool
     {
@@ -230,8 +206,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Si c'est un virement.
-     *
-     * @return bool
      */
     public function isTransfer(): bool
     {
@@ -240,8 +214,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Retourne le type de transaction par défaut.
-     *
-     * @return TransactionType
      */
     protected function getTransactionType(): TransactionType
     {
@@ -250,8 +222,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Retourne la catégorie par défaut.
-     *
-     * @return Category|null
      */
     protected function getCategory(): ?Category
     {
@@ -260,8 +230,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Retourne le type de paiement par défaut.
-     *
-     * @return Payment|null
      */
     protected function getPayment(): ?Payment
     {
@@ -270,8 +238,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Retourne le bénéficiare par défaut.
-     *
-     * @return Recipient|null
      */
     protected function getRecipient(): ?Recipient
     {
@@ -280,8 +246,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Retourne la position de l'opération boursière.
-     *
-     * @return StockPosition|null
      */
     protected function getPosition(): ?StockPosition
     {
@@ -290,8 +254,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Retourne la catégorie à utiliser.
-     *
-     * @return Category
      */
     protected function getCategoryByCode(bool $type, string $code): Category
     {
@@ -301,8 +263,6 @@ abstract class TransactionModelAbstract implements TransactionModelInterface
 
     /**
      * Retourne le bénéficiare interne (Moi-même).
-     *
-     * @return Recipient
      */
     protected function findRecipientInternal(): Recipient
     {

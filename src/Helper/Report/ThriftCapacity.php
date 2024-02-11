@@ -31,7 +31,7 @@ class ThriftCapacity
      *
      * @var ThriftItem[]
      */
-    private $results;
+    private array $results = [];
 
     /**
      * Constructeur.
@@ -40,7 +40,6 @@ class ThriftCapacity
      */
     public function __construct(private readonly string $periodType)
     {
-        $this->results = [];
     }
 
     /**
@@ -75,10 +74,8 @@ class ThriftCapacity
                 $this->results[$period]->addAmount($transaction->getAmount());
             }
             // Transaction d'épargne pour la colonne de ce qui a été épargné
-            if (AccountType::EPARGNE_LIQUIDE === $transaction->getAccount()->getType()->getTypeCode()) {
-                if (0 === $transaction->getAmount() % 10) {
-                    $this->results[$period]->addThrift($transaction->getAmount());
-                }
+            if (AccountType::EPARGNE_LIQUIDE === $transaction->getAccount()->getType()->getTypeCode() && 0 === $transaction->getAmount() % 10) {
+                $this->results[$period]->addThrift($transaction->getAmount());
             }
         } elseif (Category::INVESTMENT === $transaction->getCategory()->getCode()) {
             // Si l'investissement est différent de la sommme réellement versé ( frais par exemple )
@@ -92,8 +89,6 @@ class ThriftCapacity
 
     /**
      * Retourne la période.
-     *
-     * @return string
      */
     private function getPeriod(Transaction $transaction): string
     {

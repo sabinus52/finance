@@ -35,13 +35,15 @@ class Performance
      *
      * @var Transaction[]
      */
-    private $transactions;
+    private array $transactions;
 
     /**
      * Constructeur.
      */
-    public function __construct(private readonly TransactionRepository $repository, private readonly Account $account)
-    {
+    public function __construct(
+        private readonly TransactionRepository $repository,
+        private readonly Account $account
+    ) {
         $date = new \DateTimeImmutable();
         $date = $date->modify('first day of this month');
 
@@ -106,8 +108,9 @@ class Performance
         $prevPerfItem = null;
         $start = \DateTimeImmutable::createFromMutable($this->transactions[0]->getDate());
         $start = $start->modify('first day of this month');
+
         $end = new \DateTimeImmutable();
-        if (null !== $this->account->getClosedAt()) {
+        if ($this->account->getClosedAt() instanceof \DateTime) {
             $end = \DateTimeImmutable::createFromMutable($this->account->getClosedAt());
         }
 
@@ -170,8 +173,6 @@ class Performance
 
     /**
      * Retourn la clé de la période en cours.
-     *
-     * @return string
      */
     private function getPeriod(\DateTimeImmutable $date, int $typePeriod): string
     {
@@ -196,7 +197,7 @@ class Performance
      */
     public static function getPerfSlipperyFromByMonth(array $items): array
     {
-        if (empty($items)) {
+        if ([] === $items) {
             return [];
         }
 
@@ -207,7 +208,7 @@ class Performance
         $idx = 0;
         do {
             $last = self::searchByPeriod($items, $date->modify(sprintf('- %s month', ++$idx)));
-        } while (null === $last);
+        } while (!$last instanceof PerfItem);
         $date = $date->modify(sprintf('- %s month', $idx));
         $last->calculate(); // Calcul du montant investi cumulé
 
@@ -215,7 +216,7 @@ class Performance
         $list = [1, 3, 6, 12, 24, 36, 60, 120];
         foreach ($list as $value) {
             $current = self::searchByPeriod($items, $date->modify(sprintf('- %s month', $value)));
-            if ($current) {
+            if ($current instanceof PerfItem) {
                 $current->calculate(); // Calcul du montant investi cumulé
             }
             $last->setPrevious($current);
@@ -229,8 +230,6 @@ class Performance
      * Recherche et retourne une Perf d'une période donnée.
      *
      * @param PerfItem[] $items
-     *
-     * @return PerfItem|null
      */
     public static function searchByPeriod(array $items, \DateTimeImmutable $date): ?PerfItem
     {

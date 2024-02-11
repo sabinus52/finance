@@ -39,8 +39,6 @@ class CategoryRepository extends ServiceEntityRepository
      * @param string        $name   Nom de la catégorie
      * @param Category|null $parent Catégorie de niveu 1
      * @param string|null   $code   Code de la catégorie
-     *
-     * @return Category
      */
     public function create(bool $type, string $name, Category $parent = null, string $code = null): Category
     {
@@ -60,7 +58,7 @@ class CategoryRepository extends ServiceEntityRepository
     /**
      * Retourne les catégories par type de niveau 1.
      *
-     * @return Category[]
+     * @return Category[]|null
      */
     public function findLevel1ByType(bool $type): ?array
     {
@@ -78,8 +76,6 @@ class CategoryRepository extends ServiceEntityRepository
      * Retourne la catégorie en fonction de son code.
      *
      * @param bool $type (recette|depense)
-     *
-     * @return Category|null
      */
     public function findOneByCode(bool $type, string $code): ?Category
     {

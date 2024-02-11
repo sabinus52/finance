@@ -83,7 +83,7 @@ class ScheduleController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Valider %s', $modelTransaction->getFormTitle()),
@@ -99,6 +99,7 @@ class ScheduleController extends AbstractController
     {
         $schedule = $model->getSchedule();
         $schedule->setNextDoAt();
+
         $entityManager->flush();
         $this->addFlash('warning', sprintf('La planification <strong>%s</strong> a été ignorée', $model));
 

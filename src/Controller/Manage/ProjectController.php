@@ -55,7 +55,7 @@ class ProjectController extends AbstractController
             }
             $categories[$idCat]['total'] += $transaction->getAmount();
         }
-        usort($categories, static fn ($aaa, $bbb) => $aaa['total'] > $bbb['total']); /** @phpstan-ignore-line */
+        usort($categories, static fn ($aaa, $bbb): bool => $aaa['total'] > $bbb['total']);  /** @phpstan-ignore-line */
 
         // Liste des transactions non sélectionnées durant la période du projet
         $transactions = $repository->createQueryBuilder('trt')
@@ -97,7 +97,7 @@ class ProjectController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer un nouveau projet',
@@ -118,7 +118,7 @@ class ProjectController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier un projet',
@@ -155,7 +155,7 @@ class ProjectController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-content-delete.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-content-delete.html.twig', [
             'form' => $form,
             'element' => sprintf('de l\'opération <strong>%s</strong> du projet <strong>%s</strong>', $transaction, $project),
         ]);

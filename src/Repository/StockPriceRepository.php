@@ -49,8 +49,6 @@ class StockPriceRepository extends ServiceEntityRepository
 
     /**
      * Dernière cotation boursière.
-     *
-     * @return StockPrice|null
      */
     public function findOneLastPrice(Stock $stock): ?StockPrice
     {

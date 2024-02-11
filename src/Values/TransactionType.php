@@ -34,12 +34,9 @@ class TransactionType
      *
      * @var array<mixed>
      */
-    private static $values = [self::STANDARD, self::STOCKEXCHANGE, self::VEHICLE, self::TRANSFER, self::REVALUATION];
+    private static array $values = [self::STANDARD, self::STOCKEXCHANGE, self::VEHICLE, self::TRANSFER, self::REVALUATION];
 
-    /**
-     * @var int
-     */
-    private $value;
+    private int $value;
 
     /**
      * Constructeur.
@@ -65,8 +62,6 @@ class TransactionType
 
     /**
      * Retourne la valeur.
-     *
-     * @return int
      */
     public function getValue(): int
     {

@@ -24,27 +24,22 @@ use Symfony\Component\Form\FormInterface;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-final class Workflow
+final readonly class Workflow
 {
     /**
      * Transaction avant la validation du formulaire.
-     *
-     * @var Transaction
      */
-    private $before;
+    private Transaction $before;
 
-    /**
-     * @var Balance
-     */
-    private $balance;
+    private Balance $balance;
 
     /**
      * Constructeur.
      * Transaction en cours et valider par le formulaire.
      */
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly Transaction $transaction
+        private EntityManagerInterface $entityManager,
+        private Transaction $transaction
     ) {
         $this->before = clone $this->transaction;
         $this->balance = new Balance($this->entityManager);
@@ -138,8 +133,6 @@ final class Workflow
 
     /**
      * Si c'est un virement.
-     *
-     * @return bool
      */
     public function isTransfer(): bool
     {

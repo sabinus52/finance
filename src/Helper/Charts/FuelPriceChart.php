@@ -27,7 +27,7 @@ class FuelPriceChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultOpts = [
+    private static array $defaultOpts = [
         'maintainAspectRatio' => false,
         'responsive' => true,
         'plugins' => [
@@ -42,7 +42,7 @@ class FuelPriceChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultData = [
+    private static array $defaultData = [
         'label' => null,
         'borderColor' => 'rgba(60,141,188,0.8)',
         'borderWidth' => 1,
@@ -57,7 +57,7 @@ class FuelPriceChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $averageData = [
+    private static array $averageData = [
         'label' => null,
         'borderColor' => 'darkorange',
         'borderDash' => [3, 3],
@@ -84,8 +84,9 @@ class FuelPriceChart extends ChartBuilder implements ChartBuilderInterface
         /** @var VehicleReport $report */
         $report = $datas[1];
         $average = $report->getFuelAveragePrice();
-
-        $labels = $values = $colors = [];
+        $labels = [];
+        $values = [];
+        $colors = [];
         foreach ($transactions as $item) {
             if (null === $item->getTransactionVehicle()->getVolume()) {
                 continue;

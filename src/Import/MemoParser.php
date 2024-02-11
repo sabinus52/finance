@@ -58,8 +58,6 @@ class MemoParser
 
     /**
      * Parse le Mémo et retourne l'indiquation s'il faut créer à la suite une transaction standard.
-     *
-     * @return bool
      */
     public function parse(QifItem $item): bool
     {
@@ -177,8 +175,6 @@ class MemoParser
 
     /**
      * Retourne le compte de portefeuille à utiliser.
-     *
-     * @return Account
      */
     private function getWallet(QifItem $item): Account
     {

@@ -32,10 +32,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class VehicleController extends AbstractController
 {
-    /**
-     * @var TransactionRepository
-     */
-    private $repository;
+    private ?TransactionRepository $repository = null;
 
     /**
      * Page d'accueil du rapport de la liste de tous les véhicules.
@@ -119,8 +116,6 @@ class VehicleController extends AbstractController
 
     /**
      * Retourne la requête de base des stats des coûts.
-     *
-     * @return QueryBuilder
      */
     private function getQueryBase(): QueryBuilder
     {

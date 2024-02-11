@@ -14,6 +14,7 @@ namespace App\Entity;
 use App\Repository\StockRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -27,70 +28,60 @@ class Stock implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Code ISIN.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 12, unique: true)]
+    #[ORM\Column(type: Types::STRING, length: 12, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 12)]
-    private $codeISIN;
+    private ?string $codeISIN = null;
 
     /**
      * Nom de l'action.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 100, unique: true)]
+    #[ORM\Column(type: Types::STRING, length: 100, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 5, max: 100)]
-    private $name;
+    private ?string $name = null;
 
     /**
      * Date de la fermeture.
-     *
-     * @var \DateTime
      */
-    #[ORM\Column(type: 'date', nullable: true)]
-    private $closedAt;
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTime $closedAt = null;
 
     /**
      * Titre d'avant qui a été fusionné.
-     *
-     * @var Stock
      */
     #[ORM\OneToOne(targetEntity: self::class, inversedBy: 'fusionTo', cascade: ['persist', 'remove'])]
-    private $fusionFrom;
+    private ?Stock $fusionFrom = null;
 
     /**
      * Vers le nouveau titre fusionné.
-     *
-     * @var Stock
      */
     #[ORM\OneToOne(targetEntity: self::class, mappedBy: 'fusionFrom', cascade: ['persist', 'remove'])]
-    private $fusionTo;
+    private ?Stock $fusionTo = null;
 
     /**
-     * @var ArrayCollection
+     * @var Collection|StockPrice[]
      */
     #[ORM\OneToMany(targetEntity: StockPrice::class, mappedBy: 'stock', orphanRemoval: true)]
-    private $stockPrices;
+    private Collection $stockPrices;
 
     /**
-     * @var ArrayCollection
+     * @var Collection|StockWallet[]
      */
     #[ORM\OneToMany(targetEntity: StockWallet::class, mappedBy: 'stock', orphanRemoval: true)]
-    private $stockWallets;
+    private Collection $stockWallets;
 
     /**
-     * @var ArrayCollection
+     * @var Collection|TransactionStock[]
      */
     #[ORM\OneToMany(targetEntity: TransactionStock::class, mappedBy: 'stock')]
-    private $transactionStocks;
+    private Collection $transactionStocks;
 
     /**
      * Constructeur.
@@ -104,11 +95,7 @@ class Stock implements \Stringable
 
     public function __toString(): string
     {
-        if (!$this->name) {
-            return '';
-        }
-
-        return (string) $this->getName();
+        return $this->name ?: '';
     }
 
     public function getId(): ?int
@@ -172,12 +159,12 @@ class Stock implements \Stringable
     public function setFusionTo(?self $fusionTo): self
     {
         // unset the owning side of the relation if necessary
-        if (null === $fusionTo && null !== $this->fusionTo) {
+        if (!$fusionTo instanceof self && $this->fusionTo instanceof self) {
             $this->fusionTo->setFusionFrom(null);
         }
 
         // set the owning side of the relation if necessary
-        if (null !== $fusionTo && $fusionTo->getFusionFrom() !== $this) {
+        if ($fusionTo instanceof self && $fusionTo->getFusionFrom() !== $this) {
             $fusionTo->setFusionFrom($this);
         }
 
@@ -187,7 +174,7 @@ class Stock implements \Stringable
     }
 
     /**
-     * @return Collection<int, StockPrice>
+     * @return Collection|StockPrice[]
      */
     public function getStockPrices(): Collection
     {
@@ -206,18 +193,16 @@ class Stock implements \Stringable
 
     public function removeStockPrice(StockPrice $stockPrice): self
     {
-        if ($this->stockPrices->removeElement($stockPrice)) {
-            // set the owning side to null (unless already changed)
-            if ($stockPrice->getStock() === $this) {
-                $stockPrice->setStock(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->stockPrices->removeElement($stockPrice) && $stockPrice->getStock() === $this) {
+            $stockPrice->setStock(null);
         }
 
         return $this;
     }
 
     /**
-     * @return Collection<int, StockWallet>
+     * @return Collection|StockWallet[]
      */
     public function getStockWallets(): Collection
     {
@@ -236,18 +221,16 @@ class Stock implements \Stringable
 
     public function removeStockWallet(StockWallet $stockWallet): self
     {
-        if ($this->stockWallets->removeElement($stockWallet)) {
-            // set the owning side to null (unless already changed)
-            if ($stockWallet->getStock() === $this) {
-                $stockWallet->setStock(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->stockWallets->removeElement($stockWallet) && $stockWallet->getStock() === $this) {
+            $stockWallet->setStock(null);
         }
 
         return $this;
     }
 
     /**
-     * @return Collection<int, TransactionStock>
+     * @return Collection|TransactionStock[]
      */
     public function getTransactionStocks(): Collection
     {
@@ -266,11 +249,9 @@ class Stock implements \Stringable
 
     public function removeTransactionStock(TransactionStock $transactionStock): self
     {
-        if ($this->transactionStocks->removeElement($transactionStock)) {
-            // set the owning side to null (unless already changed)
-            if ($transactionStock->getStock() === $this) {
-                $transactionStock->setStock(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->transactionStocks->removeElement($transactionStock) && $transactionStock->getStock() === $this) {
+            $transactionStock->setStock(null);
         }
 
         return $this;
@@ -278,12 +259,10 @@ class Stock implements \Stringable
 
     /**
      * Affiche le badge du statut de l'action.
-     *
-     * @return string
      */
     public function getStatusBadge(): string
     {
-        if (null !== $this->closedAt) {
+        if ($this->closedAt instanceof \DateTime) {
             return '<span class="badge bg-danger text-uppercase">fermé</span>';
         }
 

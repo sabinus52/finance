@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ScheduleRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -28,7 +29,7 @@ class Schedule
      *
      * @var array<mixed>
      */
-    private static $periods = [
+    private static array $periods = [
         'D' => ['day', 'Jour'],
         'W' => ['week', 'Semaine'],
         'M' => ['month', 'Mois'],
@@ -37,70 +38,48 @@ class Schedule
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Statut de la planification actif ou pas.
-     *
-     * @var bool
      */
-    #[ORM\Column(type: 'boolean')]
-    private $state;
+    #[ORM\Column(type: Types::BOOLEAN)]
+    private bool $state = true;
 
     /**
      * Prochaine date de la transaction.
-     *
-     * @var \DateTimeImmutable
      */
-    #[ORM\Column(type: 'date_immutable')]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Assert\NotBlank]
-    private $doAt;
+    private ?\DateTimeImmutable $doAt = null;
 
     /**
      * Frequence de la périodicité de la planification.
-     *
-     * @var int
      */
-    #[ORM\Column(type: 'smallint')]
+    #[ORM\Column(type: Types::SMALLINT)]
     #[Assert\NotBlank]
     #[Assert\Type('int')]
-    private $frequency;
+    private ?int $frequency = 1;
 
     /**
      * Periode de la planification (jour, semaine, mois ou année).
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 1)]
+    #[ORM\Column(type: Types::STRING, length: 1)]
     #[Assert\NotBlank]
-    private $period;
+    private ?string $period = 'M';
 
     /**
      * Nombre de transaction à effectuer.
-     *
-     * @var int
      */
-    #[ORM\Column(type: 'smallint', nullable: true)]
-    private $number;
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    private ?int $number = null;
 
     /**
      * Modèle associé.
-     *
-     * @var Model
      */
     #[ORM\OneToOne(targetEntity: Model::class, mappedBy: 'schedule', cascade: ['persist'])]
-    private $model;
-
-    /**
-     * Constructeur.
-     */
-    public function __construct()
-    {
-        $this->state = true;
-        $this->frequency = 1;
-        $this->period = 'M';
-    }
+    private ?Model $model = null;
 
     public function getId(): ?int
     {
@@ -133,8 +112,6 @@ class Schedule
 
     /**
      * Retourne le badge de la prochaine date de la planification ou à défaut le statut.
-     *
-     * @return string
      */
     public function getLastDateBadge(): string
     {
@@ -153,8 +130,6 @@ class Schedule
 
     /**
      * Remet la prochaine date de la planification.
-     *
-     * @return self
      */
     public function setNextDoAt(): self
     {
@@ -213,12 +188,12 @@ class Schedule
     public function setModel(?Model $model): self
     {
         // unset the owning side of the relation if necessary
-        if (null === $model && null !== $this->model) {
+        if (!$model instanceof Model && $this->model instanceof Model) {
             $this->model->setSchedule(null);
         }
 
         // set the owning side of the relation if necessary
-        if (null !== $model && $model->getSchedule() !== $this) {
+        if ($model instanceof Model && $model->getSchedule() !== $this) {
             $model->setSchedule($this);
         }
 

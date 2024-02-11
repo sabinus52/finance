@@ -14,6 +14,7 @@ namespace App\Entity;
 use App\Repository\TransactionRepository;
 use App\Values\Payment;
 use App\Values\TransactionType;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -26,144 +27,114 @@ class Transaction implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Date de la Transaction.
-     *
-     * @var \DateTime
      */
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Assert\NotBlank]
-    private $date;
+    private ?\DateTime $date = null;
 
     /**
      * Montant de la transaction.
-     *
-     * @var float
      */
-    #[ORM\Column(type: 'float')]
+    #[ORM\Column(type: Types::FLOAT)]
     #[Assert\NotBlank]
-    private $amount;
+    private ?float $amount = null;
 
     /**
      * Solde du compte.
-     *
-     * @var float
      */
-    #[ORM\Column(type: 'float', options: ['default' => 0])]
-    private $balance;
+    #[ORM\Column(type: Types::FLOAT, options: ['default' => 0])]
+    private ?float $balance = 0;
 
     /**
      * Compte bancaire associé.
-     *
-     * @var Account
      */
     #[ORM\ManyToOne(targetEntity: Account::class, inversedBy: 'transactions')]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotBlank]
-    private $account;
+    private ?Account $account = null;
 
     /**
      * Type de la transaction.
-     *
-     * @var TransactionType
      */
     #[ORM\Column(type: 'transaction_type', options: ['default' => 0])]
-    private $type;
+    private ?TransactionType $type = null;
 
     /**
      * Moyen de paiement.
-     *
-     * @var Payment
      */
     #[ORM\Column(type: 'payment')]
     #[Assert\NotBlank]
-    private $payment;
+    private ?Payment $payment = null;
 
     /**
      * Béneficiaire.
-     *
-     * @var Recipient
      */
     #[ORM\ManyToOne(targetEntity: Recipient::class, inversedBy: 'transactions')]
     #[Assert\NotBlank]
-    private $recipient;
+    private ?Recipient $recipient = null;
 
     /**
      * Catégorie de la transaction.
-     *
-     * @var Category
      */
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'transactions')]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotBlank]
-    private $category;
+    private ?Category $category = null;
 
     /**
      * Statut (rapproché, etc).
-     *
-     * @var int
      */
-    #[ORM\Column(type: 'smallint')]
-    private $state;
+    #[ORM\Column(type: Types::SMALLINT)]
+    private int $state = 0;
 
     /**
      * Information sur la transaction.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $memo;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $memo = null;
 
     /**
      * Transaction associé pour les virements.
-     *
-     * @var Transaction
      */
     #[ORM\OneToOne(targetEntity: self::class, cascade: ['persist', 'remove'])]
-    private $transfer;
+    private ?Transaction $transfer = null;
 
     /**
      * Projet associé.
-     *
-     * @var Project
      */
     #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'transactions')]
-    private $project;
+    private ?Project $project = null;
 
     /**
      * Transaction du véhicule associé (kilométrage).
-     *
-     * @var TransactionVehicle
      */
     #[ORM\ManyToOne(targetEntity: TransactionVehicle::class, cascade: ['persist', 'remove'])]
     #[Assert\Valid]
-    private $transactionVehicle;
+    private ?TransactionVehicle $transactionVehicle = null;
 
     /**
      * Transaction de l'opération boursière.
-     *
-     * @var TransactionStock
      */
     #[ORM\ManyToOne(targetEntity: TransactionStock::class, cascade: ['persist', 'remove'])]
-    private $transactionStock;
+    private ?TransactionStock $transactionStock = null;
 
     /**
      * Constructeur.
      */
     public function __construct()
     {
-        $this->balance = 0;
-        $this->state = 0;
         $this->date = new \DateTime();
         $this->type = new TransactionType(TransactionType::STANDARD);
     }
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if (null === $this->getId()) {
             return '';
         }
 

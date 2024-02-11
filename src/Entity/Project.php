@@ -15,6 +15,7 @@ use App\Repository\ProjectRepository;
 use App\Values\ProjectCategory;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -31,69 +32,57 @@ class Project implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Nom du projet.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(type: Types::STRING, length: 50)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 50)]
-    private $name;
+    private ?string $name = null;
 
     /**
      * Description du projet.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     #[Assert\Length(max: 255)]
-    private $description;
+    private ?string $description = null;
 
     /**
      * Catégorie du projet.
-     *
-     * @var ProjectCategory
      */
     #[ORM\Column(type: 'projectcat', options: ['default' => 0])]
-    private $category;
+    private ProjectCategory $category;
 
     /**
      * Date de début du projet.
-     *
-     * @var \DateTime
      */
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Assert\NotBlank]
-    private $startedAt;
+    private ?\DateTime $startedAt = null;
 
     /**
      * Date de fin du projet.
-     *
-     * @var \DateTime
      */
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Assert\NotBlank]
-    private $finishAt;
+    private ?\DateTime $finishAt = null;
 
     /**
      * SI le projet est ouvert pour traitement.
-     *
-     * @var bool
      */
-    #[ORM\Column(type: 'boolean', options: ['default' => 0])]
-    private $state;
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => 0])]
+    private bool $state = self::OPENED;
 
     /**
      * Transcations associées.
      *
-     * @var ArrayCollection
+     * @var Collection|Transaction[]
      */
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'project')]
-    private $transactions;
+    private Collection $transactions;
 
     public function __construct()
     {
@@ -102,7 +91,6 @@ class Project implements \Stringable
         $this->startedAt = $now;
         $this->finishAt = $now->modify('+ 10 days');
         $this->category = new ProjectCategory(ProjectCategory::OTHER);
-        $this->state = self::OPENED;
     }
 
     public function __toString(): string
@@ -177,7 +165,7 @@ class Project implements \Stringable
 
     public function isState(): bool
     {
-        return (bool) $this->state;
+        return $this->state;
     }
 
     public function setState(bool $state): self
@@ -188,7 +176,7 @@ class Project implements \Stringable
     }
 
     /**
-     * @return Collection<int, Transaction>
+     * @return Collection|Transaction[]
      */
     public function getTransactions(): Collection
     {
@@ -207,11 +195,9 @@ class Project implements \Stringable
 
     public function removeTransaction(Transaction $transaction): self
     {
-        if ($this->transactions->removeElement($transaction)) {
-            // set the owning side to null (unless already changed)
-            if ($transaction->getProject() === $this) {
-                $transaction->setProject(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->transactions->removeElement($transaction) && $transaction->getProject() === $this) {
+            $transaction->setProject(null);
         }
 
         return $this;
@@ -219,8 +205,6 @@ class Project implements \Stringable
 
     /**
      * Retourne le coût total.
-     *
-     * @return float
      */
     public function getTotalCost(): float
     {
@@ -235,8 +219,6 @@ class Project implements \Stringable
 
     /**
      * Affiche le badge du statut.
-     *
-     * @return string
      */
     public function getStateBadge(): string
     {

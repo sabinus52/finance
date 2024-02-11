@@ -20,50 +20,28 @@ class AccountBalance
 {
     /**
      * Solde courant du compte.
-     *
-     * @var float
      */
-    private $balance;
+    private ?float $balance = 0.0;
 
     /**
      * Solde rapproché.
-     *
-     * @var float
      */
-    private $reconBalance;
+    private float $reconBalance = 0.0;
 
     /**
      * Rapprochement en cours à solder.
-     *
-     * @var float
      */
-    private $reconCurrent;
+    private float $reconCurrent = 0.0;
 
     /**
      * Montant investi dans les placements.
-     *
-     * @var float
      */
-    private $investment;
+    private ?float $investment = 0.0;
 
     /**
      * Montant investi dans les placements.
-     *
-     * @var float
      */
-    private $repurchase;
-
-    /**
-     * Contructeur.
-     */
-    public function __construct()
-    {
-        $this->balance = 0.0;
-        $this->reconBalance = 0.0;
-        $this->reconCurrent = 0.0;
-        $this->investment = 0.0;
-        $this->repurchase = 0.0;
-    }
+    private ?float $repurchase = 0.0;
 
     public function getBalance(): ?float
     {

@@ -38,13 +38,6 @@ class Fuel implements \Stringable
     ];
 
     /**
-     * Valeur du type.
-     *
-     * @var int
-     */
-    protected $value;
-
-    /**
      * Retourne la liste pour le ChoiceType des formulaires.
      *
      * @return Fuel[]
@@ -60,9 +53,8 @@ class Fuel implements \Stringable
         return $result;
     }
 
-    public function __construct(int $value)
+    public function __construct(protected int $value)
     {
-        $this->value = $value;
     }
 
     public function setValue(int $value): void

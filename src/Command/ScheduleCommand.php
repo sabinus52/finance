@@ -26,20 +26,9 @@ use Symfony\Component\Form\FormFactoryInterface;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
+#[\Symfony\Component\Console\Attribute\AsCommand('app:schedule', 'Création des transactions planifiées du mois en cours')]
 class ScheduleCommand extends Command
 {
-    protected static $defaultName = 'app:schedule';
-
-    /**
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
-
-    /**
-     * @var FormFactoryInterface
-     */
-    protected $formFactory;
-
     /**
      * @var SymfonyStyle
      */
@@ -47,21 +36,17 @@ class ScheduleCommand extends Command
 
     /**
      * Router des transactions.
-     *
-     * @var TransactionModelRouter
      */
-    private $router;
+    private ?TransactionModelRouter $router = null;
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager, FormFactoryInterface $formFactory)
-    {
+    public function __construct(
+        protected EntityManagerInterface $entityManager,
+        protected FormFactoryInterface $formFactory
+    ) {
         parent::__construct();
-        $this->entityManager = $entityManager;
-        $this->formFactory = $formFactory;
     }
 
     /**
@@ -71,7 +56,6 @@ class ScheduleCommand extends Command
     {
         $this
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Mode simulation')
-            ->setDescription('Création des transactions planifiées du mois en cours')
         ;
     }
 
@@ -86,16 +70,12 @@ class ScheduleCommand extends Command
 
     /**
      * Execute la commande.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->inOut = new SymfonyStyle($input, $output);
         $this->inOut->title($this->getDescription());
+
         $output = [];
 
         /** @var Model[] $schedules */
@@ -104,7 +84,7 @@ class ScheduleCommand extends Command
             $output[] = [
                 $schedule->getSchedule()->getDoAt()->format('d/m/Y'),
                 $schedule->getAccount(),
-                ($schedule->getTransfer()) ? '>> '.$schedule->getTransfer() : $schedule->getRecipient(),
+                (null !== $schedule->getTransfer()) ? '>> '.$schedule->getTransfer() : $schedule->getRecipient(),
                 $schedule->getCategory(),
                 number_format($schedule->getAmount(), 2, '.', ' ').' €',
             ];
@@ -138,6 +118,7 @@ class ScheduleCommand extends Command
         // Prochaine planification
         $schedule = $model->getSchedule();
         $schedule->setNextDoAt();
+
         $this->entityManager->flush();
     }
 }

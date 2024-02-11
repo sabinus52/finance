@@ -27,8 +27,6 @@ abstract class ChartBuilder implements ChartBuilderInterface
 
     /**
      * Retourne le graphique avec les données.
-     *
-     * @return Chart
      */
     public function getChart(mixed $data): Chart
     {

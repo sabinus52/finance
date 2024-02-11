@@ -34,13 +34,6 @@ class ProjectCategory implements \Stringable
     ];
 
     /**
-     * Valeur de la catégorie.
-     *
-     * @var int
-     */
-    protected $value;
-
-    /**
      * Retourne la liste pour le ChoiceType des formulaires.
      *
      * @return ProjectCategory[]
@@ -56,9 +49,8 @@ class ProjectCategory implements \Stringable
         return $result;
     }
 
-    public function __construct(int $value)
+    public function __construct(protected int $value)
     {
-        $this->value = $value;
     }
 
     public function __toString(): string

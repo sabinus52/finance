@@ -33,7 +33,7 @@ class InstitutionType extends AbstractType
     {
         $builder
             ->add('name', TextType::class, [
-                'label' => 'Nom de l\'organisme',
+                'label' => "Nom de l'organisme",
                 'required' => false,
             ])
             ->add('shortName', TextType::class, [

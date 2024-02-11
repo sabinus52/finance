@@ -28,28 +28,24 @@ class VehicleReport
      *
      * @var array<float>
      */
-    private $cost;
+    private ?array $cost = null;
 
     /**
      * Coût total.
-     *
-     * @var float
      */
-    private $totalCost;
+    private ?float $totalCost = null;
 
     /**
      * Kilométrage.
-     *
-     * @var int
      */
-    private $mileAge;
+    private ?int $mileAge = null;
 
     /**
      * Volume de carburant consommé.
      *
      * @var array<float>
      */
-    private $volume;
+    private ?array $volume = null;
 
     /**
      * Constructeur.
@@ -64,28 +60,26 @@ class VehicleReport
     public function fetchStatistic(): void
     {
         $result = $this->fetchFuelStatistic();
-        $this->cost['fuel'] = (float) $result['totalCost'];
+        $this->cost['fuel'] = $result['totalCost'];
         $this->mileAge = (int) $result['mileage'];
-        $this->volume['number'] = (float) $result['number'];
-        $this->volume['total'] = (float) $result['totalVolume'];
-        $this->volume['average'] = (float) $result['averageVolume'];
+        $this->volume['number'] = $result['number'];
+        $this->volume['total'] = $result['totalVolume'];
+        $this->volume['average'] = $result['averageVolume'];
 
         $result = $this->fetchRepairStatistic();
-        $this->cost['repair'] = (float) $result['totalCost'];
+        $this->cost['repair'] = $result['totalCost'];
 
         $result = $this->fetchFundingStatistic();
-        $this->cost['funding'] = (float) $result['totalCost'];
+        $this->cost['funding'] = $result['totalCost'];
 
         $result = $this->fetchOtherStatistic();
-        $this->cost['other'] = (float) $result['totalCost'];
+        $this->cost['other'] = $result['totalCost'];
 
         $this->totalCost = array_sum($this->cost);
     }
 
     /**
      * Retourne l'entité du véhicule.
-     *
-     * @return Vehicle
      */
     public function getVehicle(): Vehicle
     {
@@ -94,12 +88,10 @@ class VehicleReport
 
     /**
      * Retourne le nombre de jours d'utilisation.
-     *
-     * @return int
      */
     public function getNumberDays(): int
     {
-        $today = ($this->vehicle->getSoldAt()) ?: new \DateTime();
+        $today = ($this->vehicle->getSoldAt() instanceof \DateTime) ? $this->vehicle->getSoldAt() : new \DateTime();
         $interval = $today->diff($this->vehicle->getBoughtAt());
 
         return (int) $interval->days;
@@ -107,12 +99,10 @@ class VehicleReport
 
     /**
      * Retourne le nombre de mois d'utilisation.
-     *
-     * @return int
      */
     public function getNumberMonths(): int
     {
-        $today = ($this->vehicle->getSoldAt()) ?: new \DateTime();
+        $today = ($this->vehicle->getSoldAt() instanceof \DateTime) ? $this->vehicle->getSoldAt() : new \DateTime();
         $interval = $today->diff($this->vehicle->getBoughtAt());
 
         return (int) $interval->y * 12 + $interval->m;
@@ -120,20 +110,16 @@ class VehicleReport
 
     /**
      * Retourne l'intervalle de la période d'utilisation.
-     *
-     * @return \DateInterval
      */
     public function getPeriod(): \DateInterval
     {
-        $today = ($this->vehicle->getSoldAt()) ?: new \DateTime();
+        $today = ($this->vehicle->getSoldAt() instanceof \DateTime) ? $this->vehicle->getSoldAt() : new \DateTime();
 
         return $today->diff($this->vehicle->getBoughtAt());
     }
 
     /**
      * Kilométrage actuelle.
-     *
-     * @return self
      */
     public function setMileAge(int $mileage): self
     {
@@ -144,8 +130,6 @@ class VehicleReport
 
     /**
      * Retourne le kilométrage actuel.
-     *
-     * @return int
      */
     public function getMileAge(): int
     {
@@ -154,8 +138,6 @@ class VehicleReport
 
     /**
      * Affecte le volume total de carburant.
-     *
-     * @return self
      */
     public function setTotalVolume(float $volume): self
     {
@@ -166,8 +148,6 @@ class VehicleReport
 
     /**
      * Retourne le volume total.
-     *
-     * @return float
      */
     public function getTotalVolume(): float
     {
@@ -176,8 +156,6 @@ class VehicleReport
 
     /**
      * Affecte le coût total du véhicule.
-     *
-     * @return self
      */
     public function setTotalCost(float $cost): self
     {
@@ -188,8 +166,6 @@ class VehicleReport
 
     /**
      * Retourne le coût total du véhicule.
-     *
-     * @return float
      */
     public function getTotalCost(): float
     {
@@ -208,8 +184,6 @@ class VehicleReport
 
     /**
      * Retourne le coû total par kilomètre.
-     *
-     * @return float
      */
     public function getTotalCostByKm(): float
     {
@@ -218,8 +192,6 @@ class VehicleReport
 
     /**
      * Retourne le coût total par jour.
-     *
-     * @return float
      */
     public function getTotalCostByDay(): float
     {
@@ -228,8 +200,6 @@ class VehicleReport
 
     /**
      * Retourne le coût total par mois.
-     *
-     * @return float
      */
     public function getTotalCostByMonth(): float
     {
@@ -238,8 +208,6 @@ class VehicleReport
 
     /**
      * Retourne la consommation moyenne.
-     *
-     * @return float
      */
     public function getConsumption(): float
     {
@@ -248,8 +216,6 @@ class VehicleReport
 
     /**
      * Retourne la distance moyenne entre 2 pleins.
-     *
-     * @return float
      */
     public function getFuelAverageDistance(): float
     {
@@ -258,8 +224,6 @@ class VehicleReport
 
     /**
      * Retourne le volume moyen d'un plein.
-     *
-     * @return float
      */
     public function getFuelAverageVolume(): float
     {
@@ -268,8 +232,6 @@ class VehicleReport
 
     /**
      * Retourne le coût moyen d'un plein.
-     *
-     * @return float
      */
     public function getFuelAverageCost(): float
     {
@@ -278,8 +240,6 @@ class VehicleReport
 
     /**
      * Retourne le prix moyen du carburant au litre.
-     *
-     * @return float
      */
     public function getFuelAveragePrice(): float
     {
@@ -288,8 +248,6 @@ class VehicleReport
 
     /**
      * Retourne le nombre de plein par mois.
-     *
-     * @return float
      */
     public function getFuelNumberByMonth(): float
     {
@@ -298,8 +256,6 @@ class VehicleReport
 
     /**
      * Retourne le nombre de plein.
-     *
-     * @return float
      */
     public function getFuelNumber(): float
     {
@@ -308,8 +264,6 @@ class VehicleReport
 
     /**
      * Retourne le coût du carburant par kilomètre.
-     *
-     * @return float
      */
     public function getFuelCostByKm(): float
     {
@@ -318,8 +272,6 @@ class VehicleReport
 
     /**
      * Retourne le coût du carburant par jour.
-     *
-     * @return float
      */
     public function getFuelCostByDay(): float
     {
@@ -328,8 +280,6 @@ class VehicleReport
 
     /**
      * Retourne le coût du carburant par mois.
-     *
-     * @return float
      */
     public function getFuelCostByMonth(): float
     {
@@ -400,8 +350,6 @@ class VehicleReport
 
     /**
      * Requête de base.
-     *
-     * @return QueryBuilder
      */
     private function getQueryBase(): QueryBuilder
     {

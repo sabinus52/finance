@@ -24,8 +24,6 @@ interface TransactionModelInterface
 {
     /**
      * Retourne la classe du firmulaire.
-     *
-     * @return string
      */
     public function getFormClass(): string;
 
@@ -38,63 +36,41 @@ interface TransactionModelInterface
 
     /**
      * Retourne le titre du formulaire.
-     *
-     * @return string
      */
     public function getFormTitle(): string;
 
     /**
      * Retourne le message lors de la validation du formulaire.
-     *
-     * @return string
      */
     public function getMessage(): string;
 
     /**
      * Retourne la transation.
-     *
-     * @return Transaction
      */
     public function getTransaction(): Transaction;
 
     /**
      * Vérifie la validité du formulaire.
-     *
-     * @param FormInterface $form
-     *
-     * @return bool
      */
     public function checkForm(FormInterface $form): bool;
 
     /**
      * Si c'est un virement.
-     *
-     * @return bool
      */
     public function isTransfer(): bool;
 
     /**
      * Initialisation des données de la transaction.
-     *
-     * @return TransactionModelInterface
      */
     public function init(): self;
 
     /**
      * Affecte la transaction.
-     *
-     * @param Transaction $transaction
-     *
-     * @return TransactionModelInterface
      */
     public function setTransaction(Transaction $transaction): self;
 
     /**
      * Affecte un compte à la transaction.
-     *
-     * @param Account $account
-     *
-     * @return TransactionModelInterface
      */
     public function setAccount(Account $account): self;
 
@@ -102,15 +78,11 @@ interface TransactionModelInterface
      * Affecte des données à la transaction.
      *
      * @param array<mixed> $datas
-     *
-     * @return TransactionModelInterface
      */
     public function setDatas(array $datas): self;
 
     /**
      * Ajoute la transaction en base.
-     *
-     * @param FormInterface|null $form
      */
     public function insert(FormInterface $form = null): void;
 
@@ -123,8 +95,6 @@ interface TransactionModelInterface
 
     /**
      * Mets à jour une transaction.
-     *
-     * @param FormInterface|null $form
      */
     public function update(FormInterface $form = null): void;
 

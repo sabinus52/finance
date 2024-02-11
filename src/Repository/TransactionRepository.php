@@ -60,7 +60,10 @@ class TransactionRepository extends ServiceEntityRepository
 
         foreach ($filter as $key => $value) {
             // Si null ou vide, pas de filtre
-            if ('' === $value || null === $value) {
+            if ('' === $value) {
+                continue;
+            }
+            if (null === $value) {
                 continue;
             }
             if ('range' === $key) {
@@ -111,8 +114,6 @@ class TransactionRepository extends ServiceEntityRepository
 
     /**
      * Recherche la transaction juste avant la date définie.
-     *
-     * @return Transaction
      */
     public function findOneLastBeforeDate(Account $account, \DateTimeInterface $date): Transaction
     {
@@ -154,8 +155,6 @@ class TransactionRepository extends ServiceEntityRepository
 
     /**
      * Dernière transaction de valorisation de placement.
-     *
-     * @return Transaction|null
      */
     public function findOneLastValorisation(Account $account): ?Transaction
     {
@@ -176,8 +175,6 @@ class TransactionRepository extends ServiceEntityRepository
 
     /**
      * Recherche une transaction de valorisation à une période donnée.
-     *
-     * @return Transaction|null
      */
     public function findOneValorisation(Transaction $transaction): ?Transaction
     {
@@ -193,7 +190,7 @@ class TransactionRepository extends ServiceEntityRepository
             ->setMaxResults(1)
         ;
         // Ne cherche pas la transaction courante
-        if ($transaction->getId()) {
+        if (null !== $transaction->getId()) {
             $query->andWhere('trt.id <> :id')->setParameter('id', $transaction->getId());
         }
 
@@ -250,8 +247,6 @@ class TransactionRepository extends ServiceEntityRepository
 
     /**
      * Rapproche toutes les transactions d'un compte.
-     *
-     * @return int
      */
     public function updateAllReconciliation(Account $account): int
     {

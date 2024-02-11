@@ -14,6 +14,7 @@ namespace App\Entity;
 use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -77,77 +78,64 @@ class Category implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Code de la catégorie pour reconnaitre les virements internes ou la catégorie essence.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 4, nullable: true)]
-    private $code;
+    #[ORM\Column(type: Types::STRING, length: 4, nullable: true)]
+    private ?string $code = null;
 
     /**
      * Nom de la catégorie.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 100)]
+    #[ORM\Column(type: Types::STRING, length: 100)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 100)]
-    private $name;
+    private ?string $name = null;
 
     /**
      * Type (recettes=1 ou dépenses=0).
-     *
-     * @var bool
      */
-    #[ORM\Column(type: 'smallint')]
-    private $type;
+    #[ORM\Column(type: Types::SMALLINT)]
+    private bool $type = self::DEPENSES;
 
     /**
      * Niveau de la hiérarchie.
-     *
-     * @var int
      */
-    #[ORM\Column(type: 'smallint')]
-    private $level;
+    #[ORM\Column(type: Types::SMALLINT)]
+    private ?int $level = null;
 
     /**
      * Catégorie parente.
-     *
-     * @var Category
      */
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
     #[ORM\JoinColumn(referencedColumnName: 'id', onDelete: 'CASCADE')]
-    private $parent;
+    private ?Category $parent = null;
 
     /**
      * Catégories enfants.
-     *
-     * @var ArrayCollection
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    #[ORM\OrderBy(['name' => 'ASC'])]
-    private $children;
+    #[ORM\OrderBy(['name' => \Doctrine\Common\Collections\Criteria::ASC])]
+    private Collection $children;
 
     /**
-     * @var ArrayCollection
+     * @var Collection|Transaction[]
      */
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'category')]
-    private $transactions;
+    private Collection $transactions;
 
     public function __construct()
     {
-        $this->type = self::DEPENSES;
         $this->children = new ArrayCollection();
         $this->transactions = new ArrayCollection();
     }
 
     public function __toString(): string
     {
-        if (!$this->name) {
+        if ('' === $this->name) {
             return '';
         }
 
@@ -185,7 +173,7 @@ class Category implements \Stringable
 
     public function getType(): bool
     {
-        return (bool) $this->type;
+        return $this->type;
     }
 
     public function setType(bool $type): self
@@ -220,7 +208,7 @@ class Category implements \Stringable
     }
 
     /**
-     * @return Collection<int, self>
+     * @return Collection|Category[]
      */
     public function getChildren(): Collection
     {
@@ -239,18 +227,16 @@ class Category implements \Stringable
 
     public function removeChild(self $child): self
     {
-        if ($this->children->removeElement($child)) {
-            // set the owning side to null (unless already changed)
-            if ($child->getParent() === $this) {
-                $child->setParent(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->children->removeElement($child) && $child->getParent() === $this) {
+            $child->setParent(null);
         }
 
         return $this;
     }
 
     /**
-     * @return Collection<int, Transaction>
+     * @return Collection|Transaction[]
      */
     public function getTransactions(): Collection
     {
@@ -269,20 +255,16 @@ class Category implements \Stringable
 
     public function removeTransaction(Transaction $transaction): self
     {
-        if ($this->transactions->removeElement($transaction)) {
-            // set the owning side to null (unless already changed)
-            if ($transaction->getCategory() === $this) {
-                $transaction->setCategory(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->transactions->removeElement($transaction) && $transaction->getCategory() === $this) {
+            $transaction->setCategory(null);
         }
 
         return $this;
     }
 
     /**
-     * Retounr le nom complet pour le niveau 2.
-     *
-     * @return string
+     * Retoune le nom complet pour le niveau 2.
      */
     public function getFullName(): string
     {
@@ -308,7 +290,7 @@ class Category implements \Stringable
     public function setTree(): void
     {
         $this->level = 1;
-        if (null !== $this->parent) {
+        if ($this->parent instanceof self) {
             $this->level = 2;
         }
     }

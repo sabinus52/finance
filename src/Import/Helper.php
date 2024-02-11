@@ -25,15 +25,7 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class Helper
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    public $entityManager;
-
-    /**
-     * @var TransactionModelRouter
-     */
-    private $router;
+    private readonly TransactionModelRouter $router;
 
     /**
      * Statistiques de l'import.
@@ -52,12 +44,11 @@ class Helper
     /**
      * Constructeur.
      */
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(private readonly EntityManagerInterface $entityManager)
     {
-        $this->entityManager = $manager;
-        $this->router = new TransactionModelRouter($manager);
+        $this->router = new TransactionModelRouter($this->entityManager);
         $this->statistic = new Statistic();
-        $this->assocDatas = new AssocDatas($manager);
+        $this->assocDatas = new AssocDatas($this->entityManager);
     }
 
     /**

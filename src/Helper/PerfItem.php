@@ -29,53 +29,39 @@ class PerfItem
 
     /**
      * Montant investi durant la période.
-     *
-     * @var float
      */
-    private $investment;
+    private float $investment = 0.0;
 
     /**
      * Montant cumulé déjà investi.
-     *
-     * @var float
      */
-    private $investmentCumul;
+    private ?float $investmentCumul = null;
 
     /**
      * Montant du rachat partiel durant la période.
-     *
-     * @var float
      */
-    private $repurchase;
+    private float $repurchase = 0.0;
 
     /**
      * Montant cumulé des rachats partiels.
-     *
-     * @var float
      */
-    private $repurchaseCumul;
+    private ?float $repurchaseCumul = null;
 
     /**
      * Valorisation cumulée en cours.
-     *
-     * @var float
      */
-    private $valuation;
+    private ?float $valuation = null;
 
     /**
      * Objet PerfItem d'avant pour le calcul.
-     *
-     * @var PerfItem
      */
-    private $previous;
+    private ?PerfItem $previous = null;
 
     /**
      * Constructeur.
      */
     public function __construct(private readonly int $typePeriod)
     {
-        $this->investment = 0.0;
-        $this->repurchase = 0.0;
     }
 
     public function setPeriod(\DateTimeImmutable $period): self
@@ -154,7 +140,7 @@ class PerfItem
     public function getValuation(): ?float
     {
         // Prend celui d'avant s'il est vide
-        if (null === $this->valuation && null !== $this->previous) {
+        if (null === $this->valuation && $this->previous instanceof self) {
             return $this->previous->getValuation();
         }
 
@@ -185,8 +171,6 @@ class PerfItem
 
     /**
      * Ajoute un montant investi durant la période.
-     *
-     * @return self
      */
     public function addInvestment(float $amount): self
     {
@@ -197,8 +181,6 @@ class PerfItem
 
     /**
      * Ajoute un montant de rachat durant la période.
-     *
-     * @return self
      */
     public function addRepurchase(float $amount): self
     {
@@ -209,8 +191,6 @@ class PerfItem
 
     /**
      * Ajoute un montant de valorisation durant la période.
-     *
-     * @return self
      */
     public function addValuation(float $amount): self
     {
@@ -221,15 +201,13 @@ class PerfItem
 
     /**
      * Retourne le cumul du montant investi depuis le début.
-     *
-     * @return float
      */
     public function accumlateInvestment(): float
     {
         $investmentCumul = $this->investment;
 
         // Appeler récursivement le parent pour accumuler le montant investi
-        if (null !== $this->previous) {
+        if ($this->previous instanceof self) {
             $investmentCumul += $this->previous->accumlateInvestment();
         }
 
@@ -238,15 +216,13 @@ class PerfItem
 
     /**
      * Retourne le cumul du montant des rachats depuis le début.
-     *
-     * @return float
      */
     public function accumlateRepurchase(): float
     {
         $repurchaseCumul = $this->repurchase;
 
         // Appeler récursivement le parent pour accumuler le montant des rachats
-        if (null !== $this->previous) {
+        if ($this->previous instanceof self) {
             $repurchaseCumul += $this->previous->accumlateRepurchase();
         }
 
@@ -256,12 +232,10 @@ class PerfItem
     /**
      * Retourne la variation par rapport à la période précedente.
      * Nécesssaire pour les périodes "glissantes".
-     *
-     * @return float
      */
     public function getVariation(): float
     {
-        if (null === $this->previous) {
+        if (!$this->previous instanceof self) {
             return (float) $this->getValuation();
         }
 
@@ -271,12 +245,10 @@ class PerfItem
     /**
      * Retourne le versement investi par rapport à la période précedente.
      * Nécesssaire pour les périodes "glissantes".
-     *
-     * @return float
      */
     public function getVersement(): float
     {
-        if (null === $this->previous) {
+        if (!$this->previous instanceof self) {
             return $this->getInvestment();
         }
 
@@ -285,8 +257,6 @@ class PerfItem
 
     /**
      * Retourne la performance cumulée.
-     *
-     * @return float
      */
     public function getCumulPerf(): ?float
     {
@@ -301,12 +271,10 @@ class PerfItem
 
     /**
      * Retourne la performance par rapport à la période précédente.
-     *
-     * @return float
      */
     public function getPerformance(): ?float
     {
-        if (null === $this->previous) {
+        if (!$this->previous instanceof self) {
             return null;
         }
 

@@ -43,15 +43,15 @@ final class InvestmentTransaction extends TransactionModelAbstract implements Tr
 
     public function getFormTitle(): string
     {
-        return 'un virement d\'investissement';
+        return "un virement d'investissement";
     }
 
-    public function getTransactionType(): TransactionType
+    protected function getTransactionType(): TransactionType
     {
         return new TransactionType(TransactionType::TRANSFER);
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::EXPENSE, Category::INVESTMENT);
     }

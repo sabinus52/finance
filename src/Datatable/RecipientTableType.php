@@ -29,7 +29,6 @@ use Omines\DataTablesBundle\DataTableTypeInterface;
 class RecipientTableType implements DataTableTypeInterface
 {
     /**
-     * @param DataTable    $dataTable
      * @param array<mixed> $options
      */
     public function configure(DataTable $dataTable, array $options): void
@@ -41,7 +40,7 @@ class RecipientTableType implements DataTableTypeInterface
             ])
             ->add('category', TextColumn::class, [
                 'label' => 'Catégorie',
-                'data' => static fn ($row) => sprintf('%s', $row->getCategory()),
+                'data' => static fn ($row): string => sprintf('%s', $row->getCategory()),
             ])
             ->add('buttons', TwigColumn::class, [
                 'label' => '',

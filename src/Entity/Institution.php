@@ -14,6 +14,7 @@ namespace App\Entity;
 use App\Repository\InstitutionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -27,61 +28,51 @@ class Institution implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Nom de l'organisme.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(type: Types::STRING, length: 50)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 50)]
-    private $name;
+    private ?string $name = null;
 
     /**
      * Nom court.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 20)]
+    #[ORM\Column(type: Types::STRING, length: 20)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 20)]
-    private $shortName;
+    private ?string $shortName = null;
 
     /**
      * Lien du site web.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     #[Assert\Url]
     #[Assert\Length(max: 255)]
-    private $link;
+    private ?string $link = null;
 
     /**
      * Code SWIFT de la banque.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 12, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 12, nullable: true)]
     #[Assert\Length(max: 12)]
-    private $codeSwift;
+    private ?string $codeSwift = null;
 
     /**
      * Image de l'organisme.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'text', nullable: true)]
-    private $logo;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $logo = null;
 
     /**
-     * @var Collection
+     * @var Collection|Account[]
      */
     #[ORM\OneToMany(targetEntity: Account::class, mappedBy: 'institution')]
-    private $accounts;
+    private Collection $accounts;
 
     public function __construct()
     {
@@ -159,7 +150,7 @@ class Institution implements \Stringable
     }
 
     /**
-     * @return Collection<int, Account>
+     * @return Collection|Account[]
      */
     public function getAccounts(): Collection
     {
@@ -178,11 +169,9 @@ class Institution implements \Stringable
 
     public function removeAccount(Account $account): self
     {
-        if ($this->accounts->removeElement($account)) {
-            // set the owning side to null (unless already changed)
-            if ($account->getInstitution() === $this) {
-                $account->setInstitution(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->accounts->removeElement($account) && $account->getInstitution() === $this) {
+            $account->setInstitution(null);
         }
 
         return $this;

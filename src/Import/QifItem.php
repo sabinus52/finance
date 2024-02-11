@@ -26,50 +26,23 @@ use App\Values\TransactionType;
  */
 class QifItem implements \Stringable
 {
-    /**
-     * @var \DateTime
-     */
-    private $date;
+    private \DateTime $date;
 
-    /**
-     * @var string
-     */
-    private $account;
+    private ?string $account = null;
 
-    /**
-     * @var TransactionType
-     */
-    private $type;
+    private TransactionType $type;
 
-    /**
-     * @var float
-     */
-    private $amount;
+    private ?float $amount = null;
 
-    /**
-     * @var string
-     */
-    private $recipient;
+    private ?string $recipient = null;
 
-    /**
-     * @var string
-     */
-    private $category;
+    private ?string $category = null;
 
-    /**
-     * @var Payment
-     */
-    private $payment;
+    private ?\App\Values\Payment $payment = null;
 
-    /**
-     * @var int
-     */
-    private $state;
+    private ?int $state = null;
 
-    /**
-     * @var string
-     */
-    private $memo;
+    private ?string $memo = null;
 
     /**
      * @param AssocDatas $assocDatas liste des données associées (Account, Recepient, Category)
@@ -110,16 +83,10 @@ class QifItem implements \Stringable
 
     /**
      * @param string|float $amount
-     *
-     * @return self
      */
     public function setAmount($amount): self
     {
-        if (!is_float($amount)) {
-            $this->amount = (float) str_replace(',', '.', $amount);
-        } else {
-            $this->amount = $amount;
-        }
+        $this->amount = is_float($amount) ? $amount : (float) str_replace(',', '.', $amount);
 
         return $this;
     }
@@ -191,7 +158,7 @@ class QifItem implements \Stringable
 
     public function getPayment(): Payment
     {
-        if (null === $this->payment) {
+        if (!$this->payment instanceof Payment) {
             return ($this->amount > 0) ? new Payment(Payment::DEPOT) : new Payment(Payment::PRELEVEMENT);
         }
 

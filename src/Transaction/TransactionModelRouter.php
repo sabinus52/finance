@@ -11,9 +11,11 @@ declare(strict_types=1);
 
 namespace App\Transaction;
 
+use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Model;
 use App\Entity\Transaction;
+use App\Entity\Vehicle;
 use App\Values\StockPosition;
 use App\Values\TransactionType;
 use App\WorkFlow\Transfer;
@@ -38,15 +40,13 @@ final readonly class TransactionModelRouter
 
     /**
      * Crée le modèle de transaction en fonction des données de la transaction (mode UPDATE).
-     *
-     * @return TransactionModelInterface
      */
     public function load(Transaction $transaction): TransactionModelInterface
     {
         // $this->transaction = $transaction;
         switch ($transaction->getType()->getValue()) {
             case TransactionType::STANDARD:
-                if ($transaction->getCategory()->getCode()) {
+                if (null !== $transaction->getCategory()->getCode()) {
                     $modelTransac = $this->createStandardByCategory($transaction->getCategory()->getCode());
                     break;
                 }
@@ -76,12 +76,10 @@ final readonly class TransactionModelRouter
 
     /**
      * Crée le modèle de transaction standard en fonction de son type (recette ou dépense).
-     *
-     * @return TransactionModelInterface
      */
     public function createStandardByType(bool $type): TransactionModelInterface
     {
-        if (true === $type) {
+        if ($type) {
             $modelTransac = new IncomeTransaction($this->entityManager);
         } else {
             $modelTransac = new ExpenseTransaction($this->entityManager);
@@ -93,8 +91,6 @@ final readonly class TransactionModelRouter
 
     /**
      * Crée le modèle de transaction standard en fonction de sa catégorie.
-     *
-     * @return TransactionModelInterface
      */
     public function createStandardByCategory(string $codeCat): TransactionModelInterface
     {
@@ -113,8 +109,6 @@ final readonly class TransactionModelRouter
      * Crée le modèle de transaction de frais de véhicule en fonction de sa catégorie.
      *
      * @param string|null $codeCat
-     *
-     * @return TransactionModelInterface
      */
     public function createVehicle(?string $codeCat): TransactionModelInterface
     {
@@ -147,8 +141,6 @@ final readonly class TransactionModelRouter
 
     /**
      * Crée le modèle de transaction d'un virement en fonction de sa catégorie (virement, investissement ou rachat).
-     *
-     * @return TransactionModelInterface
      */
     public function createTransferByCategory(string $codeCat): TransactionModelInterface
     {
@@ -167,15 +159,13 @@ final readonly class TransactionModelRouter
      * Crée le modèle de transaction de valorisation du capital en fin de mois.
      *
      * @param \DateTime|null $date
-     *
-     * @return TransactionModelInterface
      */
     public function createRevaluation(\DateTime $date = null): TransactionModelInterface
     {
         $modelTransac = new ReValuationTransaction($this->entityManager);
         $modelTransac->init();
 
-        if ($date) {
+        if ($date instanceof \DateTime) {
             $modelTransac->setDatas([
                 'date' => $date->modify('last day of this month'),
                 'amount' => 0,
@@ -187,15 +177,13 @@ final readonly class TransactionModelRouter
 
     /**
      * Crée le modèle de transaction à partir d'un modèle.
-     *
-     * @return TransactionModelInterface
      */
     public function createFromModel(Model $model): TransactionModelInterface
     {
         // Création en fonction de son type
-        if ($model->getTransfer()) {
+        if ($model->getTransfer() instanceof Account) {
             $modelTransac = $this->createTransferByCategory($model->getCategory()->getCode());
-        } elseif ($model->getVehicle()) {
+        } elseif ($model->getVehicle() instanceof Vehicle) {
             $modelTransac = $this->createVehicle(null);
             $modelTransac->setDatas([
                 'transactionVehicle' => [

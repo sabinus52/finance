@@ -87,7 +87,7 @@ class ModelStandardFormType extends AbstractType
                     ->where($options['category'])
                     ->orderBy('cat1.name')
                     ->addOrderBy('cat.name'),
-                'group_by' => static fn (Category $category) => $category->getParent()->getName(),
+                'group_by' => static fn (Category $category): ?string => $category->getParent()->getName(),
                 'empty_data' => null,
             ])
             ->add('memo', TextType::class, [

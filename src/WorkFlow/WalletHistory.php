@@ -24,10 +24,8 @@ class WalletHistory implements \Iterator
 {
     /**
      * Date de fin de mois de l'historique du portefeuille.
-     *
-     * @var \DateTime
      */
-    private $date;
+    private \DateTime $date;
 
     /**
      * Portefeuille. [id] => StockWallet().
@@ -50,8 +48,6 @@ class WalletHistory implements \Iterator
      * Affecte un portefeuille.
      *
      * @param StockWallet[] $stockWallet
-     *
-     * @return self
      */
     public function setWallet(array $stockWallet): self
     {
@@ -89,8 +85,6 @@ class WalletHistory implements \Iterator
 
     /**
      * Retourne la date du portefeuille.
-     *
-     * @return \DateTime
      */
     public function getDate(): \DateTime
     {
@@ -125,8 +119,6 @@ class WalletHistory implements \Iterator
 
     /**
      * Retourne la valorisation du portefeuille.
-     *
-     * @return float
      */
     public function getValorisation(): float
     {
@@ -140,8 +132,6 @@ class WalletHistory implements \Iterator
 
     /**
      * Retourne le montant investi.
-     *
-     * @return float
      */
     public function getAmountInvest(): float
     {
@@ -153,12 +143,12 @@ class WalletHistory implements \Iterator
         return round($total, 2);
     }
 
-    public function current()
+    public function current(): mixed
     {
         return current($this->wallet);
     }
 
-    public function key()
+    public function key(): mixed
     {
         return key($this->wallet);
     }

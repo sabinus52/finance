@@ -100,7 +100,7 @@ class TransactionStandardFormType extends AbstractType
 
                     return $query;
                 },
-                'group_by' => static fn (Category $category) => $category->getParent()->getName(),
+                'group_by' => static fn (Category $category): ?string => $category->getParent()->getName(),
                 'empty_data' => null,
             ])
             ->add('memo', TextType::class, [

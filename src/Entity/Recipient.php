@@ -14,6 +14,7 @@ namespace App\Entity;
 use App\Repository\RecipientRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -32,32 +33,28 @@ class Recipient implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Nom du bénéficiare.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 100)]
+    #[ORM\Column(type: Types::STRING, length: 100)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 100)]
-    private $name;
+    private ?string $name = null;
 
     /**
      * Catégorie la plus utilisé par le bénéficiare.
-     *
-     * @var Category
      */
     #[ORM\ManyToOne(targetEntity: Category::class)]
-    private $category;
+    private ?Category $category = null;
 
     /**
-     * @var ArrayCollection
+     * @var Collection|Transaction[]
      */
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'recipient')]
-    private $transactions;
+    private Collection $transactions;
 
     public function __construct()
     {
@@ -99,7 +96,7 @@ class Recipient implements \Stringable
     }
 
     /**
-     * @return Collection<int, Transaction>
+     * @return Collection|Transaction[]
      */
     public function getTransactions(): Collection
     {
@@ -118,11 +115,9 @@ class Recipient implements \Stringable
 
     public function removeTransaction(Transaction $transaction): self
     {
-        if ($this->transactions->removeElement($transaction)) {
-            // set the owning side to null (unless already changed)
-            if ($transaction->getRecipient() === $this) {
-                $transaction->setRecipient(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->transactions->removeElement($transaction) && $transaction->getRecipient() === $this) {
+            $transaction->setRecipient(null);
         }
 
         return $this;

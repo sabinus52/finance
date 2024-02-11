@@ -32,7 +32,6 @@ class AccountController extends AbstractController
     #[Route(path: '/manage/account', name: 'manage_account__index')]
     public function index(AccountRepository $repository): Response
     {
-        $accounts = [];
         /** @var Account[] $accounts */
         $accounts = $repository->findBy([], ['institution' => 'ASC', 'name' => 'ASC']);
 
@@ -70,7 +69,7 @@ class AccountController extends AbstractController
             return $this->redirectToRoute('manage_account__index');
         }
 
-        return $this->renderForm('manage/account-edit.html.twig', [
+        return $this->render('manage/account-edit.html.twig', [
             'form' => $form,
         ]);
     }
@@ -90,7 +89,7 @@ class AccountController extends AbstractController
             return $this->redirectToRoute('manage_account__index');
         }
 
-        return $this->renderForm('manage/account-edit.html.twig', [
+        return $this->render('manage/account-edit.html.twig', [
             'form' => $form,
         ]);
     }

@@ -14,6 +14,7 @@ namespace App\WorkFlow;
 use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
+use App\Entity\TransactionStock;
 use App\Repository\AccountRepository;
 use App\Repository\TransactionRepository;
 use App\Values\AccountBalance;
@@ -45,8 +46,6 @@ class Balance
      *
      * @param Transaction $transaction Transaction courante modifiée
      * @param Transaction $before      Transaction courante mais avant sa modification
-     *
-     * @return int
      */
     public function updateBalanceAfter(Transaction $transaction, Transaction $before): int
     {
@@ -87,7 +86,7 @@ class Balance
         $transaction->getAccount()->setBalance($accountBalance);
 
         // Dans le cas d'une transaction boursière
-        if ($transaction->getTransactionStock()) {
+        if ($transaction->getTransactionStock() instanceof TransactionStock) {
             $this->updateBalanceWallet($transaction->getTransactionStock()->getAccount());
         }
 
@@ -98,8 +97,6 @@ class Balance
 
     /**
      * Mets à jour le solde de tout le compte défini.
-     *
-     * @return int
      */
     public function updateBalanceFromScratch(Account $account): int
     {
@@ -222,8 +219,6 @@ class Balance
 
     /**
      * Mets à jour le solde d'un compte standard.
-     *
-     * @return int
      */
     private function updateBalanceAccount(Account $account): int
     {
@@ -253,9 +248,13 @@ class Balance
             if (Category::INVESTMENT === $item->getCategory()->getCode() && $item->getAmount() > 0) {
                 $investment += abs($item->getAmount());
             }
-            if (Category::REPURCHASE === $item->getCategory()->getCode() && $item->getAmount() < 0) {
-                $repurchase += abs($item->getAmount());
+            if (Category::REPURCHASE !== $item->getCategory()->getCode()) {
+                continue;
             }
+            if ($item->getAmount() >= 0) {
+                continue;
+            }
+            $repurchase += abs($item->getAmount());
         }
 
         $metaBalance = new AccountBalance();
@@ -264,6 +263,7 @@ class Balance
         $metaBalance->setReconCurrent($reconCurrent);
         $metaBalance->setInvestment($investment);
         $metaBalance->setRepurchase($repurchase);
+
         $account->setBalance($metaBalance);
 
         return count($results);
@@ -271,14 +271,13 @@ class Balance
 
     /**
      * Mets à jour le solde d'un portefeuille.
-     *
-     * @return int
      */
     private function updateBalanceWallet(Account $account): int
     {
         $wallet = new Wallet($this->entityManager, $account);
 
         $wallet->buidAndSaveWallet();
+
         $walletCurrent = $wallet->getWallet();
 
         $metaBalance = new AccountBalance();
@@ -297,8 +296,6 @@ class Balance
 
     /**
      * Retourne la catgorie de Valorisation.
-     *
-     * @return Category
      */
     private function getCategory(bool $type): Category
     {

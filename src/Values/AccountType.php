@@ -53,7 +53,7 @@ class AccountType implements \Stringable
      *
      * @var array<string>
      */
-    private static $values = [
+    private static array $values = [
         self::ACC_CURRENT => 'Compte chèque',
         self::ACC_EPOSIT => 'Compte de dépôt',
         self::CREDIT_CARD => 'Carte de débit',
@@ -112,10 +112,7 @@ class AccountType implements \Stringable
         ],
     ];
 
-    /**
-     * @var int
-     */
-    private $value;
+    private int $value;
 
     /**
      * Constructeur.

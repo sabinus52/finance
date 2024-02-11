@@ -39,7 +39,7 @@ class RecipientController extends AbstractController
             return $datatable->getResponse();
         }
 
-        return $this->renderForm('manage/recipient-index.html.twig', [
+        return $this->render('manage/recipient-index.html.twig', [
             'datatable' => $datatable,
         ]);
     }
@@ -60,7 +60,7 @@ class RecipientController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer un nouveau bénéficiaire',
@@ -73,7 +73,7 @@ class RecipientController extends AbstractController
     {
         // Bénéficiaire réservé pour les virements internes
         if (1 === $recipient->getId()) {
-            return $this->renderForm('@OlixBackOffice/Include/modal-alert.html.twig', [
+            return $this->render('@OlixBackOffice/Include/modal-alert.html.twig', [
                 'message' => 'Ce bénéficiaire <strong>'.$recipient.'</strong> ne peut pas être modifié.',
             ]);
         }
@@ -88,7 +88,7 @@ class RecipientController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier un bénéficiaire',

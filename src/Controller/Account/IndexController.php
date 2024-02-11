@@ -95,8 +95,6 @@ class IndexController extends BaseController
 
     /**
      * @param array<mixed> $parameters
-     *
-     * @return Response
      */
     private function index(Request $request, Account $account, string $template, array $parameters = []): Response
     {

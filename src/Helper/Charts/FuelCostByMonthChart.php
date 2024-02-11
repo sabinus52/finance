@@ -28,7 +28,7 @@ class FuelCostByMonthChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultOpts = [
+    private static array $defaultOpts = [
         'maintainAspectRatio' => false,
         'responsive' => true,
         'plugins' => [
@@ -43,7 +43,7 @@ class FuelCostByMonthChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultData = [
+    private static array $defaultData = [
         'label' => null,
         'borderColor' => 'gray',
         'backgroundColor' => [],
@@ -56,7 +56,7 @@ class FuelCostByMonthChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $averageData = [
+    private static array $averageData = [
         'label' => null,
         'borderColor' => 'darkorange',
         'borderDash' => [3, 3],
@@ -86,9 +86,9 @@ class FuelCostByMonthChart extends ChartBuilder implements ChartBuilderInterface
         $average = $report->getFuelCostByMonth();
         /** @var Vehicle $vehicle */
         $vehicle = $datas[2];
-
         // Initialisation des tableaux de labels et valeurs pour chaque mois
-        $values = $colors = [];
+        $values = [];
+        $colors = [];
         $labels = $this->getArrayByMonth(clone $vehicle->getBoughtAt(), $vehicle->getSoldAt());
         foreach ($labels as $month) {
             $values[$month] = 0;
@@ -140,7 +140,7 @@ class FuelCostByMonthChart extends ChartBuilder implements ChartBuilderInterface
     private function getArrayByMonth(\DateTime $dateBegin, ?\DateTime $dateEnd): array
     {
         $results = [];
-        if (null === $dateEnd) {
+        if (!$dateEnd instanceof \DateTime) {
             $dateEnd = new \DateTime();
         }
         while ($dateBegin <= $dateEnd) {

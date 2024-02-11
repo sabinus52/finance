@@ -32,21 +32,18 @@ class Wallet
      *
      * @var WalletHistory[]
      */
-    private $histories;
+    private array $histories = [];
 
     public function __construct(private readonly EntityManagerInterface $entityManager, private readonly Account $account)
     {
-        $this->histories = [];
     }
 
     /**
      * Retourne le portefeuille courant.
-     *
-     * @return WalletHistory
      */
     public function getWallet(): WalletHistory
     {
-        if (empty($this->histories)) {
+        if ([] === $this->histories) {
             $result = $this->entityManager->getRepository(StockWallet::class)->findBy(['account' => $this->account]);
 
             $wallet = new WalletHistory();
@@ -76,7 +73,7 @@ class Wallet
      */
     public function getTransactionHistories(): array
     {
-        if (empty($this->histories)) {
+        if ([] === $this->histories) {
             $this->buildWallets();
         }
 
@@ -95,7 +92,8 @@ class Wallet
     private function getTransactionHistoriesNotPEA(): array
     {
         $transactions = [];
-        $lastBalance = $lastInvest = 0.0;
+        $lastBalance = 0.0;
+        $lastInvest = 0.0;
         $category = $this->entityManager->getRepository(Category::class)->findOneByCode(Category::INCOME, Category::INVESTMENT); /** @phpstan-ignore-line */
 
         // Pour chaque portefeuille
@@ -262,8 +260,6 @@ class Wallet
      *
      * @param \DateTime     $date      Date du nouveau portefeuille
      * @param WalletHistory $refWallet Porefeuille de référence à partir duquel le nouveau sera créé
-     *
-     * @return WalletHistory
      */
     private function createWalletHistory(\DateTime $date, WalletHistory $refWallet): WalletHistory
     {

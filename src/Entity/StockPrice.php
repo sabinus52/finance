@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\StockPriceRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -25,34 +26,28 @@ class StockPrice
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Date du cours de l'action.
-     *
-     * @var \DateTime
      */
-    #[ORM\Column(type: 'date')]
-    private $date;
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTime $date = null;
 
     /**
      * Prix du cours.
-     *
-     * @var float
      */
-    #[ORM\Column(type: 'float')]
+    #[ORM\Column(type: Types::FLOAT)]
     #[Assert\NotBlank]
-    private $price;
+    private ?float $price = null;
 
     /**
      * Action associée.
-     *
-     * @var Stock
      */
     #[ORM\ManyToOne(targetEntity: Stock::class, inversedBy: 'stockPrices')]
     #[ORM\JoinColumn(nullable: false)]
-    private $stock;
+    private ?Stock $stock = null;
 
     public function getId(): ?int
     {

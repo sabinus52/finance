@@ -26,7 +26,7 @@ class YearChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultOpts = [
+    private static array $defaultOpts = [
         'responsive' => true,
         'maintainAspectRatio' => false,
         'datasetFill' => false,
@@ -42,7 +42,7 @@ class YearChart extends ChartBuilder implements ChartBuilderInterface
      *
      * @var array<mixed>
      */
-    private static $defaultData = [
+    private static array $defaultData = [
         'backgroundColor' => [],
         'borderColor' => 'rgba(60,141,188,0.8)',
         'pointRadius' => false,
@@ -66,7 +66,10 @@ class YearChart extends ChartBuilder implements ChartBuilderInterface
 
     public function getData($datas): array
     {
-        $labels = $values1 = $values2 = $colors = [];
+        $labels = [];
+        $values1 = [];
+        $values2 = [];
+        $colors = [];
         /** @var PerfItem[] $datas */
         foreach ($datas as $year => $item) {
             if (null === $item->getValuation()) {
@@ -96,8 +99,6 @@ class YearChart extends ChartBuilder implements ChartBuilderInterface
      * Retourne la couleur de chaque barre en fonction de la valeur.
      *
      * @param float $value
-     *
-     * @return string
      */
     private function getBackgroundColor(?float $value): string
     {

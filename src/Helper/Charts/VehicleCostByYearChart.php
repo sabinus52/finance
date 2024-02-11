@@ -28,7 +28,7 @@ class VehicleCostByYearChart extends ChartBuilder implements ChartBuilderInterfa
      *
      * @var array<mixed>
      */
-    private static $defaultOpts = [
+    private static array $defaultOpts = [
         'maintainAspectRatio' => false,
         'responsive' => true,
         'plugins' => [
@@ -52,7 +52,7 @@ class VehicleCostByYearChart extends ChartBuilder implements ChartBuilderInterfa
      *
      * @var array<mixed>
      */
-    private static $defaultData = [
+    private static array $defaultData = [
         'label' => null,
         'axis' => 'y',
         'borderColor' => 'gray',
@@ -76,9 +76,10 @@ class VehicleCostByYearChart extends ChartBuilder implements ChartBuilderInterfa
         $transactions = $datas[0];
         /** @var Vehicle $vehicle */
         $vehicle = $datas[1];
-
         // Initialisation des tableaux de labels et valeurs pour chaque mois
-        $fuelValues = $repairValues = $otherValues = [];
+        $fuelValues = [];
+        $repairValues = [];
+        $otherValues = [];
         $labels = $this->getArrayByYear(clone $vehicle->getBoughtAt(), $vehicle->getSoldAt());
         foreach ($labels as $year) {
             $fuelValues[$year] = 0;
@@ -136,7 +137,7 @@ class VehicleCostByYearChart extends ChartBuilder implements ChartBuilderInterfa
     private function getArrayByYear(\DateTime $dateBegin, ?\DateTime $dateEnd): array
     {
         $results = [];
-        if (null === $dateEnd) {
+        if (!$dateEnd instanceof \DateTime) {
             $dateEnd = new \DateTime();
         }
         while ($dateBegin->format('Y') <= $dateEnd->format('Y')) {

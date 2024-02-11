@@ -16,6 +16,7 @@ use App\Entity\Recipient;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -29,22 +30,10 @@ use Symfony\Component\HttpKernel\KernelInterface;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
+#[\Symfony\Component\Console\Attribute\AsCommand('app:initialize', "Initialisation de l'application")]
 class InitializeApplication extends Command
 {
     protected const CSV_CATEGORIES = 'datas/categories.csv';
-
-    protected static $defaultName = 'app:initialize';
-    protected static $defaultDescription = 'Initialisation de l\'application';
-
-    /**
-     * @var KernelInterface
-     */
-    protected $kernel;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
 
     /**
      * @var SymfonyStyle
@@ -53,14 +42,12 @@ class InitializeApplication extends Command
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(KernelInterface $kernel, EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        protected KernelInterface $kernel,
+        protected EntityManagerInterface $entityManager
+    ) {
         parent::__construct();
-        $this->kernel = $kernel;
-        $this->entityManager = $entityManager;
     }
 
     /**
@@ -69,7 +56,7 @@ class InitializeApplication extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force l\'initialisation sans avertissement')
+            ->addOption('force', 'f', InputOption::VALUE_NONE, "Force l'initialisation sans avertissement")
             ->addOption('with-categories', 'a', InputOption::VALUE_NONE, 'Charge toutes les catégories')
             ->setHelp('Initialisation de l\'application avec effacement des données actuelles')
         ;
@@ -77,9 +64,6 @@ class InitializeApplication extends Command
 
     /**
      * Initialise la commande.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
      */
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
@@ -90,17 +74,13 @@ class InitializeApplication extends Command
 
     /**
      * Execute la commande.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // Message d'avertissement avant suppression de la BDD
         if (false === $input->getOption('force')) {
             $this->inOut->caution('!!! ATTENTION !!! Toutes les données de la base vont être supprimés.');
+            /** @var QuestionHelper $helper */
             $helper = $this->getHelper('question');
             $question = new ConfirmationQuestion('Voulez vous continuer [y/N] ? ', false);
             if (!$helper->ask($input, $output, $question)) {
@@ -143,13 +123,12 @@ class InitializeApplication extends Command
 
     /**
      * Chargement des bénéficiaires.
-     *
-     * @return int
      */
     private function loadRecipients(): int
     {
         $recipient = new Recipient();
         $recipient->setName(Recipient::VIRT_NAME);
+
         $this->entityManager->persist($recipient);
 
         return 1;
@@ -157,8 +136,6 @@ class InitializeApplication extends Command
 
     /**
      * Chargement des catégories des mouvements bancaires (OBLIGATOIRE).
-     *
-     * @return int
      */
     private function loadMovements(): int
     {
@@ -184,8 +161,6 @@ class InitializeApplication extends Command
 
     /**
      * Chargement des catégories.
-     *
-     * @return int
      */
     private function loadCategories(): int
     {
@@ -215,8 +190,6 @@ class InitializeApplication extends Command
 
     /**
      * Retourne si dépenses ou recettes.
-     *
-     * @return bool
      */
     private function isTypeCategory(string $type): bool
     {

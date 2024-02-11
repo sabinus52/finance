@@ -37,38 +37,28 @@ class AssocDatas
 {
     /**
      * Liste des organismes.
-     *
-     * @var \ArrayObject
      */
-    private $institutions;
+    private \ArrayObject $institutions;
 
     /**
      * Liste des comptes.
-     *
-     * @var \ArrayObject
      */
-    private $accounts;
+    private \ArrayObject $accounts;
 
     /**
      * Liste des bénéficiaires.
-     *
-     * @var \ArrayObject
      */
-    private $recipients;
+    private \ArrayObject $recipients;
 
     /**
      * Liste des catégories de niveau 1.
-     *
-     * @var \ArrayObject
      */
-    private $catLevel1;
+    private \ArrayObject $catLevel1;
 
     /**
      * Liste des catégories de niveau 2.
-     *
-     * @var \ArrayObject
      */
-    private $catLevel2;
+    private \ArrayObject $catLevel2;
 
     /**
      * Liste des titres (actions).
@@ -96,7 +86,7 @@ class AssocDatas
      *
      * @var array<mixed>
      */
-    private $newCreated;
+    private $newCreated = [];
 
     /**
      * Constructeur.
@@ -109,7 +99,6 @@ class AssocDatas
         $this->catLevel1 = new \ArrayObject();
         $this->catLevel2 = new \ArrayObject();
         $this->stocks = new \ArrayObject();
-        $this->newCreated = [];
     }
 
     /**
@@ -149,8 +138,6 @@ class AssocDatas
 
     /**
      * Retourne l'instition à chercher sinon la crée.
-     *
-     * @return Institution
      */
     public function getInstitution(string $searchInstitution): Institution
     {
@@ -167,14 +154,13 @@ class AssocDatas
 
     /**
      * Créer une nouvelle institution.
-     *
-     * @return Institution
      */
     public function createInstitution(string $strInstitution): Institution
     {
         $institution = new Institution();
         $institution->setName($strInstitution);
         $institution->setShortName($strInstitution);
+
         $this->entityManager->persist($institution);
         $this->newCreated[] = $institution;
 
@@ -185,8 +171,6 @@ class AssocDatas
      * Retourne le compte à chercher sinon le crée.
      *
      * @param \DateTime|null $dateOpened
-     *
-     * @return Account
      */
     public function getAccount(string $searchAccount, \DateTime $dateOpened = null): Account
     {
@@ -205,13 +189,11 @@ class AssocDatas
      * Créer un nouveau compte.
      *
      * @param \DateTime|null $dateOpened
-     *
-     * @return Account
      */
     public function createAccount(string $searchAccount, \DateTime $dateOpened = null): Account
     {
         // Date par défaut (passage à l'euro)
-        if (null === $dateOpened) {
+        if (!$dateOpened instanceof \DateTime) {
             $dateOpened = new \DateTime('2002-01-01');
         }
 
@@ -224,6 +206,7 @@ class AssocDatas
         $account->setShortName($strAccount);
         $account->setType(new AccountType(11));
         $account->setOpenedAt($dateOpened);
+
         $this->entityManager->persist($account);
         $this->newCreated[] = $account;
 
@@ -234,8 +217,6 @@ class AssocDatas
      * Retoune un compte particulier en fonction de son type.
      *
      * @param int $type Numéro du type de compte
-     *
-     * @return Account|null
      */
     public function getAccountSpecial(int $type): ?Account
     {
@@ -251,8 +232,6 @@ class AssocDatas
 
     /**
      * Retourne le bénéficiaire à chercher sinon le crée.
-     *
-     * @return Recipient
      */
     public function getRecipient(string $searchRecipient): Recipient
     {
@@ -269,13 +248,12 @@ class AssocDatas
 
     /**
      * Créer un nouveau bénéficiaire.
-     *
-     * @return Recipient
      */
     public function createRecipient(string $strRecipient): Recipient
     {
         $recipient = new Recipient();
         $recipient->setName($strRecipient);
+
         $this->entityManager->persist($recipient);
 
         return $recipient;
@@ -285,8 +263,6 @@ class AssocDatas
      * Retourne la catégorie à chercher sinon la crée.
      *
      * @param float $amount pour déterminer si recettes ou dépenses
-     *
-     * @return Category
      */
     public function getCategory(string $searchCategory, float $amount): Category
     {
@@ -306,8 +282,6 @@ class AssocDatas
      * Créer une nouvelle catégorie.
      *
      * @param string $strCategory (+Categorie1:Categorie2) ou (-Categorie1:Categorie2)
-     *
-     * @return Category
      */
     public function createCategory(string $strCategory): Category
     {
@@ -332,6 +306,7 @@ class AssocDatas
         $category->setName($strCat2);
         $category->setLevel(2);
         $category->setType($parent->getType());
+
         $this->entityManager->persist($category);
         $this->newCreated[] = $category;
 
@@ -340,8 +315,6 @@ class AssocDatas
 
     /**
      * Retourne le titre boursier à chercher sinon le crée.
-     *
-     * @return Stock
      */
     public function getStock(string $searchStock): Stock
     {
@@ -358,14 +331,13 @@ class AssocDatas
 
     /**
      * Créer un nouveau titre boursier.
-     *
-     * @return Stock
      */
     public function createStock(string $strStock): Stock
     {
         $stock = new Stock();
         $stock->setName($strStock);
         $stock->setCodeISIN('FR'.$this->generateRandomString(10, '0123456789'));
+
         $this->entityManager->persist($stock);
         $this->newCreated[] = $stock;
 
@@ -374,8 +346,6 @@ class AssocDatas
 
     /**
      * Retourne le projet à chercher sinon le crée.
-     *
-     * @return Project
      */
     public function getProject(string $searchProject): Project
     {
@@ -392,13 +362,12 @@ class AssocDatas
 
     /**
      * Créer un nouveau projet.
-     *
-     * @return Project
      */
     public function createProject(string $strProject): Project
     {
         $project = new Project();
         $project->setName($strProject);
+
         $this->entityManager->persist($project);
         $this->newCreated[] = $project;
 
@@ -407,8 +376,6 @@ class AssocDatas
 
     /**
      * Retourne le véhicule à chercher sinon le crée.
-     *
-     * @return Vehicle|null
      */
     public function getVehicle(string $searchVehicle): ?Vehicle
     {
@@ -465,8 +432,6 @@ class AssocDatas
 
     /**
      * Retourne une chaine au hasard.
-     *
-     * @return string
      */
     private function generateRandomString(int $length = 10, string $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'): string
     {

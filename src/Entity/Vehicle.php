@@ -16,6 +16,7 @@ use App\Values\Fuel;
 use App\Values\VehicleType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -29,105 +30,86 @@ class Vehicle implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Marque du véhicule.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 20)]
+    #[ORM\Column(type: Types::STRING, length: 20)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 20)]
-    private $brand;
+    private ?string $brand = null;
 
     /**
      * Modèle du véhicule.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 20)]
+    #[ORM\Column(type: Types::STRING, length: 20)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 20)]
-    private $model;
+    private ?string $model = null;
 
     /**
      * Type de véhicule.
-     *
-     * @var VehicleType
      */
     #[ORM\Column(type: 'vehicle_type')]
-    private $type;
+    private ?VehicleType $type = null;
 
     /**
      * Immatriculation.
-     *
-     * @var string
      */
-    #[ORM\Column(type: 'string', length: 10, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 10, nullable: true)]
     #[Assert\Length(max: 10)]
-    private $matriculation;
+    private ?string $matriculation = null;
 
     /**
      * Type de carburant.
-     *
-     * @var Fuel
      */
     #[ORM\Column(type: 'fuel')]
-    private $fuel;
+    private ?Fuel $fuel = null;
 
     /**
      * Date de 1ère circulation.
-     *
-     * @var \DateTime
      */
-    #[ORM\Column(type: 'date', nullable: true)]
-    private $registeredAt;
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTime $registeredAt = null;
 
     /**
      * Kilométrage d'achat.
-     *
-     * @var int
      */
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     #[Assert\NotBlank]
-    private $kilometer;
+    private int $kilometer = 0;
 
     /**
      * Date d'achat.
-     *
-     * @var \DateTime
      */
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Assert\NotBlank]
-    private $boughtAt;
+    private ?\DateTime $boughtAt = null;
 
     /**
      * Date de vente.
-     *
-     * @var \DateTime
      */
-    #[ORM\Column(type: 'date', nullable: true)]
-    private $soldAt;
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTime $soldAt = null;
 
     /**
      * Liste des transactions associés.
      *
-     * @var Collection
+     * @var Collection|TransactionVehicle[]
      */
     #[ORM\OneToMany(targetEntity: TransactionVehicle::class, mappedBy: 'vehicle', orphanRemoval: true)]
-    private $transactionVehicles;
+    private Collection $transactionVehicles;
 
     public function __construct()
     {
-        $this->kilometer = 0;
         $this->transactionVehicles = new ArrayCollection();
     }
 
     public function __toString(): string
     {
-        if (!$this->brand) {
+        if ('' === $this->brand) {
             return '';
         }
 
@@ -254,18 +236,14 @@ class Vehicle implements \Stringable
 
     /**
      * Indique si le véhicule a été vendu.
-     *
-     * @return bool
      */
     public function isSold(): bool
     {
-        return null !== $this->soldAt;
+        return $this->soldAt instanceof \DateTime;
     }
 
     /**
      * Affiche le badge du statut du véhicule.
-     *
-     * @return string
      */
     public function getStatusBadge(): string
     {
@@ -277,7 +255,7 @@ class Vehicle implements \Stringable
     }
 
     /**
-     * @return Collection<int, TransactionVehicle>
+     * @return Collection|TransactionVehicle[]
      */
     public function getTransactionVehicles(): Collection
     {
@@ -296,11 +274,9 @@ class Vehicle implements \Stringable
 
     public function removeTransactionVehicle(TransactionVehicle $transactionVehicle): self
     {
-        if ($this->transactionVehicles->removeElement($transactionVehicle)) {
-            // set the owning side to null (unless already changed)
-            if ($transactionVehicle->getVehicle() === $this) {
-                $transactionVehicle->setVehicle(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->transactionVehicles->removeElement($transactionVehicle) && $transactionVehicle->getVehicle() === $this) {
+            $transactionVehicle->setVehicle(null);
         }
 
         return $this;

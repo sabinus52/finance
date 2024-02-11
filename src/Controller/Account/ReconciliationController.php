@@ -51,7 +51,7 @@ class ReconciliationController extends BaseController
             return new Response($this->generateUrl('reconciliation_index', ['id' => $account->getId()]));
         }
 
-        return $this->renderForm('account/reconciliation-create.html.twig', [
+        return $this->render('account/reconciliation-create.html.twig', [
             'form' => $form,
             'account' => $account,
         ]);
@@ -145,8 +145,6 @@ class ReconciliationController extends BaseController
 
     /**
      * Retourne le formulaire du solde en cours du rapprochement bancaire.
-     *
-     * @return FormInterface
      */
     protected function createFormReconBalance(Account $account): FormInterface
     {
@@ -167,8 +165,6 @@ class ReconciliationController extends BaseController
      * Calcule l'écart entre le solde du rapprochement courant et le dernier.
      *
      * @param Transaction[] $transactions
-     *
-     * @return float
      */
     private function calculateGab(Account $account, array $transactions): float
     {
