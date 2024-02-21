@@ -109,7 +109,7 @@ class Account implements \Stringable
     /**
      * Metadata des différents soldes calculés.
      */
-    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[ORM\Column(type: Types::OBJECT, nullable: true)]
     private AccountBalance $balance;
 
     #[ORM\ManyToOne(targetEntity: Institution::class, inversedBy: 'accounts')]

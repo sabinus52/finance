@@ -36,7 +36,9 @@ class ScheduleFormType extends AbstractType
                 'label' => 'Date',
                 'format' => 'dd/MM/yyyy',
                 'input' => 'datetime_immutable',
-                'js_min_date' => $date->modify('+ 1 day')->format('Y-m-d'),
+                'js_restrictions' => [
+                    'minDate' => $date->modify('+ 1 day')->format('Y-m-d'),
+                ],
                 'required' => false,
             ])
             ->add('frequency', IntegerType::class, [
