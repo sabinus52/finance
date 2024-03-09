@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macro.html.twig' as mymacro %}
+
+{% block title %}{{ parent() }} - Configuration de l'application{% endblock %}
+
+{% block content_title %}<i class="fas fa-cogs"></i> Configuration{% endblock %}
+{% block content_subtitle %}(Sauvegarde/Restauration, ...){% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-6">
+
+                <div class="card card-warning card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-share-square"></i> Liste des sauvegardes</h3>
+                        <div class="card-tools"><a href="{{ path('dump_base') }}" class="btn btn-sm btn-success"><i class="fas fa-save"></i> <span class="d-none d-md-inline">Sauvegarder</span></a></div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Nom</th>
+                                    <th>Taille</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in filesBackup %}
+                                <tr>
+                                    <td>{{ item.mtime|date("d/m/Y H:i") }}</td>
+                                    <td><b>{{ item.filename }}<b></td>
+                                    <td>{{ (item.size/1048576)|number_format(2) }} Mo</td>
+                                    <td class="text-right"><a href="{{ path('manage_config__restore', {'dump': item.filename}) }}" class="btn btn-sm btn-warning" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-share-square"></i><span class="d-none d-md-inline">&nbsp;Restaurer<span></a></td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="3">Aucun éléments dans la table</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    {% include '@OlixBackOffice/Include/modal.html.twig' with { title: "Restauration d'un dump" } %}
+
+{% endblock %}
