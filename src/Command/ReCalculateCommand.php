@@ -110,10 +110,10 @@ class ReCalculateCommand extends Command
     {
         $output = [];
         foreach ($this->accounts as $account) {
-            $balance = round($account->getBalance()->getBalance(), 2);
-            $recon = round($account->getBalance()->getReconBalance(), 2);
-            $investment = round($account->getBalance()->getInvestment(), 2);
-            $repurchase = round($account->getBalance()->getRepurchase(), 2);
+            $balance = round($account->getBalance(), 2);
+            $recon = round($account->getReconBalance(), 2);
+            $investment = round($account->getInvestment(), 2);
+            $repurchase = round($account->getRepurchase(), 2);
             $output[] = [
                 $account,
                 ($balance <= 0) ? '' : $balance.' €',

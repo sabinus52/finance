@@ -163,8 +163,8 @@ class Statistic
         }
         $this->accounts[$accountName]['type'] = $account->getType()->getLabel();
         $this->accounts[$accountName]['opened'] = $account->getOpenedAt()->format('d/m/Y');
-        $this->accounts[$accountName]['balance'] = number_format($account->getBalance()->getBalance(), 2, '.', ' ');
-        $this->accounts[$accountName]['invest'] = number_format($account->getBalance()->getInvestment(), 2, '.', ' ');
+        $this->accounts[$accountName]['balance'] = number_format($account->getBalance(), 2, '.', ' ');
+        $this->accounts[$accountName]['invest'] = number_format($account->getInvestment(), 2, '.', ' ');
     }
 
     /**

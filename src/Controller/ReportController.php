@@ -51,8 +51,8 @@ class ReportController extends AbstractController
         $accounts = $repository->findByType(AccountType::EPARGNE_ASSURANCE_VIE, true);
 
         foreach ($accounts as $account) {
-            $total->getBalance()->setInvestment($total->getBalance()->getInvestment() + $account->getBalance()->getInvestment());
-            $total->getBalance()->setBalance($total->getBalance()->getBalance() + $account->getBalance()->getBalance());
+            $total->setInvestment($total->getInvestment() + $account->getInvestment());
+            $total->setBalance($total->getBalance() + $account->getBalance());
             $perf = new Performance($repoTransac, $account);
 
             $byMonth = $perf->getByMonth();

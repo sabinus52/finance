@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\AccountRepository;
-use App\Values\AccountBalance;
 use App\Values\AccountType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -108,9 +107,11 @@ class Account implements \Stringable
 
     /**
      * Metadata des différents soldes calculés.
+     *
+     * @var array<float>
      */
-    #[ORM\Column(type: Types::OBJECT, nullable: true)]
-    private AccountBalance $balance;
+    #[ORM\Column(type: Types::JSON, name: 'balance')]
+    private array $balanceArray;
 
     #[ORM\ManyToOne(targetEntity: Institution::class, inversedBy: 'accounts')]
     #[ORM\JoinColumn(nullable: false)]
@@ -134,7 +135,13 @@ class Account implements \Stringable
      */
     public function __construct()
     {
-        $this->balance = new AccountBalance();
+        $this->balanceArray = [
+            'balance' => 0.0,
+            'reconbalance' => 0.0,
+            'reconcurrent' => 0.0,
+            'investment' => 0.0,
+            'repurchase' => 0.0,
+        ];
         $this->transactions = new ArrayCollection();
     }
 
@@ -277,14 +284,20 @@ class Account implements \Stringable
         return $this;
     }
 
-    public function getBalance(): AccountBalance
+    /**
+     * @return array<float>
+     */
+    public function getBalanceArray(): array
     {
-        return $this->balance;
+        return $this->balanceArray;
     }
 
-    public function setBalance(AccountBalance $balance): self
+    /**
+     * @param array<float> $balance
+     */
+    public function setBalanceArray(?array $balance): self
     {
-        $this->balance = $balance;
+        $this->balanceArray = $balance;
 
         return $this;
     }
@@ -379,25 +392,85 @@ class Account implements \Stringable
         return '<span class="badge bg-success text-uppercase">ouvert</span>';
     }
 
+    public function getBalance(): ?float
+    {
+        return $this->balanceArray['balance'];
+    }
+
+    public function setBalance(?float $balance): self
+    {
+        $this->balanceArray['balance'] = $balance;
+
+        return $this;
+    }
+
+    public function getReconBalance(): ?float
+    {
+        return $this->balanceArray['reconbalance'];
+    }
+
+    public function setReconBalance(float $reconBalance): self
+    {
+        $this->balanceArray['reconbalance'] = $reconBalance;
+
+        return $this;
+    }
+
+    public function getReconCurrent(): ?float
+    {
+        return $this->balanceArray['reconcurrent'];
+    }
+
+    public function setReconCurrent(float $reconCurrent): self
+    {
+        $this->balanceArray['reconcurrent'] = $reconCurrent;
+
+        return $this;
+    }
+
+    public function getInvestment(): ?float
+    {
+        return $this->balanceArray['investment'];
+    }
+
+    public function setInvestment(?float $investment): self
+    {
+        $this->balanceArray['investment'] = $investment;
+
+        return $this;
+    }
+
+    public function getRepurchase(): ?float
+    {
+        return $this->balanceArray['repurchase'];
+    }
+
+    public function setRepurchase(?float $repurchase): self
+    {
+        $this->balanceArray['repurchase'] = $repurchase;
+
+        return $this;
+    }
+
     /**
      * Retourne la performance du placement.
      */
     public function getInvestPerformance(): ?float
     {
-        if (0.0 === $this->balance->getInvestment()) {
+        if (0.0 === $this->getInvestment()) {
             return null;
         }
 
-        return round($this->getInvestGain() / $this->balance->getInvestment(), 5);
+        return round($this->getInvestGain() / $this->getInvestment(), 5);
     }
 
     public function getInvestValuation(): float
     {
-        return $this->balance->getBalance() + $this->balance->getRepurchase();
+        return $this->getBalance() + $this->getRepurchase();
     }
 
     public function getInvestGain(): float
     {
-        return $this->balance->getBalance() + $this->balance->getRepurchase() - $this->balance->getInvestment();
+        return $this->getBalance() + $this->getRepurchase() - $this->getInvestment();
     }
 }

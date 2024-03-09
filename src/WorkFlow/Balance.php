@@ -70,20 +70,18 @@ class Balance
             }
         }
 
-        $accountBalance = clone $transaction->getAccount()->getBalance();
-        $accountBalance->setBalance($balance);
+        $transaction->getAccount()->setBalance($balance);
         // Recalcul de l'investissement
         if (Category::INVESTMENT === $transaction->getCategory()->getCode() && $transaction->getAmount() >= 0) {
-            $invested = $accountBalance->getInvestment();
+            $invested = $transaction->getAccount()->getInvestment();
             $invested = $invested - $before->getAmount() + $transaction->getAmount();
-            $accountBalance->setInvestment($invested);
+            $transaction->getAccount()->setInvestment($invested);
         }
         if (Category::REPURCHASE === $transaction->getCategory()->getCode() && $transaction->getAmount() <= 0) {
-            $repurchase = $accountBalance->getRepurchase();
+            $repurchase = $transaction->getAccount()->getRepurchase();
             $repurchase = $repurchase - abs($before->getAmount()) + abs($transaction->getAmount());
-            $accountBalance->setRepurchase($repurchase);
+            $transaction->getAccount()->setRepurchase($repurchase);
         }
-        $transaction->getAccount()->setBalance($accountBalance);
 
         // Dans le cas d'une transaction boursière
         if ($transaction->getTransactionStock() instanceof TransactionStock) {
@@ -224,7 +222,6 @@ class Balance
     {
         $balance = $account->getInitial();
         $reconcilied = $account->getInitial();
-        $reconCurrent = $account->getBalance()->getReconCurrent();
         $investment = 0.0;
         $repurchase = 0.0;
 
@@ -257,14 +254,11 @@ class Balance
             $repurchase += abs($item->getAmount());
         }
 
-        $metaBalance = new AccountBalance();
-        $metaBalance->setBalance($balance);
-        $metaBalance->setReconBalance($reconcilied);
-        $metaBalance->setReconCurrent($reconCurrent);
-        $metaBalance->setInvestment($investment);
-        $metaBalance->setRepurchase($repurchase);
-
-        $account->setBalance($metaBalance);
+        // $metaBalance = new AccountBalance();
+        $account->setBalance($balance);
+        $account->setReconBalance($reconcilied);
+        $account->setInvestment($investment);
+        $account->setRepurchase($repurchase);
 
         return count($results);
     }
@@ -280,16 +274,13 @@ class Balance
 
         $walletCurrent = $wallet->getWallet();
 
-        $metaBalance = new AccountBalance();
-        $metaBalance->setBalance($walletCurrent->getValorisation());
-        $account->getBalance()->setBalance($walletCurrent->getValorisation());
+        $account->setBalance($walletCurrent->getValorisation());
         if (AccountType::PEA_TITRES === $account->getType()->getValue()) {
-            $metaBalance->setInvestment($account->getAccAssoc()->getBalance()->getInvestment());
-            $metaBalance->setRepurchase($account->getAccAssoc()->getBalance()->getRepurchase());
+            $account->setInvestment($account->getAccAssoc()->getInvestment());
+            $account->setRepurchase($account->getAccAssoc()->getRepurchase());
         } else {
-            $metaBalance->setInvestment($walletCurrent->getAmountInvest());
+            $account->setInvestment($walletCurrent->getAmountInvest());
         }
-        $account->setBalance($metaBalance);
 
         return 1;
     }
