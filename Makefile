@@ -18,41 +18,54 @@ APP_NAME := $(subst $\",,$(APP_NAME))
 #$(error GITHUB_REMOTE is not set)
 #endif
 
-PATH_FILE_CONF=/workspace/configuration/devops
+PATH_FILE_CONF=/workspace/devops
+
+ifndef DOCKER_LABEL
+$(error DOCKER_LABEL is not set)
+endif
+DOCKER_REPO=sabinus52/$(DOCKER_LABEL)
+
+VERSION := $(shell git describe --abbrev=0 2> /dev/null)
+ifndef VERSION
+	VERSION := dev
+endif
+
 
 .PHONY: help
-help: Makefile
+help: Makefile ## Aide
 	@sed -n 's/^##//p' $<
+	@/bin/echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/   \\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
 
 
-# Démarrage du service Docker et Symfony
-##   start              : Lancement du serveur BDD + SYMFONY
 .PHONY: start
-start:
+start: ## Démarrage du service Docker MariaDB et Symfony
 	@echo "===== Démarrage de l'application ${APP_NAME} ====="
 	@echo ""
 	@echo "----- Configuration du Docker -----"
-	@docker-compose config
+	@docker-compose -f docker-compose-devp.yml config
 	@./bin/console debug:dotenv
-	@docker-compose up -d --remove-orphans
+	@docker-compose -f docker-compose-devp.yml up -d --remove-orphans
 	@echo "----- Démarrage du serveur applicatif -----"
 	@symfony serve
 
 
-# Vérifie l'installation et des bons paramètres
-##   check              : Vérficiation du paramétrage
+.PHONY: deploy
+deploy: ## Déploiement pour mise à jour de l'application
+	@git pull
+	@composer update
+	@bin/console doctrine:migrations:migrate
+	
+
 .PHONY: check
-check:
+check: ## Vérification de l'installation et des bons paramètres Symfony
 	@symfony check:security
 	@./bin/console debug:container --env-vars
 	@./bin/console debug:dotenv
 	@./bin/console doctrine:database:create
 
 
-# Initialise le projet
-##   initialize         : Initialise le projet
 .PHONY: initialize
-initialize:
+initialize: ## Initialise le projet
 	echo "=== Initialisation du projet $(APP_NAME) ====="
 	@echo "--- Configuration GIT ---------------------------------------------"
 	@if [ $(git rev-parse --verify develop 2>/dev/null) ]; then \
@@ -74,72 +87,58 @@ initialize:
 	@if ! cat .gitignore | grep "###> My configuration ###" > /dev/null; then \
 		echo "###> My configuration ###" >> .gitignore; \
 		echo "/.env" >> .gitignore; \
+		echo "/.vscode" >> .gitignore; \
 		echo "/*.code-workspace" >> .gitignore; \
 		echo "/*.conf" >> .gitignore; \
+		echo "/DEVELOP*.md" >> .gitignore; \
 		echo "###< My configuration ###" >> .gitignore; \
 	fi
 	@echo "--- Documentation -------------------------------------------------"
 	touch README.md CHANGELOG.md DEVELOP-README.md
 
 
-# Tests unitaires avec PHPINIT
-##   test               : Tests unitaires avec PHPINIT
 .PHONY: test
-test:
-	phpunit --debug
+test: ## Tests unitaires avec PHPINIT
+#phpunit --debug
+	@if [ "${APP_ENV}" = "dev" ]; then \
+		echo ok; \
+	else \
+		echo "nook"; \
+	fi
 
 
-# Analyse de la qualité du code
-##   phpmd              : Analyse de la qualité du code
 .PHONY: phpmd
-phpmd:
+phpmd: ## Analyse de la qualité du code
 	@phpmd src ansi ruleset.xml
 	@phpmd tests ansi ruleset.xml
 
 
-# Analyse statique du code PHP
-##   phpstan            : Analyse statique du code PHP
 .PHONY: phpstan
-phpstan:
+phpstan: ## Analyse statique du code PHP
 	@phpstan analyse src --level=7 --configuration=phpstan.neon
 
 
-# Analyse si le code suit le standard de Symfony
-##   codestyle          : Analyse si le code suit le standard de Symfony
 .PHONY: codestyle
-codestyle:
+codestyle: ## Analyse si le code suit le standard de Symfony
 	@php-cs-fixer fix --dry-run --verbose --diff
 
 
-# Corrige les erreurs de standard de dev de Symfony
-##   codestyle-fix      : Corrige les erreurs de standard de dev de Symfony
 .PHONY: codestyle-fix
-codestyle-fix:
+codestyle-fix: ## Corrige les erreurs de standard de dev de Symfony
 	@php-cs-fixer fix
 
-#.PHONY: deploy
-#deploy:
-#	@dep deploy
+
+.PHONY: rector
+rector: ## Analyse de la qualité du code en suivant les recommandations
+	@rector process --dry-run
 
 
-# Reprise de données depuis HomeBank
-##   recovery-datas     : Reprise de données complètes
-.PHONY: recovery-datas
-recovery-datas:
-	@echo "> cp ${PATH_DATAS_SOURCE}"
-	@cp ${PATH_DATAS_SOURCE}/cotations.csv ./var/
-	@cp ${PATH_DATAS_SOURCE}/valorisation.csv ./var/
-	@cp ${PATH_DATAS_SOURCE}/olivier.qif ./var/
-	@cp ${PATH_DATAS_SOURCE}/joint.qif ./var/
-	@cp ${PATH_DATAS_SOURCE}/olivier.csv ./var/
-	@cp ${PATH_DATAS_SOURCE}/joint.csv ./var/
-	@echo
-	./bin/console app:initialize --with-categories --force
-	./bin/console doctrine:fixtures:load --quiet --append
-	./bin/console app:importqif var/olivier.qif var/joint.qif -v --force --parse-memo
-	./bin/console app:import:homebank var/olivier.csv var/joint.csv -v
-	./bin/console app:import:finish -v
-	./bin/console app:recalcul -v
+.PHONY: rector-fix
+rector-fix: # Corrige de la qualité du code en suivant les recommandations
+	@rector process
+
+
+include finance.mk
 
 ##
 ##

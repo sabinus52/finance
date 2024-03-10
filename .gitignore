@@ -27,6 +27,7 @@
 /DEVELOP*.md
 /*.code-workspace
 /*.conf
+/finance.mk
 /public/institutions/
 /src/Command/*MyCommand.php
 /src/DataFixtures/*MyFixtures.php
