@@ -75,8 +75,7 @@ class Performance
 
         foreach ($this->transactions as $transaction) {
             // Crée la performance si elle n'existe pas
-            $date = \DateTimeImmutable::createFromMutable($transaction->getDate());
-            $period = $this->getPeriod($date, $typePeriod);
+            $period = $this->getPeriod($transaction->getDate(), $typePeriod);
 
             // On a investi durant la période
             if ($transaction->getCategory() && Category::INVESTMENT === $transaction->getCategory()->getCode()) {
@@ -106,12 +105,11 @@ class Performance
     {
         $results = [];
         $prevPerfItem = null;
-        $start = \DateTimeImmutable::createFromMutable($this->transactions[0]->getDate());
-        $start = $start->modify('first day of this month');
+        $start = $this->transactions[0]->getDate()->modify('first day of this month');
 
         $end = new \DateTimeImmutable();
-        if ($this->account->getClosedAt() instanceof \DateTime) {
-            $end = \DateTimeImmutable::createFromMutable($this->account->getClosedAt());
+        if ($this->account->getClosedAt() instanceof \DateTimeImmutable) {
+            $end = $this->account->getClosedAt();
         }
 
         while ($this->getPeriod($start, $typePeriod) <= $this->getPeriod($end, $typePeriod)) {

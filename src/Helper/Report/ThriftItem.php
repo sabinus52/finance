@@ -38,11 +38,11 @@ class ThriftItem
      */
     private float $thrift = 0.0;
 
-    public function __construct(private readonly \DateTime $period)
+    public function __construct(private readonly \DateTimeImmutable $period)
     {
     }
 
-    public function getPeriod(): \DateTime
+    public function getPeriod(): \DateTimeImmutable
     {
         return $this->period;
     }

@@ -71,8 +71,8 @@ class Vehicle implements \Stringable
     /**
      * Date de 1ère circulation.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    private ?\DateTime $registeredAt = null;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $registeredAt = null;
 
     /**
      * Kilométrage d'achat.
@@ -84,15 +84,15 @@ class Vehicle implements \Stringable
     /**
      * Date d'achat.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Assert\NotBlank]
-    private ?\DateTime $boughtAt = null;
+    private ?\DateTimeImmutable $boughtAt = null;
 
     /**
      * Date de vente.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    private ?\DateTime $soldAt = null;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $soldAt = null;
 
     /**
      * Liste des transactions associés.
@@ -181,12 +181,12 @@ class Vehicle implements \Stringable
         return $this;
     }
 
-    public function getRegisteredAt(): ?\DateTime
+    public function getRegisteredAt(): ?\DateTimeImmutable
     {
         return $this->registeredAt;
     }
 
-    public function setRegisteredAt(?\DateTime $registeredAt): self
+    public function setRegisteredAt(?\DateTimeImmutable $registeredAt): self
     {
         $this->registeredAt = $registeredAt;
 
@@ -205,24 +205,24 @@ class Vehicle implements \Stringable
         return $this;
     }
 
-    public function getBoughtAt(): ?\DateTime
+    public function getBoughtAt(): ?\DateTimeImmutable
     {
         return $this->boughtAt;
     }
 
-    public function setBoughtAt(?\DateTime $boughtAt): self
+    public function setBoughtAt(?\DateTimeImmutable $boughtAt): self
     {
         $this->boughtAt = $boughtAt;
 
         return $this;
     }
 
-    public function getSoldAt(): ?\DateTime
+    public function getSoldAt(): ?\DateTimeImmutable
     {
         return $this->soldAt;
     }
 
-    public function setSoldAt(?\DateTime $soldAt): self
+    public function setSoldAt(?\DateTimeImmutable $soldAt): self
     {
         $this->soldAt = $soldAt;
 
@@ -239,7 +239,7 @@ class Vehicle implements \Stringable
      */
     public function isSold(): bool
     {
-        return $this->soldAt instanceof \DateTime;
+        return $this->soldAt instanceof \DateTimeImmutable;
     }
 
     /**

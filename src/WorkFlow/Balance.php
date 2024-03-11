@@ -166,16 +166,16 @@ class Balance
         }
 
         // Bouche les mois manquants
-        $start = clone $account->getOpenedAt();
+        $start = $account->getOpenedAt();
         $end = $account->getClosedAt();
-        $end ??= new \DateTime();
+        $end ??= new \DateTimeImmutable();
         $balance = 0.0;
         while ($start->format('Y-m') <= $end->format('Y-m')) {
             if (!isset($results[$start->format('Y-m')])) {
                 $results[$start->format('Y-m')] = $balance;
             }
             $balance = $results[$start->format('Y-m')];
-            $start->modify('+ 1 month');
+            $start = $start->modify('+ 1 month');
         }
         ksort($results);
 
@@ -199,16 +199,16 @@ class Balance
         }
 
         // Bouche les années manquantes
-        $start = clone $account->getOpenedAt();
+        $start = $account->getOpenedAt();
         $end = $account->getClosedAt();
-        $end ??= new \DateTime();
+        $end ??= new \DateTimeImmutable();
         $balance = 0.0;
         while ($start->format('Y') <= $end->format('Y')) {
             if (!isset($results[$start->format('Y')])) {
                 $results[$start->format('Y')] = $balance;
             }
             $balance = $results[$start->format('Y')];
-            $start->modify('+ 1 year');
+            $start = $start->modify('+ 1 year');
         }
         ksort($results);
 

@@ -25,6 +25,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+/**
+ * Controller des transactions.
+ *
+ * @author Sabinus52 <sabinus52@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class TransactionController extends BaseController
 {
     /**
@@ -68,7 +75,7 @@ class TransactionController extends BaseController
     {
         // Recherche la dernière transaction de valorisation
         $last = $repository->findOneLastValorisation($account);
-        $date = new \DateTime();
+        $date = new \DateTimeImmutable();
         if ($last instanceof Transaction) {
             $date = clone $last->getDate()->modify('+ 15 days');
         }
@@ -192,7 +199,7 @@ class TransactionController extends BaseController
         $router = new TransactionModelRouter($entityManager);
         $modelTransaction = $router->load($transaction);
         $transaction = clone $modelTransaction->getTransaction();
-        $transaction->setDate(new \DateTime());
+        $transaction->setDate(new \DateTimeImmutable());
         $transaction->setState(Transaction::STATE_NONE);
         // Cas d'une transaction de véhicule
         if ($transaction->getTransactionVehicle() instanceof TransactionVehicle) {

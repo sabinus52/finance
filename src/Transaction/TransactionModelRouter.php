@@ -157,15 +157,13 @@ final readonly class TransactionModelRouter
 
     /**
      * Crée le modèle de transaction de valorisation du capital en fin de mois.
-     *
-     * @param \DateTime|null $date
      */
-    public function createRevaluation(\DateTime $date = null): TransactionModelInterface
+    public function createRevaluation(\DateTimeImmutable $date = null): TransactionModelInterface
     {
         $modelTransac = new ReValuationTransaction($this->entityManager);
         $modelTransac->init();
 
-        if ($date instanceof \DateTime) {
+        if ($date instanceof \DateTimeImmutable) {
             $modelTransac->setDatas([
                 'date' => $date->modify('last day of this month'),
                 'amount' => 0,

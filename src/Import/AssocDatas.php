@@ -169,10 +169,8 @@ class AssocDatas
 
     /**
      * Retourne le compte à chercher sinon le crée.
-     *
-     * @param \DateTime|null $dateOpened
      */
-    public function getAccount(string $searchAccount, \DateTime $dateOpened = null): Account
+    public function getAccount(string $searchAccount, \DateTimeImmutable $dateOpened = null): Account
     {
         if ($this->accounts->offsetExists($searchAccount)) {
             return $this->accounts->offsetGet($searchAccount);
@@ -187,14 +185,12 @@ class AssocDatas
 
     /**
      * Créer un nouveau compte.
-     *
-     * @param \DateTime|null $dateOpened
      */
-    public function createAccount(string $searchAccount, \DateTime $dateOpened = null): Account
+    public function createAccount(string $searchAccount, \DateTimeImmutable $dateOpened = null): Account
     {
         // Date par défaut (passage à l'euro)
-        if (!$dateOpened instanceof \DateTime) {
-            $dateOpened = new \DateTime('2002-01-01');
+        if (!$dateOpened instanceof \DateTimeImmutable) {
+            $dateOpened = new \DateTimeImmutable('2002-01-01');
         }
 
         [$strIntitution, $strAccount] = $this->splitString($searchAccount, ' ');

@@ -33,9 +33,9 @@ class Transaction implements \Stringable
     /**
      * Date de la Transaction.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Assert\NotBlank]
-    private ?\DateTime $date = null;
+    private \DateTimeImmutable $date;
 
     /**
      * Montant de la transaction.
@@ -128,7 +128,7 @@ class Transaction implements \Stringable
      */
     public function __construct()
     {
-        $this->date = new \DateTime();
+        $this->date = new \DateTimeImmutable();
         $this->type = new TransactionType(TransactionType::STANDARD);
     }
 
@@ -146,13 +146,16 @@ class Transaction implements \Stringable
         return $this->id;
     }
 
-    public function getDate(): ?\DateTime
+    public function getDate(): \DateTimeImmutable
     {
         return $this->date;
     }
 
-    public function setDate(?\DateTime $date): self
+    public function setDate(?\DateTimeImmutable $date): self
     {
+        if (!$date instanceof \DateTimeImmutable) {
+            $date = new \DateTimeImmutable();
+        }
         $this->date = $date;
 
         return $this;

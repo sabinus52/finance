@@ -88,15 +88,15 @@ class Account implements \Stringable
     /**
      * Date d'ouverture du compte.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Assert\NotBlank]
-    private ?\DateTime $openedAt = null;
+    private ?\DateTimeImmutable $openedAt = null;
 
     /**
      * Date de fermeture ou null si en cours.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    private ?\DateTime $closedAt = null;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $closedAt = null;
 
     /**
      * Montant du découvert autorisé.
@@ -111,7 +111,13 @@ class Account implements \Stringable
      * @var array<float>
      */
     #[ORM\Column(type: Types::JSON, name: 'balance')]
-    private array $balanceArray;
+    private array $balanceArray = [
+        'balance' => 0.0,
+        'reconbalance' => 0.0,
+        'reconcurrent' => 0.0,
+        'investment' => 0.0,
+        'repurchase' => 0.0,
+    ];
 
     #[ORM\ManyToOne(targetEntity: Institution::class, inversedBy: 'accounts')]
     #[ORM\JoinColumn(nullable: false)]
@@ -135,13 +141,6 @@ class Account implements \Stringable
      */
     public function __construct()
     {
-        $this->balanceArray = [
-            'balance' => 0.0,
-            'reconbalance' => 0.0,
-            'reconcurrent' => 0.0,
-            'investment' => 0.0,
-            'repurchase' => 0.0,
-        ];
         $this->transactions = new ArrayCollection();
     }
 
@@ -248,24 +247,24 @@ class Account implements \Stringable
         return $this;
     }
 
-    public function getOpenedAt(): ?\DateTime
+    public function getOpenedAt(): ?\DateTimeImmutable
     {
         return $this->openedAt;
     }
 
-    public function setOpenedAt(?\DateTime $openedAt): self
+    public function setOpenedAt(?\DateTimeImmutable $openedAt): self
     {
         $this->openedAt = $openedAt;
 
         return $this;
     }
 
-    public function getClosedAt(): ?\DateTime
+    public function getClosedAt(): ?\DateTimeImmutable
     {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?\DateTime $closedAt): self
+    public function setClosedAt(?\DateTimeImmutable $closedAt): self
     {
         $this->closedAt = $closedAt;
 
@@ -377,7 +376,7 @@ class Account implements \Stringable
      */
     public function isClosed(): bool
     {
-        return $this->closedAt instanceof \DateTime;
+        return $this->closedAt instanceof \DateTimeImmutable;
     }
 
     /**

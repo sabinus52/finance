@@ -32,6 +32,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  *
  * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  * @SuppressWarnings(PHPMD.StaticAccess)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class AccountType extends AbstractType
 {
@@ -97,14 +98,14 @@ class AccountType extends AbstractType
                     ->addOrderBy('acc.name'),
                 'choice_label' => static function (Account $choice): string {
                     $result = $choice->getFullName();
-                    if ($choice->getClosedAt() instanceof \DateTime) {
+                    if ($choice->getClosedAt() instanceof \DateTimeImmutable) {
                         $result .= ' (fermé)';
                     }
 
                     return $result;
                 },
                 'choice_attr' => static function (Account $choice): array {
-                    if ($choice->getClosedAt() instanceof \DateTime) {
+                    if ($choice->getClosedAt() instanceof \DateTimeImmutable) {
                         return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
                     }
 

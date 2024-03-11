@@ -144,7 +144,7 @@ class Helper
     /**
      * Création et insère dans la base une réévaluation.
      */
-    public function createRevaluation(Account $account, \DateTime $date, float $amount): void
+    public function createRevaluation(Account $account, \DateTimeImmutable $date, float $amount): void
     {
         $modelTransac = $this->router->createRevaluation($date);
         $modelTransac->setDatas([

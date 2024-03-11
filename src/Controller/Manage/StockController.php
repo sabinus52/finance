@@ -114,7 +114,7 @@ class StockController extends AbstractController
     {
         // Recherche la dernière cotation
         $last = $repository->findOneLastPrice($stock);
-        $date = new \DateTime();
+        $date = new \DateTimeImmutable();
         if ($last instanceof StockPrice) {
             $date = clone $last->getDate()->modify('+ 15 days');
         }

@@ -141,8 +141,7 @@ final class StockFusion
         // Recherche la dernière cotation
         /** @var StockPrice $lastPrice */
         $lastPrice = $this->entityManager->getRepository(StockPrice::class)->findOneLastPrice($this->oldStock); /** @phpstan-ignore-line */
-        $date = clone $this->oldStock->getClosedAt();
-        $date->modify('last day of this month');
+        $date = $this->oldStock->getClosedAt()->modify('last day of this month');
         // Si la cotation à cette date existe, ne pas la rajouter à nouveau
         if ($lastPrice->getDate()->format('Y-m-d') === $date->format('Y-m-d')) {
             return;
@@ -159,7 +158,7 @@ final class StockFusion
     /**
      * Création de la transaction de vente de l'ancien titre.
      */
-    private function createTransactionSelling(\DateTime $date, float $amount): TransactionModelInterface
+    private function createTransactionSelling(\DateTimeImmutable $date, float $amount): TransactionModelInterface
     {
         $model = $this->router->createStock(new StockPosition(StockPosition::FUSION_SALE));
         $model->setAccount($this->account);
@@ -179,7 +178,7 @@ final class StockFusion
     /**
      * Création de la transaction d'achat du nouveau titre.
      */
-    private function createTransactionBuying(\DateTime $date, float $amount): TransactionModelInterface
+    private function createTransactionBuying(\DateTimeImmutable $date, float $amount): TransactionModelInterface
     {
         $model = $this->router->createStock(new StockPosition(StockPosition::FUSION_BUY));
         $model->setAccount($this->account);

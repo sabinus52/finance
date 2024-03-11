@@ -59,16 +59,16 @@ class Project implements \Stringable
     /**
      * Date de début du projet.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Assert\NotBlank]
-    private ?\DateTime $startedAt = null;
+    private ?\DateTimeImmutable $startedAt = null;
 
     /**
      * Date de fin du projet.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Assert\NotBlank]
-    private ?\DateTime $finishAt = null;
+    private ?\DateTimeImmutable $finishAt = null;
 
     /**
      * SI le projet est ouvert pour traitement.
@@ -87,7 +87,7 @@ class Project implements \Stringable
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $this->startedAt = $now;
         $this->finishAt = $now->modify('+ 10 days');
         $this->category = new ProjectCategory(ProjectCategory::OTHER);
@@ -139,24 +139,24 @@ class Project implements \Stringable
         return $this;
     }
 
-    public function getStartedAt(): ?\DateTime
+    public function getStartedAt(): ?\DateTimeImmutable
     {
         return $this->startedAt;
     }
 
-    public function setStartedAt(?\DateTime $startedAt): self
+    public function setStartedAt(?\DateTimeImmutable $startedAt): self
     {
         $this->startedAt = $startedAt;
 
         return $this;
     }
 
-    public function getFinishAt(): ?\DateTime
+    public function getFinishAt(): ?\DateTimeImmutable
     {
         return $this->finishAt;
     }
 
-    public function setFinishAt(?\DateTime $finishAt): self
+    public function setFinishAt(?\DateTimeImmutable $finishAt): self
     {
         $this->finishAt = $finishAt;
 

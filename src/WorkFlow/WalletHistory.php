@@ -25,7 +25,7 @@ class WalletHistory implements \Iterator
     /**
      * Date de fin de mois de l'historique du portefeuille.
      */
-    private \DateTime $date;
+    private \DateTimeImmutable $date;
 
     /**
      * Portefeuille. [id] => StockWallet().
@@ -78,7 +78,7 @@ class WalletHistory implements \Iterator
     /**
      * Affecte la date du portefeuille.
      */
-    public function setDate(\DateTime $date): void
+    public function setDate(\DateTimeImmutable $date): void
     {
         $this->date = $date->modify('last day of this month');
     }
@@ -86,7 +86,7 @@ class WalletHistory implements \Iterator
     /**
      * Retourne la date du portefeuille.
      */
-    public function getDate(): \DateTime
+    public function getDate(): \DateTimeImmutable
     {
         return $this->date;
     }

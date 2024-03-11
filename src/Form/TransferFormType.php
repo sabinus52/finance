@@ -109,14 +109,14 @@ class TransferFormType extends AbstractType
             },
             'choice_label' => static function (Account $choice): string {
                 $result = $choice->getFullName();
-                if ($choice->getClosedAt() instanceof \DateTime) {
+                if ($choice->getClosedAt() instanceof \DateTimeImmutable) {
                     $result .= ' (fermé)';
                 }
 
                 return $result;
             },
             'choice_attr' => static function (Account $choice): array {
-                if ($choice->getClosedAt() instanceof \DateTime) {
+                if ($choice->getClosedAt() instanceof \DateTimeImmutable) {
                     return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
                 }
 

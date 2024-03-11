@@ -33,6 +33,7 @@ use Symfony\Component\Routing\Annotation\Route;
  * @author Sabinus52 <sabinus52@gmail.com>
  *
  * @SuppressWarnings(PHPMD.StaticAccess)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ReportController extends AbstractController
 {

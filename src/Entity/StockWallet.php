@@ -57,8 +57,8 @@ class StockWallet
     /**
      * Date du prix en cours.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    private ?\DateTime $priceDate = null;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $priceDate = null;
 
     /**
      * Montant investi.
@@ -145,15 +145,14 @@ class StockWallet
         return $this;
     }
 
-    public function getPriceDate(): ?\DateTime
+    public function getPriceDate(): ?\DateTimeImmutable
     {
         return $this->priceDate;
     }
 
-    public function setPriceDate(\DateTime $priceDate): self
+    public function setPriceDate(\DateTimeImmutable $priceDate): self
     {
-        $this->priceDate = clone $priceDate;
-        $this->priceDate->modify('last day of this month');
+        $this->priceDate = $priceDate->modify('last day of this month');
 
         return $this;
     }

@@ -80,7 +80,7 @@ class VehicleCostByYearChart extends ChartBuilder implements ChartBuilderInterfa
         $fuelValues = [];
         $repairValues = [];
         $otherValues = [];
-        $labels = $this->getArrayByYear(clone $vehicle->getBoughtAt(), $vehicle->getSoldAt());
+        $labels = $this->getArrayByYear($vehicle->getBoughtAt(), $vehicle->getSoldAt());
         foreach ($labels as $year) {
             $fuelValues[$year] = 0;
             $repairValues[$year] = 0;
@@ -130,19 +130,17 @@ class VehicleCostByYearChart extends ChartBuilder implements ChartBuilderInterfa
     /**
      * Retoune le tableau par an dans un intervalle donné.
      *
-     * @param \DateTime|null $dateEnd
-     *
      * @return array<string>
      */
-    private function getArrayByYear(\DateTime $dateBegin, ?\DateTime $dateEnd): array
+    private function getArrayByYear(\DateTimeImmutable $dateBegin, ?\DateTimeImmutable $dateEnd): array
     {
         $results = [];
-        if (!$dateEnd instanceof \DateTime) {
-            $dateEnd = new \DateTime();
+        if (!$dateEnd instanceof \DateTimeImmutable) {
+            $dateEnd = new \DateTimeImmutable();
         }
         while ($dateBegin->format('Y') <= $dateEnd->format('Y')) {
             $results[$dateBegin->format('Y')] = $dateBegin->format('Y');
-            $dateBegin->add(new \DateInterval('P1Y')); // Ajoute un an à la date de début
+            $dateBegin = $dateBegin->add(new \DateInterval('P1Y')); // Ajoute un an à la date de début
         }
 
         return $results;

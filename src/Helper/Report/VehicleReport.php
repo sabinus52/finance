@@ -91,7 +91,7 @@ class VehicleReport
      */
     public function getNumberDays(): int
     {
-        $today = ($this->vehicle->getSoldAt() instanceof \DateTime) ? $this->vehicle->getSoldAt() : new \DateTime();
+        $today = ($this->vehicle->getSoldAt() instanceof \DateTimeImmutable) ? $this->vehicle->getSoldAt() : new \DateTimeImmutable();
         $interval = $today->diff($this->vehicle->getBoughtAt());
 
         return (int) $interval->days;
@@ -102,7 +102,7 @@ class VehicleReport
      */
     public function getNumberMonths(): int
     {
-        $today = ($this->vehicle->getSoldAt() instanceof \DateTime) ? $this->vehicle->getSoldAt() : new \DateTime();
+        $today = ($this->vehicle->getSoldAt() instanceof \DateTimeImmutable) ? $this->vehicle->getSoldAt() : new \DateTimeImmutable();
         $interval = $today->diff($this->vehicle->getBoughtAt());
 
         return (int) $interval->y * 12 + $interval->m;
@@ -113,7 +113,7 @@ class VehicleReport
      */
     public function getPeriod(): \DateInterval
     {
-        $today = ($this->vehicle->getSoldAt() instanceof \DateTime) ? $this->vehicle->getSoldAt() : new \DateTime();
+        $today = ($this->vehicle->getSoldAt() instanceof \DateTimeImmutable) ? $this->vehicle->getSoldAt() : new \DateTimeImmutable();
 
         return $today->diff($this->vehicle->getBoughtAt());
     }

@@ -40,7 +40,7 @@ class ProjectRepository extends ServiceEntityRepository
         $query = $this->createQueryBuilder('pjt')
             ->addSelect('COUNT(trt) AS number')
             ->addSelect('SUM(trt.amount) AS total')
-            ->innerJoin('pjt.transactions', 'trt')
+            ->leftJoin('pjt.transactions', 'trt')
             ->addGroupBy('pjt.id')
             ->addOrderBy('pjt.finishAt', 'DESC')
             ->getQuery()

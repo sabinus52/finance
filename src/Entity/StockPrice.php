@@ -32,8 +32,8 @@ class StockPrice
     /**
      * Date du cours de l'action.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTime $date = null;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    private ?\DateTimeImmutable $date = null;
 
     /**
      * Prix du cours.
@@ -54,12 +54,12 @@ class StockPrice
         return $this->id;
     }
 
-    public function getDate(): ?\DateTime
+    public function getDate(): ?\DateTimeImmutable
     {
         return $this->date;
     }
 
-    public function setDate(\DateTime $date): self
+    public function setDate(\DateTimeImmutable $date): self
     {
         $this->date = $date;
 

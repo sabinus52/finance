@@ -50,8 +50,8 @@ class Stock implements \Stringable
     /**
      * Date de la fermeture.
      */
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    private ?\DateTime $closedAt = null;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $closedAt = null;
 
     /**
      * Titre d'avant qui a été fusionné.
@@ -127,12 +127,12 @@ class Stock implements \Stringable
         return $this;
     }
 
-    public function getClosedAt(): ?\DateTime
+    public function getClosedAt(): ?\DateTimeImmutable
     {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?\DateTime $closedAt): self
+    public function setClosedAt(?\DateTimeImmutable $closedAt): self
     {
         $this->closedAt = $closedAt;
 
@@ -262,7 +262,7 @@ class Stock implements \Stringable
      */
     public function getStatusBadge(): string
     {
-        if ($this->closedAt instanceof \DateTime) {
+        if ($this->closedAt instanceof \DateTimeImmutable) {
             return '<span class="badge bg-danger text-uppercase">fermé</span>';
         }
 

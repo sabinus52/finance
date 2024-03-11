@@ -89,7 +89,7 @@ class FuelCostByMonthChart extends ChartBuilder implements ChartBuilderInterface
         // Initialisation des tableaux de labels et valeurs pour chaque mois
         $values = [];
         $colors = [];
-        $labels = $this->getArrayByMonth(clone $vehicle->getBoughtAt(), $vehicle->getSoldAt());
+        $labels = $this->getArrayByMonth($vehicle->getBoughtAt(), $vehicle->getSoldAt());
         foreach ($labels as $month) {
             $values[$month] = 0;
             $colors[$month] = 'green';
@@ -133,19 +133,17 @@ class FuelCostByMonthChart extends ChartBuilder implements ChartBuilderInterface
     /**
      * Retoune le tableau par mois dans un intervalle donné.
      *
-     * @param \DateTime|null $dateEnd
-     *
      * @return array<string>
      */
-    private function getArrayByMonth(\DateTime $dateBegin, ?\DateTime $dateEnd): array
+    private function getArrayByMonth(\DateTimeImmutable $dateBegin, ?\DateTimeImmutable $dateEnd): array
     {
         $results = [];
-        if (!$dateEnd instanceof \DateTime) {
-            $dateEnd = new \DateTime();
+        if (!$dateEnd instanceof \DateTimeImmutable) {
+            $dateEnd = new \DateTimeImmutable();
         }
         while ($dateBegin <= $dateEnd) {
             $results[$dateBegin->format('m/Y')] = $dateBegin->format('m/Y');
-            $dateBegin->add(new \DateInterval('P1M')); // Ajoute un mois à la date de début
+            $dateBegin = $dateBegin->add(new \DateInterval('P1M')); // Ajoute un mois à la date de début
         }
 
         return $results;
