@@ -11,12 +11,12 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Charts\PerformanceByYearChart;
+use App\Charts\PerformanceMonthChart;
+use App\Charts\PerformanceSlipperyChart;
+use App\Charts\ThriftChart;
 use App\Entity\Account;
 use App\Entity\Transaction;
-use App\Helper\Charts\MonthChart;
-use App\Helper\Charts\SlipperyChart;
-use App\Helper\Charts\ThriftChart;
-use App\Helper\Charts\YearChart;
 use App\Helper\PerfItem;
 use App\Helper\Performance;
 use App\Helper\Report\ThriftCapacity;
@@ -94,9 +94,9 @@ class ReportController extends AbstractController
 
         $totalPerfSlippery = Performance::getPerfSlipperyFromByMonth($totalPerfMonth);
 
-        $chart2 = new MonthChart();
-        $chart3 = new SlipperyChart();
-        $chart4 = new YearChart();
+        $chart2 = new PerformanceMonthChart();
+        $chart3 = new PerformanceSlipperyChart();
+        $chart4 = new PerformanceByYearChart();
 
         return $this->render('report/capital.html.twig', [
             'total' => [

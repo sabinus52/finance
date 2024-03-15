@@ -11,12 +11,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Report;
 
+use App\Charts\FuelConsumptionChart;
+use App\Charts\FuelCostByMonthChart;
+use App\Charts\FuelPriceChart;
+use App\Charts\VehicleCostByYearChart;
 use App\Entity\Transaction;
 use App\Entity\Vehicle;
-use App\Helper\Charts\FuelConsumptionChart;
-use App\Helper\Charts\FuelCostByMonthChart;
-use App\Helper\Charts\FuelPriceChart;
-use App\Helper\Charts\VehicleCostByYearChart;
 use App\Helper\Report\VehicleReport;
 use App\Repository\TransactionRepository;
 use Doctrine\ORM\Query;

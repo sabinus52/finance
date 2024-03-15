@@ -11,10 +11,11 @@ declare(strict_types=1);
 
 namespace App\Controller\Account;
 
+use App\Charts\PerformanceByYearChart;
+use App\Charts\PerformanceCapitalChart;
+use App\Charts\PerformanceMonthChart;
+use App\Charts\PerformanceSlipperyChart;
 use App\Entity\Account;
-use App\Helper\Charts\MonthChart;
-use App\Helper\Charts\SlipperyChart;
-use App\Helper\Charts\YearChart;
 use App\Helper\Performance;
 use App\Repository\TransactionRepository;
 use App\WorkFlow\Wallet;
@@ -52,9 +53,9 @@ class IndexController extends BaseController
         $performance = new Performance($repository, $account);
         $performance->setTransactions($result);
 
-        $chart2 = new MonthChart();
-        $chart3 = new SlipperyChart();
-        $chart4 = new YearChart();
+        $chart2 = new PerformanceMonthChart();
+        $chart3 = new PerformanceSlipperyChart();
+        $chart4 = new PerformanceByYearChart();
 
         return $this->index($request, $account, 'account/4wallet.html.twig', [
             'wallet' => $wallet,
@@ -76,9 +77,10 @@ class IndexController extends BaseController
     {
         $performance = new Performance($repository, $account);
 
-        $chart2 = new MonthChart();
-        $chart3 = new SlipperyChart();
-        $chart4 = new YearChart();
+        $chart2 = new PerformanceMonthChart();
+        $chart3 = new PerformanceSlipperyChart();
+        $chart4 = new PerformanceByYearChart();
+        $chart5 = new PerformanceCapitalChart();
 
         return $this->index($request, $account, 'account/5capital.html.twig', [
             'itemsbyMonth' => array_slice($performance->getByMonth(), -12, 12, true),
@@ -89,6 +91,7 @@ class IndexController extends BaseController
                 'slippery' => $chart3->getChart($performance->getBySlippery()),
                 'year' => $chart4->getChart($performance->getByYear()),
                 'month' => $chart2->getChart($performance->getByMonth()),
+                'capital' => $chart5->getChart($performance->getByMonth()),
             ],
         ]);
     }

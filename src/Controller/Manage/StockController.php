@@ -11,13 +11,13 @@ declare(strict_types=1);
 
 namespace App\Controller\Manage;
 
+use App\Charts\StockPriceChart;
 use App\Entity\Account;
 use App\Entity\Stock;
 use App\Entity\StockPrice;
 use App\Form\StockFormType;
 use App\Form\StockFusionFormType;
 use App\Form\StockPriceFormType;
-use App\Helper\Charts\StockPriceChart;
 use App\Repository\StockPriceRepository;
 use App\Repository\StockRepository;
 use App\WorkFlow\Balance;

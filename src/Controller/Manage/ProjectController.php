@@ -11,10 +11,10 @@ declare(strict_types=1);
 
 namespace App\Controller\Manage;
 
+use App\Charts\CategoryChart;
 use App\Entity\Project;
 use App\Entity\Transaction;
 use App\Form\ProjectFormType;
-use App\Helper\Charts\CategoryChart;
 use App\Repository\ProjectRepository;
 use App\Repository\TransactionRepository;
 use Doctrine\ORM\EntityManagerInterface;
