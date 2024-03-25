@@ -16,6 +16,7 @@ use App\Repository\StockRepository;
 use Olix\BackOfficeBundle\Form\Type\DatePickerType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
@@ -41,6 +42,10 @@ class StockFormType extends AbstractType
             ->add('name', TextType::class, [
                 'label' => 'Nom',
                 'required' => false,
+            ])
+            ->add('type', ChoiceType::class, [
+                'label' => 'Type',
+                'choices' => array_flip(Stock::$types),
             ])
             ->add('closedAt', DatePickerType::class, [
                 'label' => 'Date de clôture',

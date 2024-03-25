@@ -18,6 +18,7 @@ use App\Entity\StockPrice;
 use App\Form\StockFormType;
 use App\Form\StockFusionFormType;
 use App\Form\StockPriceFormType;
+use App\Form\StockPriceImportFormType;
 use App\Repository\StockPriceRepository;
 use App\Repository\StockRepository;
 use App\WorkFlow\Balance;
@@ -26,9 +27,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Constraints\File;
 
 /**
  * Controleur des cotations boursières.
@@ -39,11 +42,15 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class StockController extends AbstractController
 {
+    private EntityManagerInterface $entityManager;
+
+    private Stock $stock;
+
     #[Route(path: '/manage/stock', name: 'manage_stock__index')]
     public function index(StockRepository $repository): Response
     {
         return $this->render('manage/stock-index.html.twig', [
-            'stocks' => $repository->findAll(),
+            'stocks' => $repository->findAllWhithLastPrice(),
         ]);
     }
 
@@ -104,6 +111,7 @@ class StockController extends AbstractController
                 'max' => array_reduce($prices, static fn ($a, $b) => $a ? ($a->getPrice() > $b->getPrice() ? $a : $b) : $b),
                 'min' => array_reduce($prices, static fn ($a, $b) => $a ? ($a->getPrice() < $b->getPrice() ? $a : $b) : $b),
             ],
+            'unity' => $stock->getTypeUnity(),
             'prices' => $prices,
             'chart' => $chart->getChart($prices),
         ]);
@@ -141,6 +149,51 @@ class StockController extends AbstractController
             'modal' => [
                 'title' => 'Créer une nouvelle cotation',
                 'btnlabel' => 'Ajouter',
+            ],
+        ]);
+    }
+
+    #[Route(path: '/manage/stock/prices/{id}/import', name: 'manage_stock__price_import', methods: ['GET', 'POST'])]
+    public function importPrices(Request $request, Stock $stock, EntityManagerInterface $entityManager, StockPriceRepository $repository): Response
+    {
+        $this->entityManager = $entityManager;
+        $this->stock = $stock;
+        $form = $this->createForm(StockPriceImportFormType::class);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var ?UploadedFile $fileCSV */
+            $fileCSV = $form->get('file')->getData();
+            if (!$fileCSV instanceof UploadedFile) {
+                $this->addFlash('error', sprintf('Le fichier %s ne semble pas être accessible', $form->get('file')->getData()));
+
+                return new Response('OK');
+            }
+
+            $allPrices = $repository->findGroupByDate($stock);
+            $options = [
+                'header' => (bool) $form->get('header')->getData(),
+                'date' => (int) $form->get('date')->getData() - 1,
+                'price' => (int) $form->get('price')->getData() - 1,
+            ];
+            try {
+                $nbResult = $this->importStockPrices($fileCSV->getPathname(), $options, $allPrices);
+            } catch (\Throwable) {
+                $this->addFlash('error', "Une erreur est survenue lors de l'import");
+
+                return new Response('OK');
+            }
+
+            $this->addFlash('success', sprintf('Le fichier a été importé avec succès avec <strong>%s</strong> valeurs.', $nbResult));
+
+            return new Response('OK');
+        }
+
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+            'form' => $form,
+            'modal' => [
+                'title' => 'Importer un fichier de cotations',
+                'btnlabel' => 'Importer',
             ],
         ]);
     }
@@ -219,5 +272,54 @@ class StockController extends AbstractController
         }
 
         return $isValid;
+    }
+
+    /**
+     * Import du fichier contenant la liste des valeurs à importer.
+     *
+     * @param array<mixed> $options Options du fichier CSV (header, colonne)
+     * @param StockPrice[] $prices  Liste des valeurs déjà présentes de l'action
+     */
+    private function importStockPrices(string $fileCSV, array $options, array $prices): int
+    {
+        // Ouverture du parseur du fichier
+        $file = new \SplFileObject($fileCSV);
+        $file->setFlags(\SplFileObject::READ_CSV);
+        $file->setCsvControl(',');
+
+        $numberLine = 0;
+
+        /** @var string[] $row */
+        foreach ($file as $key => $row) {
+            // Header
+            if (0 === $key && $options['header']) {
+                continue;
+            }
+            // Ignore end of file
+            if ($file->eof()) {
+                break;
+            }
+
+            ++$numberLine;
+
+            $month = new \DateTimeImmutable($row[$options['date']]);
+            $month = $month->modify('last day of this month');
+            $value = (float) $row[$options['price']];
+
+            if (array_key_exists($month->format('Y-m'), $prices)) {
+                $prices[$month->format('Y-m')]->setPrice($value);
+            } else {
+                $stockPrice = new StockPrice();
+                $stockPrice
+                    ->setStock($this->stock)
+                    ->setDate($month)
+                    ->setPrice($value)
+                ;
+                $this->entityManager->persist($stockPrice);
+            }
+        }
+        $this->entityManager->flush();
+
+        return $numberLine;
     }
 }

@@ -32,15 +32,15 @@
                         {% if price.last %}
                             <div class="row my-3">
                                 <div class="col-4">Dernier</div>
-                                <div class="col-8"><strong class="text-primary">{{ mymacro.money(price.last.price, 'EUR', false) }}</strong></div>
+                                <div class="col-8"><strong class="text-primary">{{ price.last.price|number_format(2, ',', ' ') }} {{ unity }}</strong></div>
                             </div>
                             <div class="row my-3">
                                 <div class="col-4">+ Haut</div>
-                                <div class="col-8"><strong class="text-green">{{ mymacro.money(price.max.price, 'EUR', false) }}</strong> <em>({{ price.max.date|date('d/m/Y') }})</em></div>
+                                <div class="col-8"><strong class="text-green">{{ price.max.price|number_format(2, ',', ' ') }} {{ unity }}</strong> <em>({{ price.max.date|date('d/m/Y') }})</em></div>
                             </div>
                             <div class="row my-3">
                                 <div class="col-4">+ Bas</div>
-                                <div class="col-8"><strong class="text-red">{{ mymacro.money(price.min.price, 'EUR', false) }}</strong> <em>({{ price.min.date|date('d/m/Y') }})</em></div>
+                                <div class="col-8"><strong class="text-red">{{ price.min.price|number_format(2, ',', ' ') }} {{ unity }}</strong> <em>({{ price.min.date|date('d/m/Y') }})</em></div>
                             </div>
                         {% endif %}
                     </div>
@@ -62,7 +62,10 @@
                 <div class="card card-primary card-outline">
                     <div class="card-header">
                         <h3 class="card-title">Historique des cotations boursières</h3>
-                        <div class="card-tools"><a href="{{ path('manage_stock__price_add', { id: stock.id }) }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter une nouvelle cotation</span></a></div>
+                        <div class="card-tools">
+                            <a href="{{ path('manage_stock__price_add', { id: stock.id }) }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter une nouvelle cotation</span></a>
+                            <a href="{{ path('manage_stock__price_import', { id: stock.id }) }}" class="btn btn-sm btn-secondary" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Importer un fichier</span></a>
+                        </div>
                     </div>
                     <div class="card-body table-responsive p-0">
                         <table class="table table-sm table-hover text-nowrap">
@@ -77,7 +80,7 @@
                             {% for item in prices %}
                                 <tr>
                                     <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
-                                    <td class="text-right">{{ mymacro.money(item.price, 'EUR', false) }}</td>
+                                    <td class="text-right">{{ item.price|number_format(2, ',', ' ') }} {{ unity }}</td>
                                     <td class="text-right"><a href="{{ path('manage_stock__price_upd', { id: item.id }) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a></td>
                                 </tr>
                             {% else %}

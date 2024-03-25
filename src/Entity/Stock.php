@@ -26,6 +26,21 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: StockRepository::class)]
 class Stock implements \Stringable
 {
+    final public const STOCK = 1;
+    final public const INDICE = 3;
+    final public const INTEREST_RATE = 9;
+
+    /**
+     * Liste des types.
+     *
+     * @var array<string>
+     */
+    public static array $types = [
+        self::STOCK => 'Actions',
+        self::INDICE => 'Indices',
+        self::INTEREST_RATE => 'Taux intérêts',
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -46,6 +61,12 @@ class Stock implements \Stringable
     #[Assert\NotBlank]
     #[Assert\Length(min: 5, max: 100)]
     private ?string $name = null;
+
+    /**
+     * Type action ou indice.
+     */
+    #[ORM\Column(type: Types::SMALLINT)]
+    private int $type = 1;
 
     /**
      * Date de la fermeture.
@@ -123,6 +144,32 @@ class Stock implements \Stringable
     public function setName(?string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getType(): int
+    {
+        return $this->type;
+    }
+
+    public function getTypeLabel(): string
+    {
+        return self::$types[$this->type];
+    }
+
+    public function getTypeUnity(): string
+    {
+        return match ($this->type) {
+            3 => '',
+            9 => '%',
+            default => '€',
+        };
+    }
+
+    public function setType(int $type): static
+    {
+        $this->type = $type;
 
         return $this;
     }

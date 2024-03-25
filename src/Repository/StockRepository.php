@@ -31,6 +31,37 @@ class StockRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne la liste des cotations et indices boursiers avec sa dernières valeurs.
+     *
+     * @return Stock[]
+     */
+    public function findAllWhithLastPrice(): array
+    {
+        // Liste des cotations avec la dernières valeurs
+        $dql = "SELECT stock, prices
+        FROM App\\Entity\\Stock stock
+        JOIN stock.stockPrices prices
+        WHERE CONCAT(stock.id, ' ', prices.date) IN (
+            SELECT CONCAT(stock2.id, ' ', MAX(prices2.date))
+            FROM App\\Entity\\Stock stock2
+            JOIN stock2.stockPrices prices2
+            GROUP BY stock2.id
+        )";
+        $query = $this->_em->createQuery($dql);
+        $result = $query->getResult();
+
+        // Liste des cotations sans valeurs
+        $dql = 'SELECT stock, prices
+        FROM App\Entity\Stock stock
+        LEFT JOIN stock.stockPrices prices
+        GROUP BY stock
+        HAVING COUNT(prices) = 0';
+        $query = $this->_em->createQuery($dql);
+
+        return array_merge($result, $query->getResult());
+    }
+
+    /**
      * Retoune un tableau associatif des titres [Crédit Agricole SA] => Stock.
      *
      * @return Stock[]

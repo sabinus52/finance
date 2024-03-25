@@ -2,10 +2,10 @@
 
 {% import 'macro.html.twig' as mymacro %}
 
-{% block title %}{{ parent() }} - Gérer les cotations boursières{% endblock %}
+{% block title %}{{ parent() }} - Gérer les cotations et indices boursiers{% endblock %}
 
-{% block content_title %}<i class="fas fa-landmark"></i> Gérer les cotations boursières{% endblock %}
-{% block content_subtitle %}(actions, SICAV, FCP, ...){% endblock %}
+{% block content_title %}<i class="fas fa-landmark"></i> Gérer les cotations et indices boursiers{% endblock %}
+{% block content_subtitle %}(actions, SICAV, FCP, indices, taux d'intérêts ...){% endblock %}
 
 
 {% block content %}
@@ -27,20 +27,125 @@
                                     <th>Date</th>
                                     <th>Nom</th>
                                     <th class="text-center">Status</th>
+                                    <th class="text-right">Valeur</th>
+                                    <th class="text-right">Dernier</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
                             {% for item in stocks %}
+                                {% if item.type == 1 %}
+                                    <tr>
+                                        <td>{{ item.codeISIN }}</td>
+                                        <td><b>{{ item.name }}</b></td>
+                                        <td class="align-middle text-center">{{ item.getStatusBadge|raw }}</td>
+                                        {% if item.stockprices.0 is defined %}
+                                            <td class="text-right">{{ item.stockprices.0.price|number_format(2, ',', ' ') }} €</td>
+                                            <td class="text-right">{{ item.stockprices.0.date|date('d/m/Y') }}</td>
+                                        {% else %}
+                                            <td class="text-right"></td>
+                                            <td class="text-right"></td>
+                                        {% endif %}
+                                        <td class="text-right">
+                                            <a href="{{ path('manage_stock__prices', {'id': item.id}) }}" class="btn btn-sm btn-primary"r ole="button"><b><i class="fas fa-chart-line"></i><span class="d-none d-md-inline">&nbsp;Voir les cotations<span></b></a>
+                                            <a href="{{ path('manage_stock__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" role="button" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% else %}
                                 <tr>
-                                    <td>{{ item.codeISIN }}</td>
-                                    <td><b>{{ item.name }}</b></td>
-                                    <td class="align-middle text-center">{{ item.getStatusBadge|raw }}</td>
-                                    <td class="text-right">
-                                        <a href="{{ path('manage_stock__prices', {'id': item.id}) }}" class="btn btn-sm btn-primary"r ole="button"><b><i class="fas fa-chart-line"></i><span class="d-none d-md-inline">&nbsp;Voir les cotations<span></b></a>
-                                        <a href="{{ path('manage_stock__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" role="button" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
-                                    </td>
+                                    <td colspan="3">Aucun éléments dans la table</td>
                                 </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card card-warning card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Liste des indices boursières</h3>
+                        <div class="card-tools"><a href="{{ path('manage_stock__create') }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un indice</span></a></div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Nom</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-right">Valeur</th>
+                                    <th class="text-right">Dernier</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in stocks %}
+                                {% if item.type == 3 %}
+                                    <tr>
+                                        <td>{{ item.codeISIN }}</td>
+                                        <td><b>{{ item.name }}</b></td>
+                                        <td class="align-middle text-center">{{ item.getStatusBadge|raw }}</td>
+                                        {% if item.stockprices.0 is defined %}
+                                            <td class="text-right">{{ item.stockprices.0.price|number_format(2, ',', ' ') }}</td>
+                                            <td class="text-right">{{ item.stockprices.0.date|date('d/m/Y') }}</td>
+                                        {% else %}
+                                            <td class="text-right"></td>
+                                            <td class="text-right"></td>
+                                        {% endif %}
+                                        <td class="text-right">
+                                            <a href="{{ path('manage_stock__prices', {'id': item.id}) }}" class="btn btn-sm btn-primary"r ole="button"><b><i class="fas fa-chart-line"></i><span class="d-none d-md-inline">&nbsp;Voir les valeurs<span></b></a>
+                                            <a href="{{ path('manage_stock__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" role="button" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="3">Aucun éléments dans la table</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card card-danger card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Liste des taux d'intérêts</h3>
+                        <div class="card-tools"><a href="{{ path('manage_stock__create') }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un taux</span></a></div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Nom</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-right">Valeur</th>
+                                    <th class="text-right">Dernier</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in stocks %}
+                                {% if item.type == 9 %}
+                                    <tr>
+                                        <td>{{ item.codeISIN }}</td>
+                                        <td><b>{{ item.name }}</b></td>
+                                        <td class="align-middle text-center">{{ item.getStatusBadge|raw }}</td>
+                                        {% if item.stockprices.0 is defined %}
+                                            <td class="text-right">{{ item.stockprices.0.price|number_format(2, ',', ' ') }} %</td>
+                                            <td class="text-right">{{ item.stockprices.0.date|date('d/m/Y') }}</td>
+                                        {% else %}
+                                            <td class="text-right"></td>
+                                            <td class="text-right"></td>
+                                        {% endif %}
+                                        <td class="text-right">
+                                            <a href="{{ path('manage_stock__prices', {'id': item.id}) }}" class="btn btn-sm btn-primary"r ole="button"><b><i class="fas fa-chart-line"></i><span class="d-none d-md-inline">&nbsp;Voir les taux<span></b></a>
+                                            <a href="{{ path('manage_stock__edit', {'id': item.id}) }}" class="btn btn-sm btn-info" role="button" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                        </td>
+                                    </tr>
+                                {% endif %}
                             {% else %}
                                 <tr>
                                     <td colspan="3">Aucun éléments dans la table</td>
