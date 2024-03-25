@@ -12,11 +12,10 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\AccountRepository;
-use App\Values\AccountBalance;
 use App\Values\AccountType;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -25,170 +24,129 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  *
- * @ORM\Entity(repositoryClass=AccountRepository::class)
- *
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  */
-class Account
+#[ORM\Entity(repositoryClass: AccountRepository::class)]
+class Account implements \Stringable
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Type du compte.
-     *
-     * @var AccountType
-     *
-     * @ORM\Column(type="account_type")
      */
-    private $type;
+    #[ORM\Column(type: 'account_type')]
+    private ?AccountType $type = null;
 
     /**
      * Numéro du compte bancaire.
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=20, nullable=true)
-     * @Assert\Length(max=20)
      */
-    private $number;
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: true)]
+    #[Assert\Length(max: 20)]
+    private ?string $number = null;
 
     /**
      * Nom du compte.
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=50)
-     * @Assert\NotBlank
-     * @Assert\Length(max=50)
      */
-    private $name;
+    #[ORM\Column(type: Types::STRING, length: 50)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
+    private ?string $name = null;
 
     /**
      * Nom court.
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=20)
-     * @Assert\NotBlank
-     * @Assert\Length(max=20)
      */
-    private $shortName;
+    #[ORM\Column(type: Types::STRING, length: 20)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 20)]
+    private ?string $shortName = null;
 
     /**
      * Groupe d'appartenance.
-     *
-     * @var int
-     *
-     * @ORM\Column(type="smallint", options={"default": 0})
      */
-    private $unit;
+    #[ORM\Column(type: Types::SMALLINT, options: ['default' => 0])]
+    private ?int $unit = 0;
 
     /**
      * Solde initial du compte.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float", options={"default": 0})
-     * @Assert\NotBlank
      */
-    private $initial;
+    #[ORM\Column(type: Types::FLOAT, options: ['default' => 0])]
+    #[Assert\NotBlank]
+    private ?float $initial = 0;
 
     /**
      * Devise du compte.
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=3)
-     * @Assert\NotBlank
      */
-    private $currency;
+    #[ORM\Column(type: Types::STRING, length: 3)]
+    #[Assert\NotBlank]
+    private string $currency = 'EUR';
 
     /**
      * Date d'ouverture du compte.
-     *
-     * @var DateTime
-     *
-     * @ORM\Column(type="date")
-     * @Assert\NotBlank
      */
-    private $openedAt;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    #[Assert\NotBlank]
+    private ?\DateTimeImmutable $openedAt = null;
 
     /**
      * Date de fermeture ou null si en cours.
-     *
-     * @var DateTime
-     *
-     * @ORM\Column(type="date", nullable=true)
      */
-    private $closedAt;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $closedAt = null;
 
     /**
      * Montant du découvert autorisé.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float")
-     * @Assert\NotBlank
      */
-    private $overdraft;
+    #[ORM\Column(type: Types::FLOAT)]
+    #[Assert\NotBlank]
+    private ?float $overdraft = 0;
 
     /**
      * Metadata des différents soldes calculés.
      *
-     * @var AccountBalance
-     *
-     * @ORM\Column(type="object", nullable=true)
+     * @var array<float>
      */
-    private $balance;
+    #[ORM\Column(type: Types::JSON, name: 'balance')]
+    private array $balanceArray = [
+        'balance' => 0.0,
+        'reconbalance' => 0.0,
+        'reconcurrent' => 0.0,
+        'investment' => 0.0,
+        'repurchase' => 0.0,
+    ];
 
-    /**
-     * @var Institution
-     *
-     * @ORM\ManyToOne(targetEntity=Institution::class, inversedBy="accounts")
-     * @ORM\JoinColumn(nullable=false)
-     * @Assert\NotBlank
-     */
-    private $institution;
+    #[ORM\ManyToOne(targetEntity: Institution::class, inversedBy: 'accounts')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
+    private ?Institution $institution = null;
 
     /**
      * Compte associé pour les tes transactions (Ex : PEA -> PEA Caisse.
-     *
-     * @var Account
-     *
-     * @ORM\OneToOne(targetEntity=Account::class, cascade={"persist", "remove"})
      */
-    private $accAssoc;
+    #[ORM\OneToOne(targetEntity: self::class, cascade: ['persist', 'remove'])]
+    private ?Account $accAssoc = null;
 
     /**
-     * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="account")
+     * @var Collection|Transaction[]
      */
-    private $transactions;
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'account')]
+    private Collection $transactions;
 
     /**
      * Constructeur.
      */
     public function __construct()
     {
-        $this->unit = 0;
-        $this->initial = 0;
-        $this->balance = new AccountBalance();
-        $this->currency = 'EUR';
-        $this->overdraft = 0;
         $this->transactions = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        if (!$this->name) {
+        if ('' === $this->name || '0' === $this->name) {
             return '';
         }
 
@@ -289,24 +247,24 @@ class Account
         return $this;
     }
 
-    public function getOpenedAt(): ?DateTime
+    public function getOpenedAt(): ?\DateTimeImmutable
     {
         return $this->openedAt;
     }
 
-    public function setOpenedAt(?DateTime $openedAt): self
+    public function setOpenedAt(?\DateTimeImmutable $openedAt): self
     {
         $this->openedAt = $openedAt;
 
         return $this;
     }
 
-    public function getClosedAt(): ?DateTime
+    public function getClosedAt(): ?\DateTimeImmutable
     {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?DateTime $closedAt): self
+    public function setClosedAt(?\DateTimeImmutable $closedAt): self
     {
         $this->closedAt = $closedAt;
 
@@ -325,18 +283,20 @@ class Account
         return $this;
     }
 
-    public function getBalance(): AccountBalance
+    /**
+     * @return array<float>
+     */
+    public function getBalanceArray(): array
     {
-        if (null === $this->balance) {
-            return new AccountBalance();
-        }
-
-        return $this->balance;
+        return $this->balanceArray;
     }
 
-    public function setBalance(AccountBalance $balance): self
+    /**
+     * @param array<float> $balance
+     */
+    public function setBalanceArray(?array $balance): self
     {
-        $this->balance = $balance;
+        $this->balanceArray = $balance;
 
         return $this;
     }
@@ -366,7 +326,7 @@ class Account
     }
 
     /**
-     * @return Collection<int, Transaction>
+     * @return Collection|Transaction[]
      */
     public function getTransactions(): Collection
     {
@@ -385,11 +345,9 @@ class Account
 
     public function removeTransaction(Transaction $transaction): self
     {
-        if ($this->transactions->removeElement($transaction)) {
-            // set the owning side to null (unless already changed)
-            if ($transaction->getAccount() === $this) {
-                $transaction->setAccount(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->transactions->removeElement($transaction) && $transaction->getAccount() === $this) {
+            $transaction->setAccount(null);
         }
 
         return $this;
@@ -397,8 +355,6 @@ class Account
 
     /**
      * Retourne le nom complet organisme + nom du compte.
-     *
-     * @return string
      */
     public function getFullName(): string
     {
@@ -417,18 +373,14 @@ class Account
 
     /**
      * Indique si le compte est fermé ou pas.
-     *
-     * @return bool
      */
     public function isClosed(): bool
     {
-        return null !== $this->closedAt;
+        return $this->closedAt instanceof \DateTimeImmutable;
     }
 
     /**
      * Affiche le badge du statut du compte ou contrat.
-     *
-     * @return string
      */
     public function getStatusBadge(): string
     {
@@ -439,27 +391,85 @@ class Account
         return '<span class="badge bg-success text-uppercase">ouvert</span>';
     }
 
+    public function getBalance(): ?float
+    {
+        return $this->balanceArray['balance'];
+    }
+
+    public function setBalance(?float $balance): self
+    {
+        $this->balanceArray['balance'] = $balance;
+
+        return $this;
+    }
+
+    public function getReconBalance(): ?float
+    {
+        return $this->balanceArray['reconbalance'];
+    }
+
+    public function setReconBalance(float $reconBalance): self
+    {
+        $this->balanceArray['reconbalance'] = $reconBalance;
+
+        return $this;
+    }
+
+    public function getReconCurrent(): ?float
+    {
+        return $this->balanceArray['reconcurrent'];
+    }
+
+    public function setReconCurrent(float $reconCurrent): self
+    {
+        $this->balanceArray['reconcurrent'] = $reconCurrent;
+
+        return $this;
+    }
+
+    public function getInvestment(): ?float
+    {
+        return $this->balanceArray['investment'];
+    }
+
+    public function setInvestment(?float $investment): self
+    {
+        $this->balanceArray['investment'] = $investment;
+
+        return $this;
+    }
+
+    public function getRepurchase(): ?float
+    {
+        return $this->balanceArray['repurchase'];
+    }
+
+    public function setRepurchase(?float $repurchase): self
+    {
+        $this->balanceArray['repurchase'] = $repurchase;
+
+        return $this;
+    }
+
     /**
      * Retourne la performance du placement.
-     *
-     * @return float|null
      */
     public function getInvestPerformance(): ?float
     {
-        if (0.0 === $this->balance->getInvestment()) {
+        if (0.0 === $this->getInvestment()) {
             return null;
         }
 
-        return round($this->getInvestGain() / $this->balance->getInvestment(), 5);
+        return round($this->getInvestGain() / $this->getInvestment(), 5);
     }
 
     public function getInvestValuation(): float
     {
-        return $this->balance->getBalance() + $this->balance->getRepurchase();
+        return $this->getBalance() + $this->getRepurchase();
     }
 
     public function getInvestGain(): float
     {
-        return $this->balance->getBalance() + $this->balance->getRepurchase() - $this->balance->getInvestment();
+        return $this->getBalance() + $this->getRepurchase() - $this->getInvestment();
     }
 }

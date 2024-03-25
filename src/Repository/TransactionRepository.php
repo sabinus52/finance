@@ -15,8 +15,6 @@ use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Entity\Vehicle;
-use DateTimeImmutable;
-use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -38,7 +36,6 @@ class TransactionRepository extends ServiceEntityRepository
     /**
      * Toutes les transactions pour un compte donné.
      *
-     * @param Account      $account
      * @param array<mixed> $filter
      *
      * @return Transaction[]
@@ -63,11 +60,14 @@ class TransactionRepository extends ServiceEntityRepository
 
         foreach ($filter as $key => $value) {
             // Si null ou vide, pas de filtre
-            if ('' === $value || null === $value) {
+            if ('' === $value) {
+                continue;
+            }
+            if (null === $value) {
                 continue;
             }
             if ('range' === $key) {
-                $now = new DateTimeImmutable();
+                $now = new \DateTimeImmutable();
                 $query->andWhere('(trt.date BETWEEN :start AND :end OR trt.date BETWEEN :start2 AND :end2)')
                     ->setParameter('start', $value[0])
                     ->setParameter('end', $value[1])
@@ -86,8 +86,6 @@ class TransactionRepository extends ServiceEntityRepository
 
     /**
      * Toutes les transactions pour le rapprochement.
-     *
-     * @param Account $account
      *
      * @return Transaction[]
      */
@@ -116,13 +114,8 @@ class TransactionRepository extends ServiceEntityRepository
 
     /**
      * Recherche la transaction juste avant la date définie.
-     *
-     * @param Account           $account
-     * @param DateTimeInterface $date
-     *
-     * @return Transaction
      */
-    public function findOneLastBeforeDate(Account $account, DateTimeInterface $date): Transaction
+    public function findOneLastBeforeDate(Account $account, \DateTimeInterface $date): Transaction
     {
         return $this->createQueryBuilder('trt')
             ->addSelect('cat')
@@ -142,12 +135,9 @@ class TransactionRepository extends ServiceEntityRepository
     /**
      * Recherche les transactions après une date donnée.
      *
-     * @param Account           $account
-     * @param DateTimeInterface $date
-     *
      * @return Transaction[]
      */
-    public function findAfterDate(Account $account, DateTimeInterface $date): array
+    public function findAfterDate(Account $account, \DateTimeInterface $date): array
     {
         return $this->createQueryBuilder('trt')
             ->addSelect('cat')
@@ -165,10 +155,6 @@ class TransactionRepository extends ServiceEntityRepository
 
     /**
      * Dernière transaction de valorisation de placement.
-     *
-     * @param Account $account
-     *
-     * @return Transaction|null
      */
     public function findOneLastValorisation(Account $account): ?Transaction
     {
@@ -189,10 +175,6 @@ class TransactionRepository extends ServiceEntityRepository
 
     /**
      * Recherche une transaction de valorisation à une période donnée.
-     *
-     * @param Transaction $transaction
-     *
-     * @return Transaction|null
      */
     public function findOneValorisation(Transaction $transaction): ?Transaction
     {
@@ -208,7 +190,7 @@ class TransactionRepository extends ServiceEntityRepository
             ->setMaxResults(1)
         ;
         // Ne cherche pas la transaction courante
-        if ($transaction->getId()) {
+        if (null !== $transaction->getId()) {
             $query->andWhere('trt.id <> :id')->setParameter('id', $transaction->getId());
         }
 
@@ -217,8 +199,6 @@ class TransactionRepository extends ServiceEntityRepository
 
     /**
      * Retourne les transactions d'un véhicule.
-     *
-     * @param Vehicle $vehicle
      *
      * @return Transaction[]
      */
@@ -245,8 +225,6 @@ class TransactionRepository extends ServiceEntityRepository
     /**
      * Retourne les transactions d'un portefeuille.
      *
-     * @param Account $account
-     *
      * @return Transaction[]
      */
     public function findAllByWallet(Account $account): array
@@ -269,10 +247,6 @@ class TransactionRepository extends ServiceEntityRepository
 
     /**
      * Rapproche toutes les transactions d'un compte.
-     *
-     * @param Account $account
-     *
-     * @return int
      */
     public function updateAllReconciliation(Account $account): int
     {

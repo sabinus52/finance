@@ -12,8 +12,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ScheduleRepository;
-use DateInterval;
-use DateTimeImmutable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -21,9 +20,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Schedule.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=ScheduleRepository::class)
  */
+#[ORM\Entity(repositoryClass: ScheduleRepository::class)]
 class Schedule
 {
     /**
@@ -31,87 +29,57 @@ class Schedule
      *
      * @var array<mixed>
      */
-    private static $periods = [
+    private static array $periods = [
         'D' => ['day', 'Jour'],
         'W' => ['week', 'Semaine'],
         'M' => ['month', 'Mois'],
         'Y' => ['year', 'Année'],
     ];
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Statut de la planification actif ou pas.
-     *
-     * @var bool
-     *
-     * @ORM\Column(type="boolean")
      */
-    private $state;
+    #[ORM\Column(type: Types::BOOLEAN)]
+    private bool $state = true;
 
     /**
      * Prochaine date de la transaction.
-     *
-     * @var DateTimeImmutable
-     *
-     * @ORM\Column(type="date_immutable")
-     * @Assert\NotBlank
      */
-    private $doAt;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    #[Assert\NotBlank]
+    private ?\DateTimeImmutable $doAt = null;
 
     /**
      * Frequence de la périodicité de la planification.
-     *
-     * @var int
-     *
-     * @ORM\Column(type="smallint")
-     * @Assert\NotBlank
-     * @Assert\Type("int")
      */
-    private $frequency;
+    #[ORM\Column(type: Types::SMALLINT)]
+    #[Assert\NotBlank]
+    #[Assert\Type('int')]
+    private ?int $frequency = 1;
 
     /**
      * Periode de la planification (jour, semaine, mois ou année).
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=1)
-     * @Assert\NotBlank
      */
-    private $period;
+    #[ORM\Column(type: Types::STRING, length: 1)]
+    #[Assert\NotBlank]
+    private ?string $period = 'M';
 
     /**
      * Nombre de transaction à effectuer.
-     *
-     * @var int
-     *
-     * @ORM\Column(type="smallint", nullable=true)
      */
-    private $number;
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    private ?int $number = null;
 
     /**
      * Modèle associé.
-     *
-     * @var Model
-     *
-     * @ORM\OneToOne(targetEntity=Model::class, mappedBy="schedule", cascade={"persist"})
      */
-    private $model;
-
-    /**
-     * Constructeur.
-     */
-    public function __construct()
-    {
-        $this->state = true;
-        $this->frequency = 1;
-        $this->period = 'M';
-    }
+    #[ORM\OneToOne(targetEntity: Model::class, mappedBy: 'schedule', cascade: ['persist'])]
+    private ?Model $model = null;
 
     public function getId(): ?int
     {
@@ -130,12 +98,12 @@ class Schedule
         return $this;
     }
 
-    public function getDoAt(): ?DateTimeImmutable
+    public function getDoAt(): ?\DateTimeImmutable
     {
         return $this->doAt;
     }
 
-    public function setDoAt(?DateTimeImmutable $doAt): self
+    public function setDoAt(?\DateTimeImmutable $doAt): self
     {
         $this->doAt = $doAt;
 
@@ -144,8 +112,6 @@ class Schedule
 
     /**
      * Retourne le badge de la prochaine date de la planification ou à défaut le statut.
-     *
-     * @return string
      */
     public function getLastDateBadge(): string
     {
@@ -153,7 +119,7 @@ class Schedule
             return '<span class="badge badge-danger">Désactivé</span>';
         }
 
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $color = 'success';
         if ($this->doAt < $now->modify('+ 10 days')) {
             $color = 'warning';
@@ -164,12 +130,10 @@ class Schedule
 
     /**
      * Remet la prochaine date de la planification.
-     *
-     * @return self
      */
     public function setNextDoAt(): self
     {
-        $period = new DateInterval(sprintf('P%s%s', $this->getFrequency(), $this->getPeriod()));
+        $period = new \DateInterval(sprintf('P%s%s', $this->getFrequency(), $this->getPeriod()));
         $this->doAt = $this->doAt->add($period);
 
         return $this;
@@ -224,12 +188,12 @@ class Schedule
     public function setModel(?Model $model): self
     {
         // unset the owning side of the relation if necessary
-        if (null === $model && null !== $this->model) {
+        if (!$model instanceof Model && $this->model instanceof Model) {
             $this->model->setSchedule(null);
         }
 
         // set the owning side of the relation if necessary
-        if (null !== $model && $model->getSchedule() !== $this) {
+        if ($model instanceof Model && $model->getSchedule() !== $this) {
             $model->setSchedule($this);
         }
 

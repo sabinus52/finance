@@ -14,12 +14,12 @@ namespace App\WorkFlow;
 use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
+use App\Entity\TransactionStock;
 use App\Repository\AccountRepository;
 use App\Repository\TransactionRepository;
 use App\Values\AccountBalance;
 use App\Values\AccountType;
 use App\Values\TransactionType;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -30,22 +30,12 @@ use Doctrine\ORM\EntityManagerInterface;
 class Balance
 {
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
      * @var TransactionRepository
      */
     private $repository;
 
-    /**
-     * @param EntityManagerInterface $manager
-     */
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(private readonly EntityManagerInterface $entityManager)
     {
-        $this->entityManager = $manager;
-
         /** @var TransactionRepository $repository */
         $repository = $this->entityManager->getRepository(Transaction::class);
         $this->repository = $repository;
@@ -56,8 +46,6 @@ class Balance
      *
      * @param Transaction $transaction Transaction courante modifiée
      * @param Transaction $before      Transaction courante mais avant sa modification
-     *
-     * @return int
      */
     public function updateBalanceAfter(Transaction $transaction, Transaction $before): int
     {
@@ -74,7 +62,7 @@ class Balance
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
                 $variation = $item->getBalance() - $balance;
                 $item->setAmount($variation);
-                $item->setCategory($this->getCategory(($variation >= 0.0)));
+                $item->setCategory($this->getCategory($variation >= 0.0));
                 $balance = $item->getBalance();
             } else {
                 $balance += $item->getAmount();
@@ -82,23 +70,21 @@ class Balance
             }
         }
 
-        $accountBalance = clone $transaction->getAccount()->getBalance();
-        $accountBalance->setBalance($balance);
+        $transaction->getAccount()->setBalance($balance);
         // Recalcul de l'investissement
         if (Category::INVESTMENT === $transaction->getCategory()->getCode() && $transaction->getAmount() >= 0) {
-            $invested = $accountBalance->getInvestment();
+            $invested = $transaction->getAccount()->getInvestment();
             $invested = $invested - $before->getAmount() + $transaction->getAmount();
-            $accountBalance->setInvestment($invested);
+            $transaction->getAccount()->setInvestment($invested);
         }
         if (Category::REPURCHASE === $transaction->getCategory()->getCode() && $transaction->getAmount() <= 0) {
-            $repurchase = $accountBalance->getRepurchase();
+            $repurchase = $transaction->getAccount()->getRepurchase();
             $repurchase = $repurchase - abs($before->getAmount()) + abs($transaction->getAmount());
-            $accountBalance->setRepurchase($repurchase);
+            $transaction->getAccount()->setRepurchase($repurchase);
         }
-        $transaction->getAccount()->setBalance($accountBalance);
 
         // Dans le cas d'une transaction boursière
-        if ($transaction->getTransactionStock()) {
+        if ($transaction->getTransactionStock() instanceof TransactionStock) {
             $this->updateBalanceWallet($transaction->getTransactionStock()->getAccount());
         }
 
@@ -109,10 +95,6 @@ class Balance
 
     /**
      * Mets à jour le solde de tout le compte défini.
-     *
-     * @param Account $account
-     *
-     * @return int
      */
     public function updateBalanceFromScratch(Account $account): int
     {
@@ -132,7 +114,7 @@ class Balance
      *
      * @param bool|null $isOpened
      */
-    public function updateAllAccounts(?bool $isOpened = null): void
+    public function updateAllAccounts(bool $isOpened = null): void
     {
         /** @var AccountRepository $repository */
         $repository = $this->entityManager->getRepository(Account::class);
@@ -154,7 +136,7 @@ class Balance
      *
      * @param bool|null $isOpened
      */
-    public function updateAllWallets(?bool $isOpened = null): void
+    public function updateAllWallets(bool $isOpened = null): void
     {
         /** @var AccountRepository $repository */
         $repository = $this->entityManager->getRepository(Account::class);
@@ -170,8 +152,6 @@ class Balance
     /**
      * Retourne les soldes d'un compte à la fin de chaque mois.
      *
-     * @param Account $account
-     *
      * @return array<float>
      */
     public function getByMonth(Account $account): array
@@ -186,16 +166,16 @@ class Balance
         }
 
         // Bouche les mois manquants
-        $start = clone $account->getOpenedAt();
+        $start = $account->getOpenedAt();
         $end = $account->getClosedAt();
-        $end ??= new DateTime();
+        $end ??= new \DateTimeImmutable();
         $balance = 0.0;
         while ($start->format('Y-m') <= $end->format('Y-m')) {
             if (!isset($results[$start->format('Y-m')])) {
                 $results[$start->format('Y-m')] = $balance;
             }
             $balance = $results[$start->format('Y-m')];
-            $start->modify('+ 1 month');
+            $start = $start->modify('+ 1 month');
         }
         ksort($results);
 
@@ -204,8 +184,6 @@ class Balance
 
     /**
      * Retourne les soldes d'un compte à la fin de chaque année.
-     *
-     * @param Account $account
      *
      * @return array<float>
      */
@@ -221,16 +199,16 @@ class Balance
         }
 
         // Bouche les années manquantes
-        $start = clone $account->getOpenedAt();
+        $start = $account->getOpenedAt();
         $end = $account->getClosedAt();
-        $end ??= new DateTime();
+        $end ??= new \DateTimeImmutable();
         $balance = 0.0;
         while ($start->format('Y') <= $end->format('Y')) {
             if (!isset($results[$start->format('Y')])) {
                 $results[$start->format('Y')] = $balance;
             }
             $balance = $results[$start->format('Y')];
-            $start->modify('+ 1 year');
+            $start = $start->modify('+ 1 year');
         }
         ksort($results);
 
@@ -239,28 +217,23 @@ class Balance
 
     /**
      * Mets à jour le solde d'un compte standard.
-     *
-     * @param Account $account
-     *
-     * @return int
      */
     private function updateBalanceAccount(Account $account): int
     {
         $balance = $account->getInitial();
         $reconcilied = $account->getInitial();
-        $reconCurrent = $account->getBalance()->getReconCurrent();
         $investment = 0.0;
         $repurchase = 0.0;
 
         // Liste des transactions par compte
         /** @var Transaction[] $results */
-        $results = $this->repository->findAfterDate($account, new DateTime('1970-01-01'));
+        $results = $this->repository->findAfterDate($account, new \DateTime('1970-01-01'));
         foreach ($results as $item) {
             if (TransactionType::REVALUATION === $item->getType()->getValue()) {
                 // Dans le cas d'une valoraisation d'un placement, on doit recalculer le montant et conserver la balance
                 $variation = $item->getBalance() - $balance;
                 $item->setAmount($variation);
-                $item->setCategory($this->getCategory(($variation >= 0.0)));
+                $item->setCategory($this->getCategory($variation >= 0.0));
                 $balance = $item->getBalance();
             } else {
                 $balance += $item->getAmount();
@@ -272,56 +245,48 @@ class Balance
             if (Category::INVESTMENT === $item->getCategory()->getCode() && $item->getAmount() > 0) {
                 $investment += abs($item->getAmount());
             }
-            if (Category::REPURCHASE === $item->getCategory()->getCode() && $item->getAmount() < 0) {
-                $repurchase += abs($item->getAmount());
+            if (Category::REPURCHASE !== $item->getCategory()->getCode()) {
+                continue;
             }
+            if ($item->getAmount() >= 0) {
+                continue;
+            }
+            $repurchase += abs($item->getAmount());
         }
 
-        $metaBalance = new AccountBalance();
-        $metaBalance->setBalance($balance);
-        $metaBalance->setReconBalance($reconcilied);
-        $metaBalance->setReconCurrent($reconCurrent);
-        $metaBalance->setInvestment($investment);
-        $metaBalance->setRepurchase($repurchase);
-        $account->setBalance($metaBalance);
+        // $metaBalance = new AccountBalance();
+        $account->setBalance($balance);
+        $account->setReconBalance($reconcilied);
+        $account->setInvestment($investment);
+        $account->setRepurchase($repurchase);
 
         return count($results);
     }
 
     /**
      * Mets à jour le solde d'un portefeuille.
-     *
-     * @param Account $account
-     *
-     * @return int
      */
     private function updateBalanceWallet(Account $account): int
     {
         $wallet = new Wallet($this->entityManager, $account);
 
         $wallet->buidAndSaveWallet();
+
         $walletCurrent = $wallet->getWallet();
 
-        $metaBalance = new AccountBalance();
-        $metaBalance->setBalance($walletCurrent->getValorisation());
-        $account->getBalance()->setBalance($walletCurrent->getValorisation());
+        $account->setBalance($walletCurrent->getValorisation());
         if (AccountType::PEA_TITRES === $account->getType()->getValue()) {
-            $metaBalance->setInvestment($account->getAccAssoc()->getBalance()->getInvestment());
-            $metaBalance->setRepurchase($account->getAccAssoc()->getBalance()->getRepurchase());
+            $account->setInvestment($account->getAccAssoc()->getInvestment());
+            $account->setRepurchase($account->getAccAssoc()->getRepurchase());
         } else {
-            $metaBalance->setInvestment($walletCurrent->getAmountInvest());
+            $account->setInvestment($walletCurrent->getAmountInvest());
         }
-        $account->setBalance($metaBalance);
 
         return 1;
     }
 
     /**
      * Retourne la catgorie de Valorisation.
-     *
-     * @param bool $type
-     *
-     * @return Category
      */
     private function getCategory(bool $type): Category
     {

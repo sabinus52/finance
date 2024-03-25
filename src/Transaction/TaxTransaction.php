@@ -43,12 +43,12 @@ final class TaxTransaction extends TransactionModelAbstract implements Transacti
         return 'une taxe';
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::EXPENSE, Category::TAXE);
     }
 
-    public function getPayment(): ?Payment
+    protected function getPayment(): ?Payment
     {
         return new Payment(Payment::PRELEVEMENT);
     }

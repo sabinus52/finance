@@ -15,61 +15,47 @@ namespace App\Values;
  * Metadonnées des différents soldes d'un compte.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
+ *
+ * @deprecated suite à la conversion du champs au format JSON (utiliser les fonctions depuis Account)
  */
 class AccountBalance
 {
     /**
      * Solde courant du compte.
-     *
-     * @var float
      */
-    private $balance;
+    private ?float $balance = 0.0;
 
     /**
      * Solde rapproché.
-     *
-     * @var float
      */
-    private $reconBalance;
+    private float $reconBalance = 0.0;
 
     /**
      * Rapprochement en cours à solder.
-     *
-     * @var float
      */
-    private $reconCurrent;
+    private float $reconCurrent = 0.0;
 
     /**
      * Montant investi dans les placements.
-     *
-     * @var float
      */
-    private $investment;
+    private ?float $investment = 0.0;
 
     /**
      * Montant investi dans les placements.
-     *
-     * @var float
      */
-    private $repurchase;
+    private ?float $repurchase = 0.0;
 
     /**
-     * Contructeur.
+     * @deprecated
      */
-    public function __construct()
-    {
-        $this->balance = 0.0;
-        $this->reconBalance = 0.0;
-        $this->reconCurrent = 0.0;
-        $this->investment = 0.0;
-        $this->repurchase = 0.0;
-    }
-
     public function getBalance(): ?float
     {
         return $this->balance;
     }
 
+    /**
+     * @deprecated
+     */
     public function setBalance(?float $balance): self
     {
         $this->balance = $balance;
@@ -77,11 +63,17 @@ class AccountBalance
         return $this;
     }
 
+    /**
+     * @deprecated
+     */
     public function getReconBalance(): ?float
     {
         return $this->reconBalance;
     }
 
+    /**
+     * @deprecated
+     */
     public function setReconBalance(float $reconBalance): self
     {
         $this->reconBalance = $reconBalance;
@@ -89,11 +81,17 @@ class AccountBalance
         return $this;
     }
 
+    /**
+     * @deprecated
+     */
     public function getReconCurrent(): ?float
     {
         return $this->reconCurrent;
     }
 
+    /**
+     * @deprecated
+     */
     public function setReconCurrent(float $reconCurrent): self
     {
         $this->reconCurrent = $reconCurrent;
@@ -101,11 +99,17 @@ class AccountBalance
         return $this;
     }
 
+    /**
+     * @deprecated
+     */
     public function getInvestment(): ?float
     {
         return $this->investment;
     }
 
+    /**
+     * @deprecated
+     */
     public function setInvestment(?float $investment): self
     {
         $this->investment = $investment;
@@ -113,11 +117,17 @@ class AccountBalance
         return $this;
     }
 
+    /**
+     * @deprecated
+     */
     public function getRepurchase(): ?float
     {
         return $this->repurchase;
     }
 
+    /**
+     * @deprecated
+     */
     public function setRepurchase(?float $repurchase): self
     {
         $this->repurchase = $repurchase;

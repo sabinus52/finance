@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Schedule;
-use DateTimeImmutable;
 use Olix\BackOfficeBundle\Form\Type\DatePickerType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -31,13 +30,15 @@ class ScheduleFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $date = new DateTimeImmutable();
+        $date = new \DateTimeImmutable();
         $builder
             ->add('doAt', DatePickerType::class, [
                 'label' => 'Date',
                 'format' => 'dd/MM/yyyy',
                 'input' => 'datetime_immutable',
-                'js_min_date' => $date->modify('+ 1 day')->format('Y-m-d'),
+                'js_restrictions' => [
+                    'minDate' => $date->modify('+ 1 day')->format('Y-m-d'),
+                ],
                 'required' => false,
             ])
             ->add('frequency', IntegerType::class, [

@@ -13,9 +13,9 @@ namespace App\Entity;
 
 use App\Repository\ProjectRepository;
 use App\Values\ProjectCategory;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -23,100 +23,77 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Project (Compta d'un projet).
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=ProjectRepository::class)
  */
-class Project
+#[ORM\Entity(repositoryClass: ProjectRepository::class)]
+class Project implements \Stringable
 {
-    public const CLOSED = false;
-    public const OPENED = true;
+    final public const CLOSED = false;
+    final public const OPENED = true;
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Nom du projet.
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=50)
-     * @Assert\NotBlank
-     * @Assert\Length(max=50)
      */
-    private $name;
+    #[ORM\Column(type: Types::STRING, length: 50)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
+    private ?string $name = null;
 
     /**
      * Description du projet.
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=255, nullable=true)
-     * @Assert\Length(max=255)
      */
-    private $description;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
+    private ?string $description = null;
 
     /**
      * Catégorie du projet.
-     *
-     * @var ProjectCategory
-     *
-     * @ORM\Column(type="projectcat", options={"default": 0})
      */
-    private $category;
+    #[ORM\Column(type: 'projectcat', options: ['default' => 0])]
+    private ProjectCategory $category;
 
     /**
      * Date de début du projet.
-     *
-     * @var DateTime
-     *
-     * @ORM\Column(type="date")
-     * @Assert\NotBlank
      */
-    private $startedAt;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    #[Assert\NotBlank]
+    private ?\DateTimeImmutable $startedAt = null;
 
     /**
      * Date de fin du projet.
-     *
-     * @var DateTime
-     *
-     * @ORM\Column(type="date")
-     * @Assert\NotBlank
      */
-    private $finishAt;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    #[Assert\NotBlank]
+    private ?\DateTimeImmutable $finishAt = null;
 
     /**
      * SI le projet est ouvert pour traitement.
-     *
-     * @var bool
-     *
-     * @ORM\Column(type="boolean", options={"default": 0})
      */
-    private $state;
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => 0])]
+    private bool $state = self::OPENED;
 
     /**
      * Transcations associées.
      *
-     * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="project")
+     * @var Collection|Transaction[]
      */
-    private $transactions;
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'project')]
+    private Collection $transactions;
 
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
-        $now = new DateTime();
+        $now = new \DateTimeImmutable();
         $this->startedAt = $now;
         $this->finishAt = $now->modify('+ 10 days');
         $this->category = new ProjectCategory(ProjectCategory::OTHER);
-        $this->state = self::OPENED;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name ?: '';
     }
@@ -162,24 +139,24 @@ class Project
         return $this;
     }
 
-    public function getStartedAt(): ?DateTime
+    public function getStartedAt(): ?\DateTimeImmutable
     {
         return $this->startedAt;
     }
 
-    public function setStartedAt(?DateTime $startedAt): self
+    public function setStartedAt(?\DateTimeImmutable $startedAt): self
     {
         $this->startedAt = $startedAt;
 
         return $this;
     }
 
-    public function getFinishAt(): ?DateTime
+    public function getFinishAt(): ?\DateTimeImmutable
     {
         return $this->finishAt;
     }
 
-    public function setFinishAt(?DateTime $finishAt): self
+    public function setFinishAt(?\DateTimeImmutable $finishAt): self
     {
         $this->finishAt = $finishAt;
 
@@ -188,7 +165,7 @@ class Project
 
     public function isState(): bool
     {
-        return (bool) $this->state;
+        return $this->state;
     }
 
     public function setState(bool $state): self
@@ -199,7 +176,7 @@ class Project
     }
 
     /**
-     * @return Collection<int, Transaction>
+     * @return Collection|Transaction[]
      */
     public function getTransactions(): Collection
     {
@@ -218,11 +195,9 @@ class Project
 
     public function removeTransaction(Transaction $transaction): self
     {
-        if ($this->transactions->removeElement($transaction)) {
-            // set the owning side to null (unless already changed)
-            if ($transaction->getProject() === $this) {
-                $transaction->setProject(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->transactions->removeElement($transaction) && $transaction->getProject() === $this) {
+            $transaction->setProject(null);
         }
 
         return $this;
@@ -230,8 +205,6 @@ class Project
 
     /**
      * Retourne le coût total.
-     *
-     * @return float
      */
     public function getTotalCost(): float
     {
@@ -246,8 +219,6 @@ class Project
 
     /**
      * Affiche le badge du statut.
-     *
-     * @return string
      */
     public function getStateBadge(): string
     {

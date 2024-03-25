@@ -29,9 +29,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class InstitutionController extends AbstractController
 {
-    /**
-     * @Route("/manage/institution", name="manage_institution__index")
-     */
+    #[Route(path: '/manage/institution', name: 'manage_institution__index')]
     public function index(InstitutionRepository $repository): Response
     {
         return $this->render('manage/institution-index.html.twig', [
@@ -39,9 +37,7 @@ class InstitutionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/institution/create", name="manage_institution__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/institution/create', name: 'manage_institution__create', methods: ['GET', 'POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $institution = new Institution();
@@ -58,12 +54,12 @@ class InstitutionController extends AbstractController
 
             $entityManager->persist($institution);
             $entityManager->flush();
-            $this->addFlash('success', 'La création de l\'organisme <strong>'.$institution.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf("La création de l'organisme <strong>%s</strong> a bien été prise en compte", $institution));
 
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer une nouvelle institution',
@@ -71,9 +67,7 @@ class InstitutionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/institution/edit/{id}", name="manage_institution__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/institution/edit/{id}', name: 'manage_institution__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Institution $institution, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(InstitutionType::class, $institution);
@@ -88,12 +82,12 @@ class InstitutionController extends AbstractController
             }
 
             $entityManager->flush();
-            $this->addFlash('success', 'La modification de l\'organisme <strong>'.$institution.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf("La modification de l'organisme <strong>%s</strong> a bien été prise en compte", $institution));
 
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier une institution',
@@ -105,12 +99,10 @@ class InstitutionController extends AbstractController
      * Retoune le fichier téléchargé en base64.
      *
      * @param UploadedFile $logo
-     *
-     * @return string
      */
     private function getLogoBase64(?UploadedFile $logo): ?string
     {
-        if (null === $logo) {
+        if (!$logo instanceof UploadedFile) {
             return null;
         }
 
@@ -119,7 +111,7 @@ class InstitutionController extends AbstractController
         // Déplace le fichier dans le dossier temporaire
         try {
             $logo->move(sys_get_temp_dir(), $filename);
-        } catch (FileException $e) {
+        } catch (FileException) {
             // ... handle exception if something happens during file upload
             return null;
         }

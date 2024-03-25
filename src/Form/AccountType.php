@@ -32,6 +32,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  *
  * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  * @SuppressWarnings(PHPMD.StaticAccess)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class AccountType extends AbstractType
 {
@@ -74,7 +75,7 @@ class AccountType extends AbstractType
                 'required' => false,
             ])
             ->add('openedAt', DatePickerType::class, [
-                'label' => 'Date d\'ouverture',
+                'label' => "Date d'ouverture",
                 'format' => 'dd/MM/yyyy',
                 'required' => false,
             ])
@@ -90,24 +91,21 @@ class AccountType extends AbstractType
             ->add('accAssoc', EntityType::class, [
                 'label' => 'Compte associé',
                 'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) {
-                    return $er->createQueryBuilder('acc')
-                        ->addSelect('ist')
-                        ->innerJoin('acc.institution', 'ist')
-                        ->orderBy('ist.name')
-                        ->addOrderBy('acc.name')
-                    ;
-                },
-                'choice_label' => function (Account $choice) {
+                'query_builder' => static fn (AccountRepository $er) => $er->createQueryBuilder('acc')
+                    ->addSelect('ist')
+                    ->innerJoin('acc.institution', 'ist')
+                    ->orderBy('ist.name')
+                    ->addOrderBy('acc.name'),
+                'choice_label' => static function (Account $choice): string {
                     $result = $choice->getFullName();
-                    if (null !== $choice->getClosedAt()) {
+                    if ($choice->getClosedAt() instanceof \DateTimeImmutable) {
                         $result .= ' (fermé)';
                     }
 
                     return $result;
                 },
-                'choice_attr' => function (Account $choice) {
-                    if (null !== $choice->getClosedAt()) {
+                'choice_attr' => static function (Account $choice): array {
+                    if ($choice->getClosedAt() instanceof \DateTimeImmutable) {
                         return ['class' => 'text-secondary', 'style' => 'font-style: italic;'];
                     }
 

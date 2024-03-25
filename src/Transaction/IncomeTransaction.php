@@ -32,7 +32,7 @@ final class IncomeTransaction extends TransactionModelAbstract implements Transa
         return [
             'filter' => [
                 'account' => sprintf('acc.type <= %s', AccountType::COURANT * 10 + 9),
-                'category' => sprintf('cat.type = %s', (int) (Category::INCOME)),
+                'category' => sprintf('cat.type = %s', (int) Category::INCOME),
                 '!fields' => ['account'],
             ],
         ];

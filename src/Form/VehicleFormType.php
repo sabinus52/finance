@@ -64,12 +64,12 @@ class VehicleFormType extends AbstractType
                 'required' => false,
             ])
             ->add('registeredAt', DatePickerType::class, [
-                'label' => 'Date d\'immatriculation',
+                'label' => "Date d'immatriculation",
                 'format' => 'dd/MM/yyyy',
                 'required' => false,
             ])
             ->add('boughtAt', DatePickerType::class, [
-                'label' => 'Date d\'achat',
+                'label' => "Date d'achat",
                 'format' => 'dd/MM/yyyy',
                 'required' => false,
             ])

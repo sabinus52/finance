@@ -28,41 +28,27 @@ class Transfer
      *
      * @var array<mixed>
      */
-    private static $categories = [
+    private static array $categories = [
         Category::VIREMENT,
         Category::INVESTMENT,
         Category::REPURCHASE,
     ];
 
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
      * Transaction créditeur.
-     *
-     * @var Transaction
      */
-    private $credit;
+    private ?Transaction $credit = null;
 
     /**
      * Transaction débiteur.
-     *
-     * @var Transaction
      */
-    private $debit;
+    private ?Transaction $debit = null;
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $manager
-     * @param Transaction            $transaction
      */
-    public function __construct(EntityManagerInterface $manager, Transaction $transaction)
+    public function __construct(private readonly EntityManagerInterface $entityManager, Transaction $transaction)
     {
-        $this->entityManager = $manager;
-
         $this->setTransaction($transaction);
     }
 
@@ -96,8 +82,6 @@ class Transfer
 
     /**
      * Retourne la transaction du virement créditeur.
-     *
-     * @return Transaction
      */
     public function getCredit(): Transaction
     {
@@ -106,8 +90,6 @@ class Transfer
 
     /**
      * Retourne la transaction du virement débiteur.
-     *
-     * @return Transaction
      */
     public function getDebit(): Transaction
     {
@@ -116,15 +98,11 @@ class Transfer
 
     /**
      * Affecte les transactions de débit et de crédit en fonction de la transaction transmise.
-     *
-     * @param Transaction $transaction
-     *
-     * @return Transfer
      */
     public function setTransaction(Transaction $transaction): self
     {
         // Si on déjà en présence d'un virement
-        if ($transaction->getTransfer()) {
+        if ($transaction->getTransfer() instanceof Transaction) {
             // En fonction du montant, on dispatch sur les transactions débit ou crédit
             if ($transaction->getAmount() < 0) {
                 $this->debit = $transaction;
@@ -146,8 +124,6 @@ class Transfer
 
     /**
      * Création de la transaction de crédit avec la transaction courante du formulaire.
-     *
-     * @param Transaction $transaction
      */
     private function createCredit(Transaction $transaction): void
     {
@@ -167,11 +143,9 @@ class Transfer
     /**
      * Effectue le virement.
      *
-     * @param Account    $source
-     * @param Account    $target
      * @param float|null $amountTarget Montant investi pour les placements
      */
-    public function makeTransfer(Account $source, Account $target, ?float $amountTarget = null): void
+    public function makeTransfer(Account $source, Account $target, float $amountTarget = null): void
     {
         if (null === $amountTarget) {
             $amountTarget = $this->credit->getAmount();
@@ -179,17 +153,13 @@ class Transfer
         $this->debit->setAccount($source);
         $this->debit->setAmount(abs($this->credit->getAmount()) * -1);
         $this->debit->setDate($this->credit->getDate());
+
         $this->credit->setAccount($target);
         $this->credit->setAmount(abs($amountTarget));
     }
 
     /**
      * Retourne la catégorie à utiliser.
-     *
-     * @param bool   $type
-     * @param string $code
-     *
-     * @return Category
      */
     private function getCategory(bool $type, string $code): Category
     {

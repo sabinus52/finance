@@ -16,18 +16,18 @@ namespace App\Values;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class Payment
+class Payment implements \Stringable
 {
-    public const INTERNAL = 0; // Transaction interne : Virement, investissement
-    public const CARTE = 1;
-    public const CHEQUE = 2;
-    public const ESPECE = 3;
-    public const VIREMENT = 4;
-    public const ELECTRONIC = 11;
-    public const PAYPAL = 12;
-    public const CADEO = 13;
-    public const DEPOT = 21;
-    public const PRELEVEMENT = 22;
+    final public const INTERNAL = 0; // Transaction interne : Virement, investissement
+    final public const CARTE = 1;
+    final public const CHEQUE = 2;
+    final public const ESPECE = 3;
+    final public const VIREMENT = 4;
+    final public const ELECTRONIC = 11;
+    final public const PAYPAL = 12;
+    final public const CADEO = 13;
+    final public const DEPOT = 21;
+    final public const PRELEVEMENT = 22;
 
     /**
      * Liste des environnements.
@@ -46,13 +46,6 @@ class Payment
         self::DEPOT => ['code' => 'DEP', 'image' => 'depot', 'label' => 'Dépôt'],
         self::PRELEVEMENT => ['code' => 'PVT', 'image' => 'prelevement', 'label' => 'Prélèvement'],
     ];
-
-    /**
-     * Valeur de l'environnement.
-     *
-     * @var int
-     */
-    protected $value;
 
     /**
      * Retourne la liste pour le ChoiceType des formulaires.
@@ -76,8 +69,6 @@ class Payment
     /**
      * Retourne la liste pour le filtre dans les Datatables.
      *
-     * @param string $field
-     *
      * @return array<string>
      */
     public static function getFilters(string $field = 'label'): array
@@ -91,9 +82,8 @@ class Payment
         return $result;
     }
 
-    public function __construct(int $value)
+    public function __construct(protected int $value)
     {
-        $this->value = $value;
     }
 
     public function setValue(int $value): void
@@ -121,7 +111,7 @@ class Payment
         return sprintf('images/pay-%s.svg', self::$payments[$this->value]['image']);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getLabel();
     }

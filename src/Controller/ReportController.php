@@ -11,19 +11,18 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Charts\PerformanceByYearChart;
+use App\Charts\PerformanceMonthChart;
+use App\Charts\PerformanceSlipperyChart;
+use App\Charts\ThriftChart;
 use App\Entity\Account;
 use App\Entity\Transaction;
-use App\Helper\Charts\MonthChart;
-use App\Helper\Charts\SlipperyChart;
-use App\Helper\Charts\ThriftChart;
-use App\Helper\Charts\YearChart;
 use App\Helper\PerfItem;
 use App\Helper\Performance;
 use App\Helper\Report\ThriftCapacity;
 use App\Repository\AccountRepository;
 use App\Repository\TransactionRepository;
 use App\Values\AccountType;
-use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -34,12 +33,11 @@ use Symfony\Component\Routing\Annotation\Route;
  * @author Sabinus52 <sabinus52@gmail.com>
  *
  * @SuppressWarnings(PHPMD.StaticAccess)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ReportController extends AbstractController
 {
-    /**
-     * @Route("/rapports/capitalisation", name="report_capital")
-     */
+    #[Route(path: '/rapports/capitalisation', name: 'report_capital')]
     public function indexCapital(AccountRepository $repository, TransactionRepository $repoTransac): Response
     {
         $total = new Account();
@@ -54,8 +52,8 @@ class ReportController extends AbstractController
         $accounts = $repository->findByType(AccountType::EPARGNE_ASSURANCE_VIE, true);
 
         foreach ($accounts as $account) {
-            $total->getBalance()->setInvestment($total->getBalance()->getInvestment() + $account->getBalance()->getInvestment());
-            $total->getBalance()->setBalance($total->getBalance()->getBalance() + $account->getBalance()->getBalance());
+            $total->setInvestment($total->getInvestment() + $account->getInvestment());
+            $total->setBalance($total->getBalance() + $account->getBalance());
             $perf = new Performance($repoTransac, $account);
 
             $byMonth = $perf->getByMonth();
@@ -76,7 +74,7 @@ class ReportController extends AbstractController
 
         ksort($totalPerfYear);
         $previous = null;
-        foreach ($totalPerfYear as $key => $perf) {
+        foreach ($totalPerfYear as $perf) {
             if (null !== $previous) {
                 $perf->setPrevious($previous);
             }
@@ -86,7 +84,7 @@ class ReportController extends AbstractController
 
         ksort($totalPerfMonth);
         $previous = null;
-        foreach ($totalPerfMonth as $key => $perf) {
+        foreach ($totalPerfMonth as $perf) {
             if (null !== $previous) {
                 $perf->setPrevious($previous);
             }
@@ -96,9 +94,9 @@ class ReportController extends AbstractController
 
         $totalPerfSlippery = Performance::getPerfSlipperyFromByMonth($totalPerfMonth);
 
-        $chart2 = new MonthChart();
-        $chart3 = new SlipperyChart();
-        $chart4 = new YearChart();
+        $chart2 = new PerformanceMonthChart();
+        $chart3 = new PerformanceSlipperyChart();
+        $chart4 = new PerformanceByYearChart();
 
         return $this->render('report/capital.html.twig', [
             'total' => [
@@ -136,12 +134,10 @@ class ReportController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/rapports/capacite-epargne", name="report_capacity")
-     */
+    #[Route(path: '/rapports/capacite-epargne', name: 'report_capacity')]
     public function indecCapacity(TransactionRepository $repository): Response
     {
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
 
         /** @var Transaction[] $transactions */
         $transactions = $repository->createQueryBuilder('trt')

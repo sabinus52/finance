@@ -34,7 +34,7 @@ class ReValuationFormType extends AbstractType
                 'label' => 'Date',
                 'format' => 'dd/MM/yyyy',
                 'disabled' => true,
-                'help' => 'Choisir n\'importe quel jour du mois',
+                'help' => "Choisir n'importe quel jour du mois",
             ])
             ->add('balance', MoneyType::class, [
                 'label' => 'Solde',

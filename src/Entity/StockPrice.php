@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\StockPriceRepository;
-use DateTime;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -20,58 +20,46 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe StockPrice (Cours des actions boursières).
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=StockPriceRepository::class)
  */
+#[ORM\Entity(repositoryClass: StockPriceRepository::class)]
 class StockPrice
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Date du cours de l'action.
-     *
-     * @var DateTime
-     *
-     * @ORM\Column(type="date")
      */
-    private $date;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    private ?\DateTimeImmutable $date = null;
 
     /**
      * Prix du cours.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float")
-     * @Assert\NotBlank
      */
-    private $price;
+    #[ORM\Column(type: Types::FLOAT)]
+    #[Assert\NotBlank]
+    private ?float $price = null;
 
     /**
      * Action associée.
-     *
-     * @var Stock
-     *
-     * @ORM\ManyToOne(targetEntity=Stock::class, inversedBy="stockPrices")
-     * @ORM\JoinColumn(nullable=false)
      */
-    private $stock;
+    #[ORM\ManyToOne(targetEntity: Stock::class, inversedBy: 'stockPrices')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Stock $stock = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getDate(): ?DateTime
+    public function getDate(): ?\DateTimeImmutable
     {
         return $this->date;
     }
 
-    public function setDate(DateTime $date): self
+    public function setDate(\DateTimeImmutable $date): self
     {
         $this->date = $date;
 

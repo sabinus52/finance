@@ -47,7 +47,7 @@ final class StockBuyingTransaction extends TransactionModelAbstract implements T
         return 'un achat de titre';
     }
 
-    public function getTransactionType(): TransactionType
+    protected function getTransactionType(): TransactionType
     {
         return new TransactionType(TransactionType::STOCKEXCHANGE);
     }
@@ -62,18 +62,18 @@ final class StockBuyingTransaction extends TransactionModelAbstract implements T
         return $this->findRecipientInternal();
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::EXPENSE, Category::STOCKTRANSAC);
     }
 
-    public function getPosition(): ?StockPosition
+    protected function getPosition(): ?StockPosition
     {
         return new StockPosition(StockPosition::BUYING);
     }
 
     public function getMessage(): string
     {
-        return 'd\'un achat de titre';
+        return "d'un achat de titre";
     }
 }

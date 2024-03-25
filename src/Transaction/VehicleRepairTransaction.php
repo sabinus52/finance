@@ -44,12 +44,12 @@ final class VehicleRepairTransaction extends TransactionModelAbstract implements
         return 'un entretien de véhicule';
     }
 
-    public function getTransactionType(): TransactionType
+    protected function getTransactionType(): TransactionType
     {
         return new TransactionType(TransactionType::VEHICLE);
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::EXPENSE, Category::VEHICULEREPAIR);
     }

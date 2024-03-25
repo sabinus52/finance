@@ -14,22 +14,18 @@ namespace App\WorkFlow;
 use App\Entity\StockWallet;
 use App\Entity\Transaction;
 use App\Values\StockPosition;
-use DateTime;
-use Iterator;
 
 /**
  * Historique du portefeuille d'un mois donné.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class WalletHistory implements Iterator
+class WalletHistory implements \Iterator
 {
     /**
      * Date de fin de mois de l'historique du portefeuille.
-     *
-     * @var DateTime
      */
-    private $date;
+    private \DateTimeImmutable $date;
 
     /**
      * Portefeuille. [id] => StockWallet().
@@ -52,8 +48,6 @@ class WalletHistory implements Iterator
      * Affecte un portefeuille.
      *
      * @param StockWallet[] $stockWallet
-     *
-     * @return self
      */
     public function setWallet(array $stockWallet): self
     {
@@ -83,28 +77,22 @@ class WalletHistory implements Iterator
 
     /**
      * Affecte la date du portefeuille.
-     *
-     * @param DateTime $date
      */
-    public function setDate(DateTime $date): void
+    public function setDate(\DateTimeImmutable $date): void
     {
         $this->date = $date->modify('last day of this month');
     }
 
     /**
      * Retourne la date du portefeuille.
-     *
-     * @return DateTime
      */
-    public function getDate(): DateTime
+    public function getDate(): \DateTimeImmutable
     {
         return $this->date;
     }
 
     /**
      * Ajoute une nouvelle opération boursière.
-     *
-     * @param Transaction $transaction
      */
     public function addPosition(Transaction $transaction): void
     {
@@ -131,8 +119,6 @@ class WalletHistory implements Iterator
 
     /**
      * Retourne la valorisation du portefeuille.
-     *
-     * @return float
      */
     public function getValorisation(): float
     {
@@ -146,8 +132,6 @@ class WalletHistory implements Iterator
 
     /**
      * Retourne le montant investi.
-     *
-     * @return float
      */
     public function getAmountInvest(): float
     {
@@ -159,12 +143,12 @@ class WalletHistory implements Iterator
         return round($total, 2);
     }
 
-    public function current()
+    public function current(): mixed
     {
         return current($this->wallet);
     }
 
-    public function key()
+    public function key(): mixed
     {
         return key($this->wallet);
     }

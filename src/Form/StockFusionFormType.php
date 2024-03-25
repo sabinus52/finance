@@ -89,7 +89,7 @@ class StockFusionFormType extends AbstractType
                 ],
             ])
             ->add('price2', MoneyType::class, [
-                'label' => 'Valeur d\'ouverture',
+                'label' => "Valeur d'ouverture",
                 'required' => false,
                 'mapped' => false,
                 'constraints' => [
@@ -98,22 +98,19 @@ class StockFusionFormType extends AbstractType
             ])
         ;
 
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, static function (FormEvent $event): void {
             $form = $event->getForm();
             /** @var Stock $data */
             $data = $event->getData();
             $form->add('fusion2', EntityType::class, [
                 'label' => 'Titre fusionné',
                 'class' => Stock::class,
-                'query_builder' => function (StockRepository $er) use ($data) {
-                    return $er->createQueryBuilder('stk')
-                        ->leftJoin('stk.fusionTo', 'fus')
-                        ->where('stk.closedAt IS NULL')
-                        ->andWhere('stk.id <> :id')
-                        ->setParameter('id', $data->getId())
-                        ->orderBy('stk.name')
-                    ;
-                },
+                'query_builder' => static fn (StockRepository $er) => $er->createQueryBuilder('stk')
+                    ->leftJoin('stk.fusionTo', 'fus')
+                    ->where('stk.closedAt IS NULL')
+                    ->andWhere('stk.id <> :id')
+                    ->setParameter('id', $data->getId())
+                    ->orderBy('stk.name'),
                 'required' => false,
                 'mapped' => false,
             ]);

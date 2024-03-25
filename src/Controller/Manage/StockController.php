@@ -11,18 +11,17 @@ declare(strict_types=1);
 
 namespace App\Controller\Manage;
 
+use App\Charts\StockPriceChart;
 use App\Entity\Account;
 use App\Entity\Stock;
 use App\Entity\StockPrice;
 use App\Form\StockFormType;
 use App\Form\StockFusionFormType;
 use App\Form\StockPriceFormType;
-use App\Helper\Charts\StockPriceChart;
 use App\Repository\StockPriceRepository;
 use App\Repository\StockRepository;
 use App\WorkFlow\Balance;
 use App\WorkFlow\StockFusion;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -40,9 +39,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class StockController extends AbstractController
 {
-    /**
-     * @Route("/manage/stock", name="manage_stock__index")
-     */
+    #[Route(path: '/manage/stock', name: 'manage_stock__index')]
     public function index(StockRepository $repository): Response
     {
         return $this->render('manage/stock-index.html.twig', [
@@ -50,9 +47,7 @@ class StockController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/stock/create", name="manage_stock__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/stock/create', name: 'manage_stock__create', methods: ['GET', 'POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $stock = new Stock();
@@ -62,12 +57,12 @@ class StockController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($stock);
             $entityManager->flush();
-            $this->addFlash('success', 'La création de l\'action <strong>'.$stock.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf("La création de l'action <strong>%s</strong> a bien été prise en compte", $stock));
 
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer une nouvelle action',
@@ -75,9 +70,7 @@ class StockController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/stock/edit/{id}", name="manage_stock__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/stock/edit/{id}', name: 'manage_stock__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Stock $stock, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(StockFormType::class, $stock);
@@ -85,12 +78,12 @@ class StockController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'La modification de l\'action <strong>'.$stock.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf("La modification de l'action <strong>%s</strong> a bien été prise en compte", $stock));
 
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier une action',
@@ -98,9 +91,7 @@ class StockController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/stock/prices/{id}", name="manage_stock__prices", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/stock/prices/{id}', name: 'manage_stock__prices', methods: ['GET', 'POST'])]
     public function seeListPrices(Stock $stock, StockPriceRepository $repository): Response
     {
         $prices = $repository->findByStock($stock, ['date' => 'DESC']); /** @phpstan-ignore-line */
@@ -110,29 +101,28 @@ class StockController extends AbstractController
             'stock' => $stock,
             'price' => [
                 'last' => current($prices),
-                'max' => array_reduce($prices, fn ($a, $b) => $a ? ($a->getPrice() > $b->getPrice() ? $a : $b) : $b),
-                'min' => array_reduce($prices, fn ($a, $b) => $a ? ($a->getPrice() < $b->getPrice() ? $a : $b) : $b),
+                'max' => array_reduce($prices, static fn ($a, $b) => $a ? ($a->getPrice() > $b->getPrice() ? $a : $b) : $b),
+                'min' => array_reduce($prices, static fn ($a, $b) => $a ? ($a->getPrice() < $b->getPrice() ? $a : $b) : $b),
             ],
             'prices' => $prices,
             'chart' => $chart->getChart($prices),
         ]);
     }
 
-    /**
-     * @Route("/manage/stock/prices/{id}/create", name="manage_stock__price_add", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/stock/prices/{id}/create', name: 'manage_stock__price_add', methods: ['GET', 'POST'])]
     public function createPrice(Request $request, Stock $stock, EntityManagerInterface $entityManager, StockPriceRepository $repository): Response
     {
         // Recherche la dernière cotation
         $last = $repository->findOneLastPrice($stock);
-        $date = new DateTime();
-        if (null !== $last) {
+        $date = new \DateTimeImmutable();
+        if ($last instanceof StockPrice) {
             $date = clone $last->getDate()->modify('+ 15 days');
         }
 
         $stockPrice = new StockPrice();
         $stockPrice->setStock($stock);
         $stockPrice->setDate($date->modify('last day of this month'));
+
         $form = $this->createForm(StockPriceFormType::class, $stockPrice);
 
         $form->handleRequest($request);
@@ -146,7 +136,7 @@ class StockController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer une nouvelle cotation',
@@ -155,9 +145,7 @@ class StockController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/stock/prices/update/{id}", name="manage_stock__price_upd", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/stock/prices/update/{id}', name: 'manage_stock__price_upd', methods: ['GET', 'POST'])]
     public function updatePrice(Request $request, StockPrice $stockPrice, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(StockPriceFormType::class, $stockPrice);
@@ -172,7 +160,7 @@ class StockController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier la cotation',
@@ -182,16 +170,15 @@ class StockController extends AbstractController
 
     /**
      * Création de la fusion d'un titre boursier.
-     *
-     * @Route("/account/{id}/fusion/stock/{stock}", name="manage_stock__fusion", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/fusion/stock/{stock}', name: 'manage_stock__fusion', methods: ['GET', 'POST'])]
     public function fusion(Request $request, Account $account, Stock $stock, EntityManagerInterface $entityManager, StockPriceRepository $repository): Response
     {
         $form = $this->createForm(StockFusionFormType::class, $stock);
 
         // Recherche la dernière cotation
         $last = $repository->findOneLastPrice($stock);
-        if ($last) {
+        if ($last instanceof StockPrice) {
             $form->get('price')->setData($last->getPrice());
         }
 
@@ -207,7 +194,7 @@ class StockController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Fusion de %s', $stock),
@@ -218,10 +205,6 @@ class StockController extends AbstractController
 
     /**
      * Vérifie la formulaire de la fusion.
-     *
-     * @param FormInterface $form
-     *
-     * @return bool
      */
     private function checkFormFusion(FormInterface $form): bool
     {

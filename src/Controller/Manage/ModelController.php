@@ -21,9 +21,7 @@ use App\Form\ScheduleFormType;
 use App\Repository\ModelRepository;
 use App\Values\Payment;
 use App\Values\TransactionType;
-use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,9 +37,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ModelController extends AbstractController
 {
-    /**
-     * @Route("/manage/model", name="manage_model__index")
-     */
+    #[Route(path: '/manage/model', name: 'manage_model__index')]
     public function index(ModelRepository $repository): Response
     {
         return $this->render('manage/model-index.html.twig', [
@@ -49,9 +45,7 @@ class ModelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/model/create/{type}", name="manage_model__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/create/{type}', name: 'manage_model__create', methods: ['GET', 'POST'])]
     public function create(Request $request, string $type, EntityManagerInterface $entityManager): Response
     {
         $model = $this->createModel($entityManager, $type);
@@ -66,7 +60,7 @@ class ModelController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer un nouveau modèle',
@@ -74,12 +68,10 @@ class ModelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/model/edit/{id}", name="manage_model__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/edit/{id}', name: 'manage_model__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->getFormModel($model, ($model->getAmount() > 0));
+        $form = $this->getFormModel($model, $model->getAmount() > 0);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -89,7 +81,7 @@ class ModelController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier un modèle',
@@ -97,9 +89,7 @@ class ModelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/account/model/remove/{id}", name="manage_model__remove", methods={"GET", "POST"})
-     */
+    #[Route(path: '/account/model/remove/{id}', name: 'manage_model__remove', methods: ['GET', 'POST'])]
     public function remove(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createFormBuilder()->getForm();
@@ -113,19 +103,17 @@ class ModelController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-content-delete.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-content-delete.html.twig', [
             'form' => $form,
             'element' => sprintf('ce modèle <b>%s</b>', $model),
         ]);
     }
 
-    /**
-     * @Route("/manage/model/schedule/{id}", name="manage_model__schedule", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/schedule/{id}', name: 'manage_model__schedule', methods: ['GET', 'POST'])]
     public function updateSchedule(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
-        if (null === $schedule) {
+        if (!$schedule instanceof Schedule) {
             $schedule = new Schedule();
         }
         $form = $this->createForm(ScheduleFormType::class, $schedule);
@@ -139,7 +127,7 @@ class ModelController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier une planification',
@@ -147,20 +135,18 @@ class ModelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/model/schedule/enable/{id}", name="manage_model__schedule_enable", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/schedule/enable/{id}', name: 'manage_model__schedule_enable', methods: ['GET', 'POST'])]
     public function enableSchedule(Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
-        if (null === $schedule) {
+        if (!$schedule instanceof Schedule) {
             $this->addFlash('warning', 'Aucune planification associé à ce modèle');
 
             return $this->redirectToRoute('manage_model__index');
         }
         $schedule->setState(true);
         // Réactive en remettant la prochaine date de la planification
-        $period = new DateInterval(sprintf('P%s%s', $schedule->getFrequency(), $schedule->getPeriod()));
+        $period = new \DateInterval(sprintf('P%s%s', $schedule->getFrequency(), $schedule->getPeriod()));
         while ($schedule->getDoAt()->format('Y-m-d') < date('Y-m-d')) {
             $schedule->setDoAt($schedule->getDoAt()->add($period));
         }
@@ -170,13 +156,11 @@ class ModelController extends AbstractController
         return $this->redirectToRoute('manage_model__index');
     }
 
-    /**
-     * @Route("/manage/model/schedule/disable/{id}", name="manage_model__schedule_disable", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/schedule/disable/{id}', name: 'manage_model__schedule_disable', methods: ['GET', 'POST'])]
     public function disableSchedule(Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
-        if (null === $schedule) {
+        if (!$schedule instanceof Schedule) {
             $this->addFlash('warning', 'Aucune planification associé à ce modèle');
 
             return $this->redirectToRoute('manage_model__index');
@@ -188,13 +172,11 @@ class ModelController extends AbstractController
         return $this->redirectToRoute('manage_model__index');
     }
 
-    /**
-     * @Route("/manage/model/schedule/remove/{id}", name="manage_model__schedule_remove", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/model/schedule/remove/{id}', name: 'manage_model__schedule_remove', methods: ['GET', 'POST'])]
     public function removeSchedule(Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
-        if (null === $schedule) {
+        if (!$schedule instanceof Schedule) {
             $this->addFlash('warning', 'Aucune planification associé à ce modèle');
 
             return $this->redirectToRoute('manage_model__index');
@@ -209,11 +191,6 @@ class ModelController extends AbstractController
 
     /**
      * Crée et initialise le nouveau medèle en fonction de son type.
-     *
-     * @param EntityManagerInterface $entityManager
-     * @param string                 $type
-     *
-     * @return Model
      */
     private function createModel(EntityManagerInterface $entityManager, string $type): Model
     {
@@ -224,10 +201,8 @@ class ModelController extends AbstractController
             $model->setPayment(new Payment(Payment::INTERNAL));
             $recipient = $entityManager->getRepository(Recipient::class)->findInternal(); /** @phpstan-ignore-line */
             $model->setRecipient($recipient);
-        } else {
-            if ('1' !== $type && '0' !== $type) {
-                throw new Exception('Type de modèle inconnu');
-            }
+        } elseif ('1' !== $type && '0' !== $type) {
+            throw new \Exception('Type de modèle inconnu');
         }
 
         return $model;
@@ -235,20 +210,15 @@ class ModelController extends AbstractController
 
     /**
      * Retourne le formulaire en fonction de son type.
-     *
-     * @param Model $model
-     * @param bool  $income
-     *
-     * @return FormInterface
      */
     private function getFormModel(Model $model, bool $income): FormInterface
     {
         $options = [];
         if (TransactionType::TRANSFER === $model->getTypeValue()) {
-            $options['category'] = sprintf('cat.type = 0 AND cat1.code = \'%s\'', Category::MOVEMENT);
+            $options['category'] = sprintf("cat.type = 0 AND cat1.code = '%s'", Category::MOVEMENT);
             $formClass = ModelTransferFormType::class;
         } else {
-            $options['category'] = sprintf('cat.type = %s AND (cat1.code <> \'%s\' OR cat1.code IS NULL)', (int) ($income), Category::MOVEMENT);
+            $options['category'] = sprintf("cat.type = %s AND (cat1.code <> '%s' OR cat1.code IS NULL)", (int) $income, Category::MOVEMENT);
             $formClass = ModelStandardFormType::class;
         }
 

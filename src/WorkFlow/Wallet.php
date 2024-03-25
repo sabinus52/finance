@@ -18,7 +18,6 @@ use App\Entity\StockWallet;
 use App\Entity\Transaction;
 use App\Values\AccountType;
 use App\Values\TransactionType;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -29,37 +28,22 @@ use Doctrine\ORM\EntityManagerInterface;
 class Wallet
 {
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var Account
-     */
-    private $account;
-
-    /**
      * Historique du portefeuille.
      *
      * @var WalletHistory[]
      */
-    private $histories;
+    private array $histories = [];
 
-    public function __construct(EntityManagerInterface $manager, Account $account)
+    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly Account $account)
     {
-        $this->entityManager = $manager;
-        $this->account = $account;
-        $this->histories = [];
     }
 
     /**
      * Retourne le portefeuille courant.
-     *
-     * @return WalletHistory
      */
     public function getWallet(): WalletHistory
     {
-        if (empty($this->histories)) {
+        if ([] === $this->histories) {
             $result = $this->entityManager->getRepository(StockWallet::class)->findBy(['account' => $this->account]);
 
             $wallet = new WalletHistory();
@@ -89,7 +73,7 @@ class Wallet
      */
     public function getTransactionHistories(): array
     {
-        if (empty($this->histories)) {
+        if ([] === $this->histories) {
             $this->buildWallets();
         }
 
@@ -108,7 +92,8 @@ class Wallet
     private function getTransactionHistoriesNotPEA(): array
     {
         $transactions = [];
-        $lastBalance = $lastInvest = 0.0;
+        $lastBalance = 0.0;
+        $lastInvest = 0.0;
         $category = $this->entityManager->getRepository(Category::class)->findOneByCode(Category::INCOME, Category::INVESTMENT); /** @phpstan-ignore-line */
 
         // Pour chaque portefeuille
@@ -222,7 +207,7 @@ class Wallet
     {
         // Liste des transactions sur les opérations boursières
         $transactions = $this->getTransactions();
-        /** @var DateTime $lastDate */
+        /** @var \DateTimeImmutable $lastDate */
         $lastDate = null;
 
         // Construit les portefeuilles par mois en fonction des transactions
@@ -230,14 +215,14 @@ class Wallet
             $month = $transaction->getDate()->format('Y-m');
 
             // Premier Portefeuille
-            if (null === $lastDate) {
+            if (!$lastDate instanceof \DateTimeImmutable) {
                 $this->histories[$month] = new WalletHistory();
                 $this->histories[$month]->setDate(clone $transaction->getDate());
                 $lastDate = $transaction->getDate();
             }
 
             // Créé les portefeuilles intermédiaires où il n'y a pas eu de transaction
-            $this->addIntermediateHistories(clone $lastDate, $transaction->getDate());
+            $this->addIntermediateHistories($lastDate, $transaction->getDate());
 
             // Nouveau portefeuille trouvé à créer
             if (!isset($this->histories[$month])) {
@@ -251,49 +236,41 @@ class Wallet
         }
 
         // Créé jusqu'à ce jour
-        $this->addIntermediateHistories(clone $lastDate, new DateTime());
+        $this->addIntermediateHistories($lastDate, new \DateTimeImmutable());
 
         $this->setAllPriceWallet();
     }
 
     /**
      * Créé des portefeuille intermédiare entre 2 dates avec comme portefeuille de référence la date de début.
-     *
-     * @param DateTime $start
-     * @param DateTime $end
      */
-    private function addIntermediateHistories(DateTime $start, DateTime $end): void
+    private function addIntermediateHistories(\DateTimeImmutable $start, \DateTimeImmutable $end): void
     {
-        $start->modify('first day of this month');
-        $refDate = clone $start;
-        $start->modify('+ 1 month');
+        $refDate = $start->modify('first day of this month');
+        $start = $start->modify('+ 1 month');
         while ($start->format('Y-m') < $end->format('Y-m')) {
             $this->createWalletHistory($start, $this->histories[$refDate->format('Y-m')]);
-            $start->modify('+ 1 month');
+            $start = $start->modify('+ 1 month');
         }
     }
 
     /**
      * Créé un nouveau portefeuille d'une date donnée à partir d'un autre portefeuille.
      *
-     * @param DateTime      $date      Date du nouveau portefeuille
-     * @param WalletHistory $refWallet Porefeuille de référence à partir duquel le nouveau sera créé
-     *
-     * @return WalletHistory
+     * @param \DateTimeImmutable $date      Date du nouveau portefeuille
+     * @param WalletHistory      $refWallet Porefeuille de référence à partir duquel le nouveau sera créé
      */
-    private function createWalletHistory(DateTime $date, WalletHistory $refWallet): WalletHistory
+    private function createWalletHistory(\DateTimeImmutable $date, WalletHistory $refWallet): WalletHistory
     {
         $month = $date->format('Y-m');
         $this->histories[$month] = clone $refWallet;
-        $this->histories[$month]->setDate(clone $date);
+        $this->histories[$month]->setDate($date);
 
         return $this->histories[$month];
     }
 
     /**
      * Sauvegarde en base le dernier portefeuille en cours.
-     *
-     * @param WalletHistory $wallet
      */
     private function saveCurrentWallet(WalletHistory $wallet): void
     {
@@ -325,8 +302,7 @@ class Wallet
                     $item->setPrice($pricesByStockByMonth[$stockId][$date->format('Y-m')]);
                     $item->setPriceDate($date);
                 } else {
-                    $lastMonth = clone $date;
-                    $lastMonth->modify('first day of this month')->modify('- 1 month');
+                    $lastMonth = $date->modify('first day of this month')->modify('- 1 month');
                     if (isset($pricesByStockByMonth[$stockId][$lastMonth->format('Y-m')])) {
                         $item->setPrice($pricesByStockByMonth[$stockId][$lastMonth->format('Y-m')]);
                         $item->setPriceDate($lastMonth);

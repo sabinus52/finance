@@ -24,12 +24,12 @@ use Doctrine\DBAL\Types\Type;
  */
 class AccountTypeType extends Type
 {
-    public const TYPE = 'account_type';
+    final public const TYPE = 'account_type';
 
     /**
      * {@inheritdoc}
      */
-    public function getSQLDeclaration(array $column, AbstractPlatform $platform)
+    public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
         return 'SMALLINT';
     }
@@ -37,7 +37,7 @@ class AccountTypeType extends Type
     /**
      * {@inheritdoc}
      */
-    public function convertToDatabaseValue($value, AbstractPlatform $platform)
+    public function convertToDatabaseValue($value, AbstractPlatform $platform): mixed
     {
         if (null === $value) {
             return null;
@@ -49,7 +49,7 @@ class AccountTypeType extends Type
     /**
      * {@inheritdoc}
      */
-    public function convertToPHPValue($value, AbstractPlatform $platform)
+    public function convertToPHPValue($value, AbstractPlatform $platform): mixed
     {
         if (null === $value) {
             return $value;
@@ -61,7 +61,7 @@ class AccountTypeType extends Type
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName(): string
     {
         return self::TYPE;
     }

@@ -46,12 +46,12 @@ final class TransferTransaction extends TransactionModelAbstract implements Tran
         return 'un virement bancaire';
     }
 
-    public function getTransactionType(): TransactionType
+    protected function getTransactionType(): TransactionType
     {
         return new TransactionType(TransactionType::TRANSFER);
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::EXPENSE, Category::VIREMENT);
     }

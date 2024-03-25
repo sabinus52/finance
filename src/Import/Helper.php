@@ -16,7 +16,6 @@ use App\Repository\AccountRepository;
 use App\Transaction\TransactionModelRouter;
 use App\Values\StockPosition;
 use App\WorkFlow\Balance;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -26,15 +25,7 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class Helper
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    public $entityManager;
-
-    /**
-     * @var TransactionModelRouter
-     */
-    private $router;
+    private readonly TransactionModelRouter $router;
 
     /**
      * Statistiques de l'import.
@@ -52,26 +43,22 @@ class Helper
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $manager
      */
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(private readonly EntityManagerInterface $entityManager)
     {
-        $this->entityManager = $manager;
-        $this->router = new TransactionModelRouter($manager);
+        $this->router = new TransactionModelRouter($this->entityManager);
         $this->statistic = new Statistic();
-        $this->assocDatas = new AssocDatas($manager);
+        $this->assocDatas = new AssocDatas($this->entityManager);
     }
 
     /**
      * Création et insère dans la base une transaction standard.
      *
-     * @param QifItem     $item
      * @param string|null $project
      */
-    public function createTransationStandard(QifItem $item, ?string $project = null): void
+    public function createTransationStandard(QifItem $item, string $project = null): void
     {
-        $modelTransac = $this->router->createStandardByType(($item->getAmount() > 0));
+        $modelTransac = $this->router->createStandardByType($item->getAmount() > 0);
         $modelTransac->setAccount($item->getAccount())
             ->setDatas([
                 'date' => $item->getDate(),
@@ -93,12 +80,11 @@ class Helper
     /**
      * Création et insère dans la base un transfert (virement ou investissement).
      *
-     * @param QifItem    $item
      * @param string     $type         Virement ou investissement
      * @param string     $target       Compte cible
      * @param float|null $amountInvest Montant invsti sur le compte de placement
      */
-    public function createTransactionTransfer(QifItem $item, string $type, string $target, ?float $amountInvest = null): void
+    public function createTransactionTransfer(QifItem $item, string $type, string $target, float $amountInvest = null): void
     {
         if (null === $amountInvest) {
             $amountInvest = abs($item->getAmount());
@@ -113,18 +99,13 @@ class Helper
             'source' => $item->getAccount(),
             'target' => $this->assocDatas->getAccount($target),
             'invest' => $amountInvest,
-        ])
-        ;
+        ]);
         $this->statistic->incTransaction($modelTransac->getTransaction());
     }
 
     /**
      * Création et insère dans la base une transaction boursière.
      *
-     * @param QifItem    $item
-     * @param Account    $wallet
-     * @param int        $position
-     * @param string     $stock
      * @param float|null $volume
      * @param float|null $price
      */
@@ -145,8 +126,7 @@ class Helper
                 'volume' => $volume,
                 'price' => $price,
             ],
-        ])
-        ;
+        ]);
 
         // Si dividendes
         if (null !== $volume) {
@@ -163,12 +143,8 @@ class Helper
 
     /**
      * Création et insère dans la base une réévaluation.
-     *
-     * @param Account  $account
-     * @param DateTime $date
-     * @param float    $amount
      */
-    public function createRevaluation(Account $account, DateTime $date, float $amount): void
+    public function createRevaluation(Account $account, \DateTimeImmutable $date, float $amount): void
     {
         $modelTransac = $this->router->createRevaluation($date);
         $modelTransac->setDatas([

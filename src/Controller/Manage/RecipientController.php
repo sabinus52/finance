@@ -28,9 +28,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class RecipientController extends AbstractController
 {
-    /**
-     * @Route("/manage/recipient", name="manage_recipient__index")
-     */
+    #[Route(path: '/manage/recipient', name: 'manage_recipient__index')]
     public function index(Request $request, DataTableFactory $factory): Response
     {
         $datatable = $factory->createFromType(RecipientTableType::class)
@@ -41,14 +39,12 @@ class RecipientController extends AbstractController
             return $datatable->getResponse();
         }
 
-        return $this->renderForm('manage/recipient-index.html.twig', [
+        return $this->render('manage/recipient-index.html.twig', [
             'datatable' => $datatable,
         ]);
     }
 
-    /**
-     * @Route("/manage/recipient/create", name="manage_recipient__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/recipient/create', name: 'manage_recipient__create', methods: ['GET', 'POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $recipient = new Recipient();
@@ -64,7 +60,7 @@ class RecipientController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer un nouveau bénéficiaire',
@@ -72,14 +68,12 @@ class RecipientController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/recipient/edit/{id}", name="manage_recipient__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/recipient/edit/{id}', name: 'manage_recipient__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Recipient $recipient, EntityManagerInterface $entityManager): Response
     {
         // Bénéficiaire réservé pour les virements internes
         if (1 === $recipient->getId()) {
-            return $this->renderForm('@OlixBackOffice/Include/modal-alert.html.twig', [
+            return $this->render('@OlixBackOffice/Include/modal-alert.html.twig', [
                 'message' => 'Ce bénéficiaire <strong>'.$recipient.'</strong> ne peut pas être modifié.',
             ]);
         }
@@ -94,7 +88,7 @@ class RecipientController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier un bénéficiaire',

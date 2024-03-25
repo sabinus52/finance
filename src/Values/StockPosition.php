@@ -16,13 +16,13 @@ namespace App\Values;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class StockPosition
+class StockPosition implements \Stringable
 {
-    public const BUYING = 1;
-    public const SELLING = 2;
-    public const FUSION_BUY = 3;
-    public const FUSION_SALE = 4;
-    public const DIVIDEND = 5;
+    final public const BUYING = 1;
+    final public const SELLING = 2;
+    final public const FUSION_BUY = 3;
+    final public const FUSION_SALE = 4;
+    final public const DIVIDEND = 5;
 
     /**
      * Liste des environnements.
@@ -36,13 +36,6 @@ class StockPosition
         self::FUSION_SALE => ['label' => 'Fusion début'],
         self::DIVIDEND => ['label' => 'Dividende'],
     ];
-
-    /**
-     * Valeur de l'environnement.
-     *
-     * @var int
-     */
-    protected $value;
 
     /**
      * Retourne la liste pour le ChoiceType des formulaires.
@@ -60,9 +53,8 @@ class StockPosition
         return $result;
     }
 
-    public function __construct(int $value)
+    public function __construct(protected int $value)
     {
-        $this->value = $value;
     }
 
     public function setValue(int $value): void
@@ -80,7 +72,7 @@ class StockPosition
         return self::$positions[$this->value]['label'];
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getLabel();
     }

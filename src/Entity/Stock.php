@@ -12,9 +12,9 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\StockRepository;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -22,87 +22,66 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Stock (Titre boursier).
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=StockRepository::class)
  */
-class Stock
+#[ORM\Entity(repositoryClass: StockRepository::class)]
+class Stock implements \Stringable
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Code ISIN.
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=12, unique=true)
-     * @Assert\NotBlank
-     * @Assert\Length(max=12)
      */
-    private $codeISIN;
+    #[ORM\Column(type: Types::STRING, length: 12, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 12)]
+    private ?string $codeISIN = null;
 
     /**
      * Nom de l'action.
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=100, unique=true)
-     * @Assert\NotBlank
-     * @Assert\Length(min=5, max=100)
      */
-    private $name;
+    #[ORM\Column(type: Types::STRING, length: 100, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 5, max: 100)]
+    private ?string $name = null;
 
     /**
      * Date de la fermeture.
-     *
-     * @var DateTime
-     *
-     * @ORM\Column(type="date", nullable=true)
      */
-    private $closedAt;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $closedAt = null;
 
     /**
      * Titre d'avant qui a été fusionné.
-     *
-     * @var Stock
-     *
-     * @ORM\OneToOne(targetEntity=Stock::class, inversedBy="fusionTo", cascade={"persist", "remove"})
      */
-    private $fusionFrom;
+    #[ORM\OneToOne(targetEntity: self::class, inversedBy: 'fusionTo', cascade: ['persist', 'remove'])]
+    private ?Stock $fusionFrom = null;
 
     /**
      * Vers le nouveau titre fusionné.
-     *
-     * @var Stock
-     *
-     * @ORM\OneToOne(targetEntity=Stock::class, mappedBy="fusionFrom", cascade={"persist", "remove"})
      */
-    private $fusionTo;
+    #[ORM\OneToOne(targetEntity: self::class, mappedBy: 'fusionFrom', cascade: ['persist', 'remove'])]
+    private ?Stock $fusionTo = null;
 
     /**
-     * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=StockPrice::class, mappedBy="stock", orphanRemoval=true)
+     * @var Collection|StockPrice[]
      */
-    private $stockPrices;
+    #[ORM\OneToMany(targetEntity: StockPrice::class, mappedBy: 'stock', orphanRemoval: true)]
+    private Collection $stockPrices;
 
     /**
-     * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=StockWallet::class, mappedBy="stock", orphanRemoval=true)
+     * @var Collection|StockWallet[]
      */
-    private $stockWallets;
+    #[ORM\OneToMany(targetEntity: StockWallet::class, mappedBy: 'stock', orphanRemoval: true)]
+    private Collection $stockWallets;
 
     /**
-     * @var ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity=TransactionStock::class, mappedBy="stock")
+     * @var Collection|TransactionStock[]
      */
-    private $transactionStocks;
+    #[ORM\OneToMany(targetEntity: TransactionStock::class, mappedBy: 'stock')]
+    private Collection $transactionStocks;
 
     /**
      * Constructeur.
@@ -114,13 +93,9 @@ class Stock
         $this->transactionStocks = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        if (!$this->name) {
-            return '';
-        }
-
-        return $this->getName();
+        return $this->name ?: '';
     }
 
     public function getId(): ?int
@@ -152,12 +127,12 @@ class Stock
         return $this;
     }
 
-    public function getClosedAt(): ?DateTime
+    public function getClosedAt(): ?\DateTimeImmutable
     {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?DateTime $closedAt): self
+    public function setClosedAt(?\DateTimeImmutable $closedAt): self
     {
         $this->closedAt = $closedAt;
 
@@ -184,12 +159,12 @@ class Stock
     public function setFusionTo(?self $fusionTo): self
     {
         // unset the owning side of the relation if necessary
-        if (null === $fusionTo && null !== $this->fusionTo) {
+        if (!$fusionTo instanceof self && $this->fusionTo instanceof self) {
             $this->fusionTo->setFusionFrom(null);
         }
 
         // set the owning side of the relation if necessary
-        if (null !== $fusionTo && $fusionTo->getFusionFrom() !== $this) {
+        if ($fusionTo instanceof self && $fusionTo->getFusionFrom() !== $this) {
             $fusionTo->setFusionFrom($this);
         }
 
@@ -199,7 +174,7 @@ class Stock
     }
 
     /**
-     * @return Collection<int, StockPrice>
+     * @return Collection|StockPrice[]
      */
     public function getStockPrices(): Collection
     {
@@ -218,18 +193,16 @@ class Stock
 
     public function removeStockPrice(StockPrice $stockPrice): self
     {
-        if ($this->stockPrices->removeElement($stockPrice)) {
-            // set the owning side to null (unless already changed)
-            if ($stockPrice->getStock() === $this) {
-                $stockPrice->setStock(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->stockPrices->removeElement($stockPrice) && $stockPrice->getStock() === $this) {
+            $stockPrice->setStock(null);
         }
 
         return $this;
     }
 
     /**
-     * @return Collection<int, StockWallet>
+     * @return Collection|StockWallet[]
      */
     public function getStockWallets(): Collection
     {
@@ -248,18 +221,16 @@ class Stock
 
     public function removeStockWallet(StockWallet $stockWallet): self
     {
-        if ($this->stockWallets->removeElement($stockWallet)) {
-            // set the owning side to null (unless already changed)
-            if ($stockWallet->getStock() === $this) {
-                $stockWallet->setStock(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->stockWallets->removeElement($stockWallet) && $stockWallet->getStock() === $this) {
+            $stockWallet->setStock(null);
         }
 
         return $this;
     }
 
     /**
-     * @return Collection<int, TransactionStock>
+     * @return Collection|TransactionStock[]
      */
     public function getTransactionStocks(): Collection
     {
@@ -278,11 +249,9 @@ class Stock
 
     public function removeTransactionStock(TransactionStock $transactionStock): self
     {
-        if ($this->transactionStocks->removeElement($transactionStock)) {
-            // set the owning side to null (unless already changed)
-            if ($transactionStock->getStock() === $this) {
-                $transactionStock->setStock(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->transactionStocks->removeElement($transactionStock) && $transactionStock->getStock() === $this) {
+            $transactionStock->setStock(null);
         }
 
         return $this;
@@ -290,12 +259,10 @@ class Stock
 
     /**
      * Affiche le badge du statut de l'action.
-     *
-     * @return string
      */
     public function getStatusBadge(): string
     {
-        if (null !== $this->closedAt) {
+        if ($this->closedAt instanceof \DateTimeImmutable) {
             return '<span class="badge bg-danger text-uppercase">fermé</span>';
         }
 

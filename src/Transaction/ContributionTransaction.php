@@ -43,12 +43,12 @@ final class ContributionTransaction extends TransactionModelAbstract implements 
         return 'une contribution sociale';
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::EXPENSE, Category::TAXE_CSG);
     }
 
-    public function getPayment(): ?Payment
+    protected function getPayment(): ?Payment
     {
         return new Payment(Payment::PRELEVEMENT);
     }

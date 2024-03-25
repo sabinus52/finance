@@ -33,8 +33,6 @@ class BaseController extends AbstractController
 {
     /**
      * Retourne le formulaire du filtre.
-     *
-     * @return FormInterface
      */
     protected function createFormFilter(): FormInterface
     {
@@ -51,7 +49,7 @@ class BaseController extends AbstractController
                     'Non rapproché' => Transaction::STATE_NONE,
                     'Rapproché' => Transaction::STATE_RECONCILIED,
                 ],
-                'choice_value' => fn ($value) => $value,
+                'choice_value' => static fn ($value) => $value,
             ])
             ->getForm()
         ;
@@ -64,9 +62,8 @@ class BaseController extends AbstractController
 
     /**
      * Retourne la page de la liste des transactions filtrées.
-     *
-     * @Route("/account/{id}/transactions/ajax", name="account_get_transaction")
      */
+    #[Route(path: '/account/{id}/transactions/ajax', name: 'account_get_transaction')]
     public function getListTransactionAjax(Request $request, TransactionRepository $repository, Account $account): Response
     {
         // Récupération des informations du formulaire du filtre
@@ -80,7 +77,10 @@ class BaseController extends AbstractController
         $filters = [];
         foreach ($datas as $key => $value) {
             // Si null alors pas de filtre
-            if ('' === $value || null === $value) {
+            if ('' === $value) {
+                continue;
+            }
+            if (null === $value) {
                 continue;
             }
             if ('range' === $key) {

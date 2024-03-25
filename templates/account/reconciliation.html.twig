@@ -6,8 +6,8 @@
     <div class="card-header">
         <h3 class="card-title">Rapprochement bancaire</h3>
         <div class="card-tools">
-            Dernier rapprochement : <span class="p-2"><strong>{{ mymacro.money(account.balance.reconBalance, account.currency, false) }}</strong></span>
-            Rapprochement en cours : <span class="p-2"><strong>{{ mymacro.money(account.balance.reconCurrent, account.currency, false) }}</strong></span>
+            Dernier rapprochement : <span class="p-2"><strong>{{ mymacro.money(account.reconbalance, account.currency, false) }}</strong></span>
+            Rapprochement en cours : <span class="p-2"><strong>{{ mymacro.money(account.reconcurrent, account.currency, false) }}</strong></span>
             Ecart : <span class="p-2" id="gab"><strong>{{ gab|number_format(2, ',') }}</strong><input type="hidden" name="gab" value="{{ gab }}"></span>
         </div>
     </div>

@@ -30,9 +30,8 @@ class ScheduleController extends AbstractController
 {
     /**
      * Valide une planification en créant la transaction associée.
-     *
-     * @Route("/schedule/valid/{id}", name="schedule_valid")
      */
+    #[Route(path: '/schedule/valid/{id}', name: 'schedule_valid')]
     public function valid(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
@@ -57,9 +56,8 @@ class ScheduleController extends AbstractController
 
     /**
      * Valide une planification en créant la transaction associée via le formulaire.
-     *
-     * @Route("/schedule/checkvalid/{id}", name="schedule_checkvalid")
      */
+    #[Route(path: '/schedule/checkvalid/{id}', name: 'schedule_checkvalid')]
     public function checkAndValid(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
@@ -85,7 +83,7 @@ class ScheduleController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Valider %s', $modelTransaction->getFormTitle()),
@@ -95,13 +93,13 @@ class ScheduleController extends AbstractController
 
     /**
      * Ignore cette planification.
-     *
-     * @Route("/schedule/skip/{id}", name="schedule_skip")
      */
+    #[Route(path: '/schedule/skip/{id}', name: 'schedule_skip')]
     public function skip(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
         $schedule->setNextDoAt();
+
         $entityManager->flush();
         $this->addFlash('warning', sprintf('La planification <strong>%s</strong> a été ignorée', $model));
 

@@ -30,16 +30,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
+#[\Symfony\Component\Console\Attribute\AsCommand('app:recalcul', 'Recalcul des soldes de tous les comptes')]
 class ReCalculateCommand extends Command
 {
-    protected static $defaultName = 'app:recalcul';
-    protected static $defaultDescription = 'Recalcul des soldes de tous les comptes';
-
-    /**
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
-
     /**
      * @var SymfonyStyle
      */
@@ -54,13 +47,10 @@ class ReCalculateCommand extends Command
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(protected EntityManagerInterface $entityManager)
     {
         parent::__construct();
-        $this->entityManager = $entityManager;
     }
 
     /**
@@ -76,11 +66,6 @@ class ReCalculateCommand extends Command
 
     /**
      * Execute la commande.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -125,10 +110,10 @@ class ReCalculateCommand extends Command
     {
         $output = [];
         foreach ($this->accounts as $account) {
-            $balance = round($account->getBalance()->getBalance(), 2);
-            $recon = round($account->getBalance()->getReconBalance(), 2);
-            $investment = round($account->getBalance()->getInvestment(), 2);
-            $repurchase = round($account->getBalance()->getRepurchase(), 2);
+            $balance = round($account->getBalance(), 2);
+            $recon = round($account->getReconBalance(), 2);
+            $investment = round($account->getInvestment(), 2);
+            $repurchase = round($account->getRepurchase(), 2);
             $output[] = [
                 $account,
                 ($balance <= 0) ? '' : $balance.' €',
@@ -159,9 +144,6 @@ class ReCalculateCommand extends Command
 
     /**
      * Affiche le portefeuille.
-     *
-     * @param Account       $account
-     * @param WalletHistory $wallet
      */
     private function printWallet(Account $account, WalletHistory $wallet): void
     {
@@ -173,7 +155,7 @@ class ReCalculateCommand extends Command
                 $item->getStock(),
                 $item->getVolume(),
                 $item->getPrice().' €',
-                ($item->getPriceDate()) ? $item->getPriceDate()->format('d/m/Y') : '',
+                (null !== $item->getPriceDate()) ? $item->getPriceDate()->format('d/m/Y') : '',
                 $item->getInvest().' €',
                 $item->getDividend(),
                 $item->getFee(),

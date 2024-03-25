@@ -49,22 +49,19 @@ class StockFormType extends AbstractType
             ])
         ;
         // Ajout de la fusion en fonction du Data chargé
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, static function (FormEvent $event): void {
             $form = $event->getForm();
             /** @var Stock $data */
             $data = $event->getData();
             $form->add('fusionFrom', EntityType::class, [
                 'label' => 'Ancien titre fusionné',
                 'class' => Stock::class,
-                'query_builder' => function (StockRepository $er) use ($data) {
-                    return $er->createQueryBuilder('stk')
-                        ->leftJoin('stk.fusionTo', 'fus')
-                        ->where('stk.closedAt IS NOT NULL')
-                        ->andWhere('fus.id IS NULL OR fus.id = :id')
-                        ->setParameter('id', $data->getId())
-                        ->orderBy('stk.name')
-                    ;
-                },
+                'query_builder' => static fn (StockRepository $er) => $er->createQueryBuilder('stk')
+                    ->leftJoin('stk.fusionTo', 'fus')
+                    ->where('stk.closedAt IS NOT NULL')
+                    ->andWhere('fus.id IS NULL OR fus.id = :id')
+                    ->setParameter('id', $data->getId())
+                    ->orderBy('stk.name'),
                 'required' => false,
             ]);
         });

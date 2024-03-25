@@ -16,13 +16,13 @@ namespace App\Values;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class Fuel
+class Fuel implements \Stringable
 {
-    public const PETROL = 1;
-    public const DESIEL = 2;
-    public const GAS = 3;
-    public const ELECTRIC = 4;
-    public const HYBRID = 5;
+    final public const PETROL = 1;
+    final public const DESIEL = 2;
+    final public const GAS = 3;
+    final public const ELECTRIC = 4;
+    final public const HYBRID = 5;
 
     /**
      * Liste des environnements.
@@ -36,13 +36,6 @@ class Fuel
         self::ELECTRIC => ['label' => 'Electrique'],
         self::HYBRID => ['label' => 'Hybride'],
     ];
-
-    /**
-     * Valeur du type.
-     *
-     * @var int
-     */
-    protected $value;
 
     /**
      * Retourne la liste pour le ChoiceType des formulaires.
@@ -60,9 +53,8 @@ class Fuel
         return $result;
     }
 
-    public function __construct(int $value)
+    public function __construct(protected int $value)
     {
-        $this->value = $value;
     }
 
     public function setValue(int $value): void
@@ -80,7 +72,7 @@ class Fuel
         return self::$fuels[$this->value]['label'];
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getLabel();
     }

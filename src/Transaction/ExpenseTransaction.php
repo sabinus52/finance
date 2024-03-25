@@ -32,7 +32,7 @@ final class ExpenseTransaction extends TransactionModelAbstract implements Trans
         return [
             'filter' => [
                 'account' => sprintf('acc.type <= %s', AccountType::COURANT * 10 + 9),
-                'category' => sprintf('cat.type = %s', (int) (Category::EXPENSE)),
+                'category' => sprintf('cat.type = %s', (int) Category::EXPENSE),
                 '!fields' => ['account'],
             ],
         ];

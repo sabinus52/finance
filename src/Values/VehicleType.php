@@ -11,37 +11,32 @@ declare(strict_types=1);
 
 namespace App\Values;
 
-use Exception;
-
 /**
  * Classe statique sur les types de véhicules.
  *
  * @author Olivier <sabinus52@gmail.com>
  */
-class VehicleType
+class VehicleType implements \Stringable
 {
     /**
      * Constantes des groupes de types de conptes.
      */
-    public const MOTO = 1;
-    public const AUTO = 2;
-    public const QUAD = 3;
+    final public const MOTO = 1;
+    final public const AUTO = 2;
+    final public const QUAD = 3;
 
     /**
      * Liste des types de véhicules.
      *
      * @var array<mixed>
      */
-    private static $values = [
+    private static array $values = [
         self::AUTO => ['label' => 'Auto', 'icon' => 'fas fa-car'],
         self::MOTO => ['label' => 'Moto', 'icon' => 'fas fa-biking'],
         self::QUAD => ['label' => 'Quad', 'icon' => 'fas fa-truck-monster'],
     ];
 
-    /**
-     * @var int
-     */
-    private $value;
+    private int $value;
 
     /**
      * Constructeur.
@@ -49,7 +44,7 @@ class VehicleType
     public function __construct(int $value)
     {
         if (!array_key_exists($value, self::$values)) {
-            throw new Exception('La valeur "'.$value.'" est inconue, Valeur possible : '.implode(',', array_keys(self::$values)));
+            throw new \Exception('La valeur "'.$value.'" est inconue, Valeur possible : '.implode(',', array_keys(self::$values)));
         }
         $this->value = $value;
     }
@@ -57,7 +52,7 @@ class VehicleType
     /**
      * Retourne le label.
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getLabel();
     }

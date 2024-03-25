@@ -15,9 +15,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Olix\BackOfficeBundle\Model\User as BaseUser;
 
-/**
- * @ORM\Entity(repositoryClass=UserRepository::class)
- */
+#[ORM\Entity(repositoryClass: UserRepository::class)]
 class User extends BaseUser
 {
 }

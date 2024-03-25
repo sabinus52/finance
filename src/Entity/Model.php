@@ -14,6 +14,7 @@ namespace App\Entity;
 use App\Repository\ModelRepository;
 use App\Values\Payment;
 use App\Values\TransactionType;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -21,117 +22,84 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Entité de la classe Model.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=ModelRepository::class)
- * @ORM\HasLifecycleCallbacks
  */
-class Model
+#[ORM\Entity(repositoryClass: ModelRepository::class)]
+#[ORM\HasLifecycleCallbacks]
+class Model implements \Stringable
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;  /** @phpstan-ignore-line */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Montant de la transaction.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float")
-     * @Assert\NotBlank
      */
-    private $amount;
+    #[ORM\Column(type: Types::FLOAT)]
+    #[Assert\NotBlank]
+    private ?float $amount = null;
 
     /**
      * Compte bancaire associé.
-     *
-     * @var Account
-     *
-     * @ORM\ManyToOne(targetEntity=Account::class)
-     * @ORM\JoinColumn(nullable=false)
-     * @Assert\NotBlank
      */
-    private $account;
+    #[ORM\ManyToOne(targetEntity: Account::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
+    private ?Account $account = null;
 
     /**
      * Type de la transaction.
-     *
-     * @var TransactionType
-     *
-     * @ORM\Column(type="transaction_type")
-     * @Assert\NotBlank
      */
-    private $type;
+    #[ORM\Column(type: 'transaction_type')]
+    #[Assert\NotBlank]
+    private TransactionType $type;
 
     /**
      * Moyen de paiement.
-     *
-     * @var Payment
-     *
-     * @ORM\Column(type="payment")
-     * @Assert\NotBlank
      */
-    private $payment;
+    #[ORM\Column(type: 'payment')]
+    #[Assert\NotBlank]
+    private ?Payment $payment = null;
 
     /**
      * Béneficiaire.
-     *
-     * @var Recipient
-     *
-     * @ORM\ManyToOne(targetEntity=Recipient::class)
-     * @ORM\JoinColumn(nullable=false)
-     * @Assert\NotBlank
      */
-    private $recipient;
+    #[ORM\ManyToOne(targetEntity: Recipient::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
+    private ?Recipient $recipient = null;
 
     /**
      * Catégorie de la transaction.
-     *
-     * @var Category
-     *
-     * @ORM\ManyToOne(targetEntity=Category::class)
-     * @ORM\JoinColumn(nullable=false)
-     * @Assert\NotBlank
      */
-    private $category;
+    #[ORM\ManyToOne(targetEntity: Category::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
+    private ?Category $category = null;
 
     /**
      * Information sur la transaction.
-     *
-     * @var string
-     *
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $memo;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $memo = null;
 
     /**
      * Véhicule associé.
-     *
-     * @var Vehicle
-     *
-     * @ORM\ManyToOne(targetEntity=Vehicle::class)
      */
-    private $vehicle;
+    #[ORM\ManyToOne(targetEntity: Vehicle::class)]
+    private ?Vehicle $vehicle = null;
 
     /**
      * Compte cible de virement.
-     *
-     * @var Account
-     *
-     * @ORM\ManyToOne(targetEntity=Account::class)
      */
-    private $transfer;
+    #[ORM\ManyToOne(targetEntity: Account::class)]
+    private ?Account $transfer = null;
 
     /**
      * Planification associé.
-     *
-     * @var Schedule
-     *
-     * @ORM\OneToOne(targetEntity=Schedule::class, inversedBy="model", cascade={"persist", "remove"})
      */
-    private $schedule;
+    #[ORM\OneToOne(targetEntity: Schedule::class, inversedBy: 'model', cascade: ['persist', 'remove'])]
+    private ?Schedule $schedule = null;
 
     /**
      * Constructeur.
@@ -141,9 +109,9 @@ class Model
         $this->type = new TransactionType(TransactionType::STANDARD);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        if (!$this->getId()) {
+        if (null === $this->getId()) {
             return '';
         }
 
@@ -270,10 +238,9 @@ class Model
 
     /**
      * Corrige le signe du montant (+/-) en fonction de la catégorie.
-     *
-     * @ORM\PrePersist
-     * @ORM\PreUpdate
      */
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
     public function correctAmount(): void
     {
         if (Category::INCOME === $this->getCategory()->getType()) {

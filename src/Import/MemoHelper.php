@@ -16,27 +16,17 @@ namespace App\Import;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class MemoHelper
+class MemoHelper implements \Stringable
 {
     /**
-     * @var string
-     */
-    private $memo;
-
-    /**
      * Constructeur.
-     *
-     * @param string $memo
      */
-    public function __construct(string $memo)
+    public function __construct(private readonly string $memo)
     {
-        $this->memo = $memo;
     }
 
     /**
      * Retourne la valeur du mémo.
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -48,8 +38,6 @@ class MemoHelper
      * Exemple :
      *  Versement:[Mon placement] -> Mon placement
      *  Stock:[Crédit Agricole SA] -> Crédit Agricole SA.
-     *
-     * @return string|null
      */
     public function getLabelMemo(): ?string
     {
@@ -65,18 +53,14 @@ class MemoHelper
      * Retourne le montant du placement sur les comptes de capitalisation si renseigné
      * ( <> montant débité sur le compte courant)
      * Exemple : Versement:[Mon placement] €1000 -> 1000.
-     *
-     * @param float $amount
-     *
-     * @return float
      */
     public function getAmountVersement(float $amount): float
     {
-        $amount = $amount * -1;
+        $amount *= -1;
 
-        preg_match('/€([0-9]*[.]?[0-9]+)/', $this->memo, $matches);
+        preg_match('/€(\d*[.]?\d+)/', $this->memo, $matches);
         if (isset($matches[1])) {
-            $amount = (float) $matches[1];
+            return (float) $matches[1];
         }
 
         return $amount;
@@ -85,12 +69,10 @@ class MemoHelper
     /**
      * Retourne le volume en achat ou vente de titres
      * Exemple : Stock:[Crédit Agricole SA] v=10 p=12.34 -> 10.
-     *
-     * @return float|null
      */
     public function getStockVolume(): ?float
     {
-        preg_match('/v=([0-9]*[.]?[0-9]+)/', $this->memo, $matches);
+        preg_match('/v=(\d*[.]?\d+)/', $this->memo, $matches);
         if (!isset($matches[1])) {
             return null;
         }
@@ -101,12 +83,10 @@ class MemoHelper
     /**
      * Retourne le prix du titre lors de l'achat ou la vente
      * Exemple : Stock:[Crédit Agricole SA] v=10 p=12.34 -> 12.34.
-     *
-     * @return float|null
      */
     public function getStockPrice(): ?float
     {
-        preg_match('/p=([0-9]*[.]?[0-9]+)/', $this->memo, $matches);
+        preg_match('/p=(\d*[.]?\d+)/', $this->memo, $matches);
         if (!isset($matches[1])) {
             return null;
         }
@@ -116,12 +96,10 @@ class MemoHelper
 
     /**
      * Retourne le kilométrage du véhicule (d=).
-     *
-     * @return int|null
      */
     public function getVehiculeKiloMeterAge(): ?int
     {
-        preg_match('/d=([0-9]+)/', $this->memo, $matches);
+        preg_match('/d=(\d+)/', $this->memo, $matches);
         if (!isset($matches[1])) {
             return null;
         }
@@ -131,12 +109,10 @@ class MemoHelper
 
     /**
      * Retourne le volume de carburant (v=).
-     *
-     * @return float|null
      */
     public function getVehiculeFuelVolume(): ?float
     {
-        preg_match('/v=([0-9]*[.]?[0-9]+)/', $this->memo, $matches);
+        preg_match('/v=(\d*[.]?\d+)/', $this->memo, $matches);
         if (!isset($matches[1])) {
             return null;
         }
@@ -146,8 +122,6 @@ class MemoHelper
 
     /**
      * Retourne le modèle du véhicule.
-     *
-     * @return string|null
      */
     public function getVehiculeModel(): ?string
     {

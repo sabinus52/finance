@@ -23,38 +23,27 @@ use App\Values\TransactionType;
  */
 class ThriftCapacity
 {
-    public const BY_YEAR = 'year';
-    public const BY_MONTH = 'month';
-
-    /**
-     * Type de la période (mois ou année).
-     *
-     * @var string
-     */
-    private $periodType;
+    final public const BY_YEAR = 'year';
+    final public const BY_MONTH = 'month';
 
     /**
      * Tableau du résultat.
      *
      * @var ThriftItem[]
      */
-    private $results;
+    private array $results = [];
 
     /**
      * Constructeur.
      *
-     * @param string $periodType
+     * @param string $periodType type de la période (mois ou année)
      */
-    public function __construct(string $periodType)
+    public function __construct(private readonly string $periodType)
     {
-        $this->periodType = $periodType;
-        $this->results = [];
     }
 
     /**
      * Retourne le résultat.
-     *
-     * @param int $lastCount
      *
      * @return ThriftItem[]
      */
@@ -69,8 +58,6 @@ class ThriftCapacity
 
     /**
      * Ajoute une transaction pour le calcul.
-     *
-     * @param Transaction $transaction
      */
     public function addTransaction(Transaction $transaction): void
     {
@@ -87,10 +74,8 @@ class ThriftCapacity
                 $this->results[$period]->addAmount($transaction->getAmount());
             }
             // Transaction d'épargne pour la colonne de ce qui a été épargné
-            if (AccountType::EPARGNE_LIQUIDE === $transaction->getAccount()->getType()->getTypeCode()) {
-                if (0 === $transaction->getAmount() % 10) {
-                    $this->results[$period]->addThrift($transaction->getAmount());
-                }
+            if (AccountType::EPARGNE_LIQUIDE === $transaction->getAccount()->getType()->getTypeCode() && 0 === $transaction->getAmount() % 10) {
+                $this->results[$period]->addThrift($transaction->getAmount());
             }
         } elseif (Category::INVESTMENT === $transaction->getCategory()->getCode()) {
             // Si l'investissement est différent de la sommme réellement versé ( frais par exemple )
@@ -104,20 +89,13 @@ class ThriftCapacity
 
     /**
      * Retourne la période.
-     *
-     * @param Transaction $transaction
-     *
-     * @return string
      */
     private function getPeriod(Transaction $transaction): string
     {
-        switch ($this->periodType) {
-            case self::BY_MONTH:
-                return $transaction->getDate()->format('Y-m');
-            case self::BY_YEAR:
-                return $transaction->getDate()->format('Y');
-        }
-
-        return '';
+        return match ($this->periodType) {
+            self::BY_MONTH => $transaction->getDate()->format('Y-m'),
+            self::BY_YEAR => $transaction->getDate()->format('Y'),
+            default => '',
+        };
     }
 }

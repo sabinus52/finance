@@ -27,9 +27,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class CategoryController extends AbstractController
 {
-    /**
-     * @Route("/manage/category", name="manage_category__index")
-     */
+    #[Route(path: '/manage/category', name: 'manage_category__index')]
     public function index(CategoryRepository $categoryRepository): Response
     {
         return $this->render('manage/category-index.html.twig', [
@@ -38,9 +36,7 @@ class CategoryController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/category/1/create/{type}", name="manage_category__create1", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/category/1/create/{type}', name: 'manage_category__create1', methods: ['GET', 'POST'])]
     public function createCat(Request $request, EntityManagerInterface $entityManager): Response
     {
         $category = new Category();
@@ -57,7 +53,7 @@ class CategoryController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer une nouvelle catégorie',
@@ -65,9 +61,7 @@ class CategoryController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/category/2/create/{id}", name="manage_category__create2", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/category/2/create/{id}', name: 'manage_category__create2', methods: ['GET', 'POST'])]
     public function createSubCat(Request $request, Category $category, EntityManagerInterface $entityManager): Response
     {
         $subCategory = new Category();
@@ -85,7 +79,7 @@ class CategoryController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer une sous-catégorie',
@@ -93,14 +87,12 @@ class CategoryController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/category/edit/{id}", name="manage_category__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/category/edit/{id}', name: 'manage_category__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Category $category, EntityManagerInterface $entityManager): Response
     {
         // Catégorie réservée pour les virements internes
         if (Category::VIREMENT === $category->getCode()) {
-            return $this->renderForm('@OlixBackOffice/Include/modal-alert.html.twig', [
+            return $this->render('@OlixBackOffice/Include/modal-alert.html.twig', [
                 'message' => 'Cette catégorie <strong>'.$category.'</strong> ne peut pas être modifiée.',
             ]);
         }
@@ -116,7 +108,7 @@ class CategoryController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-vertical.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier une catégorie',

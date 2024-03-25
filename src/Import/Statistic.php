@@ -15,8 +15,6 @@ use App\Entity\Account;
 use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Values\Payment;
-use ArrayObject;
-use DateTime;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
@@ -26,31 +24,22 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 class Statistic
 {
-    /**
-     * @var SymfonyStyle
-     */
-    private $inOut;
+    private ?SymfonyStyle $inOut = null;
 
     /**
      * Liste des alertes trouvées.
-     *
-     * @var ArrayObject
      */
-    private $alerts;
+    private readonly \ArrayObject $alerts;
 
     /**
      * Liste des comptes trouvés.
-     *
-     * @var ArrayObject
      */
-    private $accounts;
+    private \ArrayObject $accounts;
 
     /**
      * Liste des catégories trouvés.
-     *
-     * @var ArrayObject
      */
-    private $categories;
+    private \ArrayObject $categories;
 
     /**
      * Constructeur.
@@ -59,18 +48,16 @@ class Statistic
      */
     public function __construct(SymfonyStyle $style = null)
     {
-        if (null !== $style) {
+        if ($style instanceof SymfonyStyle) {
             $this->inOut = $style;
         }
-        $this->alerts = new ArrayObject();
-        $this->accounts = new ArrayObject();
-        $this->categories = new ArrayObject();
+        $this->alerts = new \ArrayObject();
+        $this->accounts = new \ArrayObject();
+        $this->categories = new \ArrayObject();
     }
 
     /**
      * Affecte le style de Symfony Command.
-     *
-     * @param SymfonyStyle $style
      */
     public function setStyle(SymfonyStyle $style): self
     {
@@ -81,8 +68,6 @@ class Statistic
 
     /**
      * Incrémente les données de la transaction.
-     *
-     * @param Transaction $transaction
      */
     public function incTransaction(Transaction $transaction): void
     {
@@ -111,10 +96,8 @@ class Statistic
 
     /**
      * Ajoute un message d'alerte.
-     *
-     * @param string $message
      */
-    public function addMemoAlert(DateTime $date, Account $account, float $amount, string $memo, string $message): void
+    public function addMemoAlert(\DateTime $date, Account $account, float $amount, string $memo, string $message): void
     {
         $this->alerts->append([
             'date' => $date->format('d/m/Y'),
@@ -153,8 +136,6 @@ class Statistic
 
     /**
      * Ajoute un nouveau compte trouvé.
-     *
-     * @param Account $account
      */
     private function addAccount(Account $account): void
     {
@@ -173,8 +154,6 @@ class Statistic
 
     /**
      * Met à jour les données du compte.
-     *
-     * @param Account $account
      */
     public function setAccountData(Account $account): void
     {
@@ -184,14 +163,12 @@ class Statistic
         }
         $this->accounts[$accountName]['type'] = $account->getType()->getLabel();
         $this->accounts[$accountName]['opened'] = $account->getOpenedAt()->format('d/m/Y');
-        $this->accounts[$accountName]['balance'] = number_format($account->getBalance()->getBalance(), 2, '.', ' ');
-        $this->accounts[$accountName]['invest'] = number_format($account->getBalance()->getInvestment(), 2, '.', ' ');
+        $this->accounts[$accountName]['balance'] = number_format($account->getBalance(), 2, '.', ' ');
+        $this->accounts[$accountName]['invest'] = number_format($account->getInvestment(), 2, '.', ' ');
     }
 
     /**
      * Ajoute une nouvelle catégorie trouvée.
-     *
-     * @param Category $category
      */
     private function addCategory(Category $category): void
     {

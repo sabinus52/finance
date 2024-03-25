@@ -32,18 +32,15 @@ class ReconciliationController extends BaseController
 {
     /**
      * Validation du formulaire de saisie du solde à rapprocher.
-     *
-     * @Route("/account/{id}/reconciliation/create", name="reconciliation_create")
      */
+    #[Route(path: '/account/{id}/reconciliation/create', name: 'reconciliation_create')]
     public function create(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createFormReconBalance($account);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $metaBalance = clone $account->getBalance();
-            $metaBalance->setReconCurrent($form->get('balance')->getData());
-            $account->setBalance($metaBalance);
+            $account->setReconCurrent($form->get('balance')->getData());
             $entityManager->flush();
 
             $this->addFlash('success', sprintf('Le compte <strong>%s</strong> est prêt pour le rapprochement bancaire.', $account->getFullName()));
@@ -52,7 +49,7 @@ class ReconciliationController extends BaseController
             return new Response($this->generateUrl('reconciliation_index', ['id' => $account->getId()]));
         }
 
-        return $this->renderForm('account/reconciliation-create.html.twig', [
+        return $this->render('account/reconciliation-create.html.twig', [
             'form' => $form,
             'account' => $account,
         ]);
@@ -60,9 +57,8 @@ class ReconciliationController extends BaseController
 
     /**
      * Page principale de rapprochement.
-     *
-     * @Route("/account/{id}/reconciliation", name="reconciliation_index")
      */
+    #[Route(path: '/account/{id}/reconciliation', name: 'reconciliation_index')]
     public function index(Account $account, TransactionRepository $repository): Response
     {
         $formDelete = $this->createFormBuilder()->getForm();
@@ -85,18 +81,16 @@ class ReconciliationController extends BaseController
 
     /**
      * Valide le rapprochement.
-     *
-     * @Route("/account/{id}/reconciliation/valid", name="reconciliation_valid")
      */
+    #[Route(path: '/account/{id}/reconciliation/valid', name: 'reconciliation_valid')]
     public function valid(Request $request, Account $account, TransactionRepository $repository, EntityManagerInterface $entityManager): Response
     {
         $formReconValid = $this->createFormBuilder()->getForm();
 
         $formReconValid->handleRequest($request);
         if ($formReconValid->isSubmitted() && $formReconValid->isValid()) {
-            $metaBalance = clone $account->getBalance();
             // Ecart en cours pour le calcul final
-            $gab = $metaBalance->getReconBalance() - $metaBalance->getReconCurrent();
+            $gab = $account->getReconBalance() - $account->getReconCurrent();
 
             // Valide le rapprochement final
             $transactions = $repository->findBy([
@@ -107,8 +101,7 @@ class ReconciliationController extends BaseController
                 $gab = round($gab + $transaction->getAmount(), 2);
                 $transaction->setState(Transaction::STATE_RECONCILIED);
             }
-            $metaBalance->setReconBalance($metaBalance->getReconCurrent());
-            $account->setBalance($metaBalance);
+            $account->setReconBalance($account->getReconCurrent());
 
             if (0.0 !== $gab) {
                 $this->addFlash('error', 'Une erreur est survenue lors du rapprochement bancaire');
@@ -127,9 +120,8 @@ class ReconciliationController extends BaseController
 
     /**
      * Rapproche temporairement une transaction.
-     *
-     * @Route("/account/reconciliation/{id}", name="reconciliation_check")
      */
+    #[Route(path: '/account/reconciliation/{id}', name: 'reconciliation_check')]
     public function reconcilie(Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         if (Transaction::STATE_RECONTEMP === $transaction->getState()) {
@@ -149,8 +141,6 @@ class ReconciliationController extends BaseController
 
     /**
      * Retourne le formulaire du solde en cours du rapprochement bancaire.
-     *
-     * @return FormInterface
      */
     protected function createFormReconBalance(Account $account): FormInterface
     {
@@ -162,7 +152,7 @@ class ReconciliationController extends BaseController
             ])
             ->getForm()
         ;
-        $form->get('balance')->setData($account->getBalance()->getReconCurrent());
+        $form->get('balance')->setData($account->getReconCurrent());
 
         return $form;
     }
@@ -170,14 +160,11 @@ class ReconciliationController extends BaseController
     /**
      * Calcule l'écart entre le solde du rapprochement courant et le dernier.
      *
-     * @param Account       $account
      * @param Transaction[] $transactions
-     *
-     * @return float
      */
     private function calculateGab(Account $account, array $transactions): float
     {
-        $gab = $account->getBalance()->getReconBalance() - $account->getBalance()->getReconCurrent();
+        $gab = $account->getReconBalance() - $account->getReconCurrent();
         foreach ($transactions as $transaction) {
             if (Transaction::STATE_RECONTEMP === $transaction->getState()) {
                 $gab = round($gab + $transaction->getAmount(), 2);

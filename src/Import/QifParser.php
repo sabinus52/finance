@@ -12,9 +12,6 @@ declare(strict_types=1);
 namespace App\Import;
 
 use App\Entity\Category;
-use ArrayObject;
-use SplFileObject;
-use Throwable;
 
 /**
  * Classe pour parser les fichiers QIF.
@@ -26,67 +23,41 @@ use Throwable;
  */
 class QifParser
 {
-    public const DATE_FORMAT = 'm/d/Y';
+    final public const DATE_FORMAT = 'm/d/Y';
 
-    public const ACCOUNT = '!Account';
-    public const TRANST_BANK = '!Type:Bank';
-    public const TRANST_CASH = '!Type:Cash';
-    public const TRANST_CCARD = '!Type:CCard';
-    public const TRANST_INVST = '!Type:Invst';
-    public const TRANST_OTH_A = '!Type:Oth A';
-    public const TRANST_OTH_L = '!Type:Oth L';
-    public const CATEGORY = '!Type:Cat';
-    public const TCLASS = '!Type:Class';
-    public const MEMORIZED = '!Type:Memorized';
+    final public const ACCOUNT = '!Account';
+    final public const TRANST_BANK = '!Type:Bank';
+    final public const TRANST_CASH = '!Type:Cash';
+    final public const TRANST_CCARD = '!Type:CCard';
+    final public const TRANST_INVST = '!Type:Invst';
+    final public const TRANST_OTH_A = '!Type:Oth A';
+    final public const TRANST_OTH_L = '!Type:Oth L';
+    final public const CATEGORY = '!Type:Cat';
+    final public const TCLASS = '!Type:Class';
+    final public const MEMORIZED = '!Type:Memorized';
 
-    /**
-     * @var SplFileObject
-     */
-    private $file;
-
-    /**
-     * @var Helper
-     */
-    private $helper;
-
-    /**
-     * @var MemoParser
-     */
-    private $memoParser;
-
-    /**
-     * @var bool
-     */
-    private $isParseMemo;
+    private readonly MemoParser $memoParser;
 
     /**
      * Mode du type de section à ajouter (ACCOUNT, TRANST_BANK, ...).
-     *
-     * @var string
      */
-    private $mode;
+    private ?string $mode = null;
 
     /**
      * Compte en cours d'importation.
-     *
-     * @var ArrayObject
      */
-    private $account;
+    private \ArrayObject $account;
 
     /**
      * Constructeur.
-     *
-     * @param SplFileObject $file
-     * @param Helper        $helper
-     * @param bool          $isParseMemo
      */
-    public function __construct(SplFileObject $file, Helper $helper, bool $isParseMemo)
-    {
-        $this->file = $file;
-        $this->helper = $helper;
-        $this->isParseMemo = $isParseMemo;
-        $this->memoParser = new MemoParser($helper);
-        $this->account = new ArrayObject();
+    public function __construct(
+        private readonly \SplFileObject $file,
+        private readonly Helper $helper,
+        private readonly bool $isParseMemo
+    ) {
+        $this->memoParser = new MemoParser($this->helper);
+        $this->account = new \ArrayObject();
     }
 
     /**
@@ -160,8 +131,6 @@ class QifParser
                 $this->parseTransaction($item);
                 break;
             case self::TRANST_INVST:
-                break;
-
             default:
                 break;
         }
@@ -181,21 +150,21 @@ class QifParser
      */
     public function parseAccount(array $item): void
     {
-        $this->account = new ArrayObject();
+        $this->account = new \ArrayObject();
         foreach ($item as $line) {
             switch ($line[0]) {
                 case 'N':
-                    $this->account['name'] = substr($line, 1);
+                    $this->account->offsetSet('name', substr($line, 1));
                     break;
                 case 'T':
-                    $this->account['type'] = substr($line, 1);
+                    $this->account->offsetSet('type', substr($line, 1));
                     break;
                 default:
                     echo '';
                     break;
             }
         }
-        $this->helper->assocDatas->getAccount($this->account['name']);
+        $this->helper->assocDatas->getAccount((string) $this->account->offsetGet('name'));
     }
 
     /**
@@ -217,7 +186,12 @@ class QifParser
      */
     public function parseTransaction(array $item): void
     {
-        $date = $amount = $state = $recipient = $category = $memo = '';
+        $date = '';
+        $amount = '';
+        $state = '';
+        $recipient = '';
+        $category = '';
+        $memo = '';
         $isTransactStandard = true;
 
         foreach ($item as $line) {
@@ -252,13 +226,13 @@ class QifParser
              */
             $this->helper->createTransactionTransfer($itemFound, Category::VIREMENT, substr($category, 1, -1));
             $isTransactStandard = false;
-        } elseif (true === $this->isParseMemo && null !== $itemFound->getMemo()) {
+        } elseif ($this->isParseMemo && null !== $itemFound->getMemo()) {
             /**
              * Parse le champs mémp pour les comptes de capitalisation et boursier.
              */
             try {
                 $isTransactStandard = $this->memoParser->parse($itemFound);
-            } catch (Throwable $th) {
+            } catch (\Throwable $th) {
                 $this->helper->statistic->addMemoAlert($itemFound->getDate(), $itemFound->getAccount(), $itemFound->getAmount(), $itemFound->getMemo(), $th->getMessage());
             }
         }

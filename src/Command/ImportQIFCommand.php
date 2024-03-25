@@ -18,8 +18,8 @@ use App\Import\Helper;
 use App\Import\QifParser;
 use Doctrine\ORM\EntityManagerInterface;
 use Olix\BackOfficeBundle\Helper\DoctrineHelper;
-use SplFileObject;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -34,11 +34,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
+#[\Symfony\Component\Console\Attribute\AsCommand('app:importqif', 'Import des opérations et comptes au format QIF')]
 class ImportQIFCommand extends Command
 {
-    protected static $defaultName = 'app:importqif';
-    protected static $defaultDescription = 'Import des opérations et comptes au format QIF';
-
     /**
      * Liste des tables à vider avant import.
      *
@@ -49,11 +47,6 @@ class ImportQIFCommand extends Command
         TransactionStock::class,
         TransactionVehicle::class,
     ];
-
-    /**
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
 
     /**
      * @var SymfonyStyle
@@ -74,13 +67,10 @@ class ImportQIFCommand extends Command
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(protected EntityManagerInterface $entityManager)
     {
         parent::__construct();
-        $this->entityManager = $entityManager;
     }
 
     /**
@@ -90,7 +80,7 @@ class ImportQIFCommand extends Command
     {
         $this
             ->addArgument('qif', InputArgument::IS_ARRAY, 'Fichier QIF à importer')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force l\'import sans avertissement')
+            ->addOption('force', 'f', InputOption::VALUE_NONE, "Force l'import sans avertissement")
             ->addOption('parse-memo', null, InputOption::VALUE_NONE, 'Parse les données du champs mémo')
             ->setHelp('Import des opérations et comptes au format QIF')
         ;
@@ -98,9 +88,6 @@ class ImportQIFCommand extends Command
 
     /**
      * Initialise la commande.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
      */
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
@@ -118,17 +105,13 @@ class ImportQIFCommand extends Command
 
     /**
      * Execute la commande.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // Message d'avertissement avant suppression des transactions
         if (false === $input->getOption('force')) {
             $this->inOut->caution('!!! ATTENTION !!! Toutes les données de la base vont être supprimés.');
+            /** @var QuestionHelper $helper */
             $helper = $this->getHelper('question');
             $question = new ConfirmationQuestion('Voulez vous continuer [y/N] ? ', false);
             if (!$helper->ask($input, $output, $question)) {
@@ -147,13 +130,13 @@ class ImportQIFCommand extends Command
 
             // Test si accessible
             if (!is_readable($fileQIF)) {
-                $this->inOut->error(sprintf('Le fichier %s n\'est pas accessible', $fileQIF));
+                $this->inOut->error(sprintf("Le fichier %s n'est pas accessible", $fileQIF));
 
                 return Command::FAILURE;
             }
 
             // Ouverture du parseur du fichier
-            $file = new SplFileObject($fileQIF);
+            $file = new \SplFileObject($fileQIF);
             $parser = new QifParser($file, $this->helper, $input->getOption('parse-memo'));
 
             // Parse le fichier QIF
@@ -169,6 +152,7 @@ class ImportQIFCommand extends Command
         $this->inOut->text('Nouveaux éléments trouvées et crées :');
         $this->inOut->table(['Nouvel élément trouvé et créé', 'type'], $this->helper->assocDatas->getReportNewCreated());
         $this->inOut->text('Avertissements :');
+
         $this->helper->statistic->reportMemoAlerts();
         $this->inOut->text('Récapitulatifs des comptes importés :');
         $this->helper->statistic->reportAccounts();
@@ -180,8 +164,6 @@ class ImportQIFCommand extends Command
 
     /**
      * Vide les tables de transactions.
-     *
-     * @return bool
      */
     protected function truncateTransactions(): bool
     {

@@ -14,23 +14,30 @@ namespace App\Controller\Account;
 use App\Entity\Account;
 use App\Entity\Stock;
 use App\Entity\Transaction;
+use App\Entity\TransactionStock;
+use App\Entity\TransactionVehicle;
 use App\Repository\TransactionRepository;
 use App\Transaction\TransactionModelInterface;
 use App\Transaction\TransactionModelRouter;
 use App\Values\StockPosition;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+/**
+ * Controller des transactions.
+ *
+ * @author Sabinus52 <sabinus52@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class TransactionController extends BaseController
 {
     /**
      * Création d'une transaction standard par type (recette ou dépense).
-     *
-     * @Route("/account/{id}/create/transaction/bytype/{type}", name="transaction_create_bytype", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transaction/bytype/{type}', name: 'transaction_create_bytype', methods: ['GET', 'POST'])]
     public function createTransactionByType(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -40,9 +47,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une transaction standard par catégorie (interet, etc).
-     *
-     * @Route("/account/{id}/create/transaction/bycat/{codecat}", name="transaction_create_bycat", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transaction/bycat/{codecat}', name: 'transaction_create_bycat', methods: ['GET', 'POST'])]
     public function createTransactionByCategory(Request $request, Account $account, string $codecat, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -52,9 +58,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'un virement.
-     *
-     * @Route("/account/{id}/create/transfer/{type}", name="transfer_create", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transfer/{type}', name: 'transfer_create', methods: ['GET', 'POST'])]
     public function createTransfer(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -64,15 +69,14 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une valorisation sur un placement.
-     *
-     * @Route("/account/{id}/create/capital", name="capital_create", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/capital', name: 'capital_create', methods: ['GET', 'POST'])]
     public function createValorisation(Request $request, Account $account, EntityManagerInterface $entityManager, TransactionRepository $repository): Response
     {
         // Recherche la dernière transaction de valorisation
         $last = $repository->findOneLastValorisation($account);
-        $date = new DateTime();
-        if (null !== $last) {
+        $date = new \DateTimeImmutable();
+        if ($last instanceof Transaction) {
             $date = clone $last->getDate()->modify('+ 15 days');
         }
 
@@ -83,9 +87,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une transaction de frais de véhicule.
-     *
-     * @Route("/account/{id}/create/transaction/vehicle/{type}", name="transaction_create_vehicle", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transaction/vehicle/{type}', name: 'transaction_create_vehicle', methods: ['GET', 'POST'])]
     public function createTransactionVehicle(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -95,9 +98,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une transaction d'une opération boursière.
-     *
-     * @Route("/account/{id}/create/transaction/stock/{type}", name="transaction_create_wallet", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transaction/stock/{type}', name: 'transaction_create_wallet', methods: ['GET', 'POST'])]
     public function createTransactionStock(Request $request, Account $account, int $type, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -107,9 +109,8 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une transaction d'une opération boursière.
-     *
-     * @Route("/account/{id}/create/transaction/stock/{type}/{stock}", name="transaction_create_wallet_stock", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/{id}/create/transaction/stock/{type}/{stock}', name: 'transaction_create_wallet_stock', methods: ['GET', 'POST'])]
     public function createTransactionStockWithStock(Request $request, Account $account, int $type, Stock $stock, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -122,11 +123,6 @@ class TransactionController extends BaseController
 
     /**
      * Création d'une transaction.
-     *
-     * @param Request                   $request
-     * @param TransactionModelInterface $modelTransaction
-     *
-     * @return Response
      */
     private function create(Request $request, Account $account, TransactionModelInterface $modelTransaction): Response
     {
@@ -146,7 +142,7 @@ class TransactionController extends BaseController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Créer %s', $modelTransaction->getFormTitle()),
@@ -156,12 +152,11 @@ class TransactionController extends BaseController
 
     /**
      * Mets à jour une transaction.
-     *
-     * @Route("/account/transactions/edit/{id}", name="transaction__edit", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/transactions/edit/{id}', name: 'transaction__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
-        if (null !== $this->checkUpdate($transaction)) {
+        if ($this->checkUpdate($transaction) instanceof Response) {
             return $this->checkUpdate($transaction);
         }
 
@@ -187,7 +182,7 @@ class TransactionController extends BaseController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Modifier %s', $modelTransaction->getFormTitle()),
@@ -197,23 +192,22 @@ class TransactionController extends BaseController
 
     /**
      * Clone une transaction.
-     *
-     * @Route("/account/transactions/clone/{id}", name="transaction__clone", methods={"GET", "POST"})
      */
+    #[Route(path: '/account/transactions/clone/{id}', name: 'transaction__clone', methods: ['GET', 'POST'])]
     public function clone(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
         $modelTransaction = $router->load($transaction);
         $transaction = clone $modelTransaction->getTransaction();
-        $transaction->setDate(new DateTime());
+        $transaction->setDate(new \DateTimeImmutable());
         $transaction->setState(Transaction::STATE_NONE);
         // Cas d'une transaction de véhicule
-        if ($transaction->getTransactionVehicle()) {
+        if ($transaction->getTransactionVehicle() instanceof TransactionVehicle) {
             $vehicle = clone $transaction->getTransactionVehicle();
             $transaction->setTransactionVehicle($vehicle);
         }
         // Cas d'une transaction d'un orfre boursier
-        if ($transaction->getTransactionStock()) {
+        if ($transaction->getTransactionStock() instanceof TransactionStock) {
             $stock = clone $transaction->getTransactionStock();
             $transaction->setTransactionStock($stock);
         }
@@ -235,7 +229,7 @@ class TransactionController extends BaseController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Cloner %s', $modelTransaction->getFormTitle()),
@@ -246,12 +240,11 @@ class TransactionController extends BaseController
 
     /**
      * Supprime une transaction.
-     *
-     * @Route("/account/transactions/remove/{id}", name="transaction__remove")
      */
+    #[Route(path: '/account/transactions/remove/{id}', name: 'transaction__remove')]
     public function remove(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
-        if (null !== $this->checkUpdate($transaction)) {
+        if ($this->checkUpdate($transaction) instanceof Response) {
             return $this->checkUpdate($transaction);
         }
 
@@ -267,7 +260,7 @@ class TransactionController extends BaseController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-content-delete.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-content-delete.html.twig', [
             'form' => $form,
             'element' => sprintf('cette opération de <b>%s</b>', $transaction),
         ]);
@@ -275,22 +268,16 @@ class TransactionController extends BaseController
 
     /**
      * Vérifie si on peut supprimer ou modifier la transaction.
-     *
-     * @param Transaction $transaction
-     *
-     * @return Response|null
      */
     private function checkUpdate(Transaction $transaction): ?Response
     {
-        if (null !== $transaction->getTransfer()) {
-            if (Transaction::STATE_RECONCILIED === $transaction->getTransfer()->getState()) {
-                return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
-                    'message' => 'Impossible de supprimer ce virement !',
-                ]);
-            }
+        if ($transaction->getTransfer() instanceof Transaction && Transaction::STATE_RECONCILIED === $transaction->getTransfer()->getState()) {
+            return $this->render('@OlixBackOffice/Include/modal-content-error.html.twig', [
+                'message' => 'Impossible de supprimer ce virement !',
+            ]);
         }
         if (Transaction::STATE_RECONCILIED === $transaction->getState()) {
-            return $this->renderForm('@OlixBackOffice/Include/modal-content-error.html.twig', [
+            return $this->render('@OlixBackOffice/Include/modal-content-error.html.twig', [
                 'message' => 'Impossible de supprimer cette transaction !',
             ]);
         }

@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Model;
-use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -82,7 +81,7 @@ class ModelRepository extends ServiceEntityRepository
      */
     public function findScheduleToDo(): array
     {
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
 
         return $this->createQueryBuilder('mod')
             ->addSelect('rcp')

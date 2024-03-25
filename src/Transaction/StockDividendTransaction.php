@@ -47,7 +47,7 @@ final class StockDividendTransaction extends TransactionModelAbstract implements
         return 'une vente de titre';
     }
 
-    public function getTransactionType(): TransactionType
+    protected function getTransactionType(): TransactionType
     {
         return new TransactionType(TransactionType::STOCKEXCHANGE);
     }
@@ -62,18 +62,18 @@ final class StockDividendTransaction extends TransactionModelAbstract implements
         return $this->findRecipientInternal();
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::INCOME, Category::DIVIDENDES);
     }
 
-    public function getPosition(): ?StockPosition
+    protected function getPosition(): ?StockPosition
     {
         return new StockPosition(StockPosition::DIVIDEND);
     }
 
     public function getMessage(): string
     {
-        return 'd\'une vente de titre';
+        return "d'une vente de titre";
     }
 }

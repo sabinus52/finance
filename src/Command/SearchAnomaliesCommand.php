@@ -14,7 +14,6 @@ namespace App\Command;
 use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Values\Payment;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Symfony\Component\Console\Command\Command;
@@ -29,16 +28,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
+#[\Symfony\Component\Console\Attribute\AsCommand('app:import:anomalies', 'Recherche les anomalies')]
 class SearchAnomaliesCommand extends Command
 {
-    protected static $defaultName = 'app:import:anomalies';
-    protected static $defaultDescription = 'Recherche les anomalies';
-
-    /**
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
-
     /**
      * @var SymfonyStyle
      */
@@ -46,13 +38,10 @@ class SearchAnomaliesCommand extends Command
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(protected EntityManagerInterface $entityManager)
     {
         parent::__construct();
-        $this->entityManager = $entityManager;
     }
 
     /**
@@ -60,14 +49,13 @@ class SearchAnomaliesCommand extends Command
      */
     protected function configure(): void
     {
-        $this->setHelp('Recherche les anomalies dans les transactions après un import.'."\n");
+        $this
+            ->setHelp('Recherche les anomalies dans les transactions après un import.'."\n")
+        ;
     }
 
     /**
      * Initialise la commande.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
      */
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
@@ -78,11 +66,6 @@ class SearchAnomaliesCommand extends Command
 
     /**
      * Execute la commande.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -159,7 +142,7 @@ class SearchAnomaliesCommand extends Command
             ->select('trt')
             ->from(Transaction::class, 'trt')
             ->andWhere('trt.date = :date')
-            ->setParameter('date', new DateTime('1970-01-01'))
+            ->setParameter('date', new \DateTime('1970-01-01'))
             ->getQuery()
         ;
 
@@ -287,8 +270,6 @@ class SearchAnomaliesCommand extends Command
 
     /**
      * Retourne la liste des anomalies.
-     *
-     * @param Query $query
      */
     private function findAndPrintAnomlies(Query $query): void
     {

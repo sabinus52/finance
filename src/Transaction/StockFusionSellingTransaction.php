@@ -47,7 +47,7 @@ final class StockFusionSellingTransaction extends TransactionModelAbstract imple
         return 'une vente de titre';
     }
 
-    public function getTransactionType(): TransactionType
+    protected function getTransactionType(): TransactionType
     {
         return new TransactionType(TransactionType::STOCKEXCHANGE);
     }
@@ -62,18 +62,18 @@ final class StockFusionSellingTransaction extends TransactionModelAbstract imple
         return $this->findRecipientInternal();
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::INCOME, Category::STOCKTRANSAC);
     }
 
-    public function getPosition(): ?StockPosition
+    protected function getPosition(): ?StockPosition
     {
         return new StockPosition(StockPosition::FUSION_SALE);
     }
 
     public function getMessage(): string
     {
-        return 'd\'une vente de titre';
+        return "d'une vente de titre";
     }
 }

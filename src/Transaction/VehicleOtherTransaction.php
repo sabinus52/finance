@@ -32,7 +32,7 @@ final class VehicleOtherTransaction extends TransactionModelAbstract implements 
         return [
             'filter' => [
                 'account' => sprintf('acc.type <= %s', AccountType::COURANT * 10 + 9),
-                'category' => 'cat1.name IN (\'Auto / Moto\')',
+                'category' => "cat1.name IN ('Auto / Moto')",
                 '!fields' => ['account'],
                 '!fieldsvh' => ['distance', 'volume'],
             ],
@@ -44,7 +44,7 @@ final class VehicleOtherTransaction extends TransactionModelAbstract implements 
         return 'un frais sur véhicule';
     }
 
-    public function getTransactionType(): TransactionType
+    protected function getTransactionType(): TransactionType
     {
         return new TransactionType(TransactionType::VEHICLE);
     }

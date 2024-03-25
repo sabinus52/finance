@@ -11,12 +11,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Report;
 
+use App\Charts\FuelConsumptionChart;
+use App\Charts\FuelCostByMonthChart;
+use App\Charts\FuelPriceChart;
+use App\Charts\VehicleCostByYearChart;
 use App\Entity\Transaction;
 use App\Entity\Vehicle;
-use App\Helper\Charts\FuelConsumptionChart;
-use App\Helper\Charts\FuelCostByMonthChart;
-use App\Helper\Charts\FuelPriceChart;
-use App\Helper\Charts\VehicleCostByYearChart;
 use App\Helper\Report\VehicleReport;
 use App\Repository\TransactionRepository;
 use Doctrine\ORM\Query;
@@ -32,16 +32,12 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class VehicleController extends AbstractController
 {
-    /**
-     * @var TransactionRepository
-     */
-    private $repository;
+    private ?TransactionRepository $repository = null;
 
     /**
      * Page d'accueil du rapport de la liste de tous les véhicules.
-     *
-     * @Route("/rapports/vehicules", name="report_vehicle__index")
      */
+    #[Route(path: '/rapports/vehicules', name: 'report_vehicle__index')]
     public function index(TransactionRepository $repository): Response
     {
         $this->repository = $repository;
@@ -68,9 +64,8 @@ class VehicleController extends AbstractController
 
     /**
      * Page de rapport pour un véhicule.
-     *
-     * @Route("/rapports/vehicules/{id}", name="report_vehicle__item")
      */
+    #[Route(path: '/rapports/vehicules/{id}', name: 'report_vehicle__item')]
     public function reportByVehicle(Vehicle $vehicle, TransactionRepository $repository): Response
     {
         $transactions = $repository->findAllByVehicle($vehicle);
@@ -99,8 +94,6 @@ class VehicleController extends AbstractController
     /**
      * Retourne le résumé du rapport des coûts par véhicule.
      *
-     * @param Query $query
-     *
      * @return array<mixed>
      */
     private function getReportResults(Query $query): array
@@ -123,8 +116,6 @@ class VehicleController extends AbstractController
 
     /**
      * Retourne la requête de base des stats des coûts.
-     *
-     * @return QueryBuilder
      */
     private function getQueryBase(): QueryBuilder
     {

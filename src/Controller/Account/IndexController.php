@@ -11,10 +11,11 @@ declare(strict_types=1);
 
 namespace App\Controller\Account;
 
+use App\Charts\PerformanceByYearChart;
+use App\Charts\PerformanceCapitalChart;
+use App\Charts\PerformanceMonthChart;
+use App\Charts\PerformanceSlipperyChart;
 use App\Entity\Account;
-use App\Helper\Charts\MonthChart;
-use App\Helper\Charts\SlipperyChart;
-use App\Helper\Charts\YearChart;
 use App\Helper\Performance;
 use App\Repository\TransactionRepository;
 use App\WorkFlow\Wallet;
@@ -25,33 +26,25 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class IndexController extends BaseController
 {
-    /**
-     * @Route("/compte-courant/{id}", name="account_1_index")
-     */
+    #[Route(path: '/compte-courant/{id}', name: 'account_1_index')]
     public function indexDeposit(Request $request, Account $account): Response
     {
         return $this->index($request, $account, 'account/1deposit.html.twig');
     }
 
-    /**
-     * @Route("/compte-epargne/{id}", name="account_2_index")
-     */
+    #[Route(path: '/compte-epargne/{id}', name: 'account_2_index')]
     public function indexThrift(Request $request, Account $account): Response
     {
         return $this->index($request, $account, 'account/2thrift.html.twig');
     }
 
-    /**
-     * @Route("/compte-a-terme/{id}", name="account_3_index")
-     */
+    #[Route(path: '/compte-a-terme/{id}', name: 'account_3_index')]
     public function indexTerm(Request $request, Account $account): Response
     {
         return $this->index($request, $account, 'account/3term.html.twig');
     }
 
-    /**
-     * @Route("/portefeuille-boursier/{id}", name="account_4_index")
-     */
+    #[Route(path: '/portefeuille-boursier/{id}', name: 'account_4_index')]
     public function indexWallet(Request $request, Account $account, EntityManagerInterface $manager, TransactionRepository $repository): Response
     {
         $wallet = new Wallet($manager, $account);
@@ -60,9 +53,9 @@ class IndexController extends BaseController
         $performance = new Performance($repository, $account);
         $performance->setTransactions($result);
 
-        $chart2 = new MonthChart();
-        $chart3 = new SlipperyChart();
-        $chart4 = new YearChart();
+        $chart2 = new PerformanceMonthChart();
+        $chart3 = new PerformanceSlipperyChart();
+        $chart4 = new PerformanceByYearChart();
 
         return $this->index($request, $account, 'account/4wallet.html.twig', [
             'wallet' => $wallet,
@@ -79,16 +72,15 @@ class IndexController extends BaseController
         ]);
     }
 
-    /**
-     * @Route("/contrat-de-capitalisation/{id}", name="account_5_index")
-     */
+    #[Route(path: '/contrat-de-capitalisation/{id}', name: 'account_5_index')]
     public function indexCapital(Request $request, Account $account, TransactionRepository $repository): Response
     {
         $performance = new Performance($repository, $account);
 
-        $chart2 = new MonthChart();
-        $chart3 = new SlipperyChart();
-        $chart4 = new YearChart();
+        $chart2 = new PerformanceMonthChart();
+        $chart3 = new PerformanceSlipperyChart();
+        $chart4 = new PerformanceByYearChart();
+        $chart5 = new PerformanceCapitalChart();
 
         return $this->index($request, $account, 'account/5capital.html.twig', [
             'itemsbyMonth' => array_slice($performance->getByMonth(), -12, 12, true),
@@ -99,17 +91,13 @@ class IndexController extends BaseController
                 'slippery' => $chart3->getChart($performance->getBySlippery()),
                 'year' => $chart4->getChart($performance->getByYear()),
                 'month' => $chart2->getChart($performance->getByMonth()),
+                'capital' => $chart5->getChart($performance->getByMonth()),
             ],
         ]);
     }
 
     /**
-     * @param Request      $request
-     * @param Account      $account
-     * @param string       $template
      * @param array<mixed> $parameters
-     *
-     * @return Response
      */
     private function index(Request $request, Account $account, string $template, array $parameters = []): Response
     {

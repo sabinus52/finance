@@ -47,26 +47,20 @@ class TransacStockFormType extends AbstractType
                 'required' => false,
                 'class' => Stock::class,
                 'choice_label' => 'name',
-                'query_builder' => function (StockRepository $er) {
-                    return $er->createQueryBuilder('sck')
-                        ->orderBy('sck.name')
-                    ;
-                },
+                'query_builder' => static fn (StockRepository $er) => $er->createQueryBuilder('sck')
+                    ->orderBy('sck.name'),
                 'empty_data' => null,
             ])
             ->add('account', EntityType::class, [
                 'label' => 'Compte titre',
                 'required' => false,
                 'class' => Account::class,
-                'query_builder' => function (AccountRepository $er) {
-                    return $er->createQueryBuilder('acc')
-                        ->addSelect('ist')
-                        ->innerJoin('acc.institution', 'ist')
-                        ->where(sprintf('acc.type >= %s AND acc.type <= %s', AccountType::EPARGNE_FINANCIERE * 10, AccountType::EPARGNE_FINANCIERE * 10 + 9))
-                        ->orderBy('ist.name')
-                        ->addOrderBy('acc.name')
-                    ;
-                },
+                'query_builder' => static fn (AccountRepository $er) => $er->createQueryBuilder('acc')
+                    ->addSelect('ist')
+                    ->innerJoin('acc.institution', 'ist')
+                    ->where(sprintf('acc.type >= %s AND acc.type <= %s', AccountType::EPARGNE_FINANCIERE * 10, AccountType::EPARGNE_FINANCIERE * 10 + 9))
+                    ->orderBy('ist.name')
+                    ->addOrderBy('acc.name'),
                 'empty_data' => null,
             ])
             ->add('position', ChoiceType::class, [

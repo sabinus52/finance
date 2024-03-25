@@ -30,9 +30,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class VehicleController extends AbstractController
 {
-    /**
-     * @Route("/manage/vehicle", name="manage_vehicle__index")
-     */
+    #[Route(path: '/manage/vehicle', name: 'manage_vehicle__index')]
     public function index(VehicleRepository $repository): Response
     {
         return $this->render('manage/vehicle-index.html.twig', [
@@ -43,9 +41,7 @@ class VehicleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/vehicle/create", name="manage_vehicle__create", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/vehicle/create', name: 'manage_vehicle__create', methods: ['GET', 'POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $vehicle = new Vehicle();
@@ -60,7 +56,7 @@ class VehicleController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Créer un nouveau véhicule',
@@ -68,9 +64,7 @@ class VehicleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/manage/vehicle/edit/{id}", name="manage_vehicle__edit", methods={"GET", "POST"})
-     */
+    #[Route(path: '/manage/vehicle/edit/{id}', name: 'manage_vehicle__edit', methods: ['GET', 'POST'])]
     public function update(Request $request, Vehicle $vehicle, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(VehicleFormType::class, $vehicle);
@@ -83,7 +77,7 @@ class VehicleController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => 'Modifier un véhicule',
@@ -93,9 +87,8 @@ class VehicleController extends AbstractController
 
     /**
      * Création d'une transaction de financement de véhicule.
-     *
-     * @Route("/manage/vehicle/buy/{id}", name="manage_vehicle__buy", methods={"GET", "POST"})
      */
+    #[Route(path: '/manage/vehicle/buy/{id}', name: 'manage_vehicle__buy', methods: ['GET', 'POST'])]
     public function buy(Request $request, Vehicle $vehicle, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -105,9 +98,8 @@ class VehicleController extends AbstractController
 
     /**
      * Création d'une transaction de revente de véhicule.
-     *
-     * @Route("/manage/vehicle/sale/{id}", name="manage_vehicle__sale", methods={"GET", "POST"})
      */
+    #[Route(path: '/manage/vehicle/sale/{id}', name: 'manage_vehicle__sale', methods: ['GET', 'POST'])]
     public function sale(Request $request, Vehicle $vehicle, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -117,12 +109,6 @@ class VehicleController extends AbstractController
 
     /**
      * Création du formulaire de la transaction.
-     *
-     * @param Request                   $request
-     * @param Vehicle                   $vehicle
-     * @param TransactionModelInterface $modelTransaction
-     *
-     * @return Response
      */
     private function createTransaction(Request $request, Vehicle $vehicle, TransactionModelInterface $modelTransaction): Response
     {
@@ -146,7 +132,7 @@ class VehicleController extends AbstractController
             return new Response('OK');
         }
 
-        return $this->renderForm('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
             'form' => $form,
             'modal' => [
                 'title' => sprintf('Créer %s', $modelTransaction->getFormTitle()),

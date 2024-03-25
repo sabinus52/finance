@@ -26,8 +26,6 @@ use App\Repository\RecipientRepository;
 use App\Repository\StockRepository;
 use App\Repository\VehicleRepository;
 use App\Values\AccountType;
-use ArrayObject;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -38,63 +36,48 @@ use Doctrine\ORM\EntityManagerInterface;
 class AssocDatas
 {
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
      * Liste des organismes.
-     *
-     * @var ArrayObject
      */
-    private $institutions;
+    private \ArrayObject $institutions;
 
     /**
      * Liste des comptes.
-     *
-     * @var ArrayObject
      */
-    private $accounts;
+    private \ArrayObject $accounts;
 
     /**
      * Liste des bénéficiaires.
-     *
-     * @var ArrayObject
      */
-    private $recipients;
+    private \ArrayObject $recipients;
 
     /**
      * Liste des catégories de niveau 1.
-     *
-     * @var ArrayObject
      */
-    private $catLevel1;
+    private \ArrayObject $catLevel1;
 
     /**
      * Liste des catégories de niveau 2.
-     *
-     * @var ArrayObject
      */
-    private $catLevel2;
+    private \ArrayObject $catLevel2;
 
     /**
      * Liste des titres (actions).
      *
-     * @var ArrayObject
+     * @var \ArrayObject
      */
     public $stocks;
 
     /**
      * Liste des projets.
      *
-     * @var ArrayObject
+     * @var \ArrayObject
      */
     public $projects;
 
     /**
      * Liste des véhicules.
      *
-     * @var ArrayObject
+     * @var \ArrayObject
      */
     public $vehicles;
 
@@ -103,23 +86,19 @@ class AssocDatas
      *
      * @var array<mixed>
      */
-    private $newCreated;
+    private $newCreated = [];
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $manager
      */
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(private readonly EntityManagerInterface $entityManager)
     {
-        $this->entityManager = $manager;
-        $this->institutions = new ArrayObject();
-        $this->accounts = new ArrayObject();
-        $this->recipients = new ArrayObject();
-        $this->catLevel1 = new ArrayObject();
-        $this->catLevel2 = new ArrayObject();
-        $this->stocks = new ArrayObject();
-        $this->newCreated = [];
+        $this->institutions = new \ArrayObject();
+        $this->accounts = new \ArrayObject();
+        $this->recipients = new \ArrayObject();
+        $this->catLevel1 = new \ArrayObject();
+        $this->catLevel2 = new \ArrayObject();
+        $this->stocks = new \ArrayObject();
     }
 
     /**
@@ -129,40 +108,36 @@ class AssocDatas
     {
         /** @var InstitutionRepository $repositoryInstitut */
         $repositoryInstitut = $this->entityManager->getRepository(Institution::class);
-        $this->institutions = new ArrayObject($repositoryInstitut->get4Import());
+        $this->institutions = new \ArrayObject($repositoryInstitut->get4Import());
 
         /** @var AccountRepository $repositoryAccount */
         $repositoryAccount = $this->entityManager->getRepository(Account::class);
-        $this->accounts = new ArrayObject($repositoryAccount->get4Import());
+        $this->accounts = new \ArrayObject($repositoryAccount->get4Import());
 
         /** @var RecipientRepository $repositoryRecipient */
         $repositoryRecipient = $this->entityManager->getRepository(Recipient::class);
-        $this->recipients = new ArrayObject($repositoryRecipient->get4Import());
+        $this->recipients = new \ArrayObject($repositoryRecipient->get4Import());
 
         /** @var CategoryRepository $repositoryCategory */
         $repositoryCategory = $this->entityManager->getRepository(Category::class);
-        $this->catLevel1 = new ArrayObject($repositoryCategory->get4ImportLevel1());
-        $this->catLevel2 = new ArrayObject($repositoryCategory->get4ImportLevel2());
+        $this->catLevel1 = new \ArrayObject($repositoryCategory->get4ImportLevel1());
+        $this->catLevel2 = new \ArrayObject($repositoryCategory->get4ImportLevel2());
 
         /** @var StockRepository $repositoryStock */
         $repositoryStock = $this->entityManager->getRepository(Stock::class);
-        $this->stocks = new ArrayObject($repositoryStock->get4Import());
+        $this->stocks = new \ArrayObject($repositoryStock->get4Import());
 
         /** @var ProjectRepository $repositoryProject */
         $repositoryProject = $this->entityManager->getRepository(Project::class);
-        $this->projects = new ArrayObject($repositoryProject->get4Import());
+        $this->projects = new \ArrayObject($repositoryProject->get4Import());
 
         /** @var VehicleRepository $repositoryVehicle */
         $repositoryVehicle = $this->entityManager->getRepository(Vehicle::class);
-        $this->vehicles = new ArrayObject($repositoryVehicle->get4Import());
+        $this->vehicles = new \ArrayObject($repositoryVehicle->get4Import());
     }
 
     /**
      * Retourne l'instition à chercher sinon la crée.
-     *
-     * @param string $searchInstitution
-     *
-     * @return Institution
      */
     public function getInstitution(string $searchInstitution): Institution
     {
@@ -179,16 +154,13 @@ class AssocDatas
 
     /**
      * Créer une nouvelle institution.
-     *
-     * @param string $strInstitution
-     *
-     * @return Institution
      */
     public function createInstitution(string $strInstitution): Institution
     {
         $institution = new Institution();
         $institution->setName($strInstitution);
         $institution->setShortName($strInstitution);
+
         $this->entityManager->persist($institution);
         $this->newCreated[] = $institution;
 
@@ -197,13 +169,8 @@ class AssocDatas
 
     /**
      * Retourne le compte à chercher sinon le crée.
-     *
-     * @param string        $searchAccount
-     * @param DateTime|null $dateOpened
-     *
-     * @return Account
      */
-    public function getAccount(string $searchAccount, ?DateTime $dateOpened = null): Account
+    public function getAccount(string $searchAccount, \DateTimeImmutable $dateOpened = null): Account
     {
         if ($this->accounts->offsetExists($searchAccount)) {
             return $this->accounts->offsetGet($searchAccount);
@@ -218,17 +185,12 @@ class AssocDatas
 
     /**
      * Créer un nouveau compte.
-     *
-     * @param string        $searchAccount
-     * @param DateTime|null $dateOpened
-     *
-     * @return Account
      */
-    public function createAccount(string $searchAccount, ?DateTime $dateOpened = null): Account
+    public function createAccount(string $searchAccount, \DateTimeImmutable $dateOpened = null): Account
     {
         // Date par défaut (passage à l'euro)
-        if (null === $dateOpened) {
-            $dateOpened = new DateTime('2002-01-01');
+        if (!$dateOpened instanceof \DateTimeImmutable) {
+            $dateOpened = new \DateTimeImmutable('2002-01-01');
         }
 
         [$strIntitution, $strAccount] = $this->splitString($searchAccount, ' ');
@@ -240,6 +202,7 @@ class AssocDatas
         $account->setShortName($strAccount);
         $account->setType(new AccountType(11));
         $account->setOpenedAt($dateOpened);
+
         $this->entityManager->persist($account);
         $this->newCreated[] = $account;
 
@@ -250,8 +213,6 @@ class AssocDatas
      * Retoune un compte particulier en fonction de son type.
      *
      * @param int $type Numéro du type de compte
-     *
-     * @return Account|null
      */
     public function getAccountSpecial(int $type): ?Account
     {
@@ -267,10 +228,6 @@ class AssocDatas
 
     /**
      * Retourne le bénéficiaire à chercher sinon le crée.
-     *
-     * @param string $searchRecipient
-     *
-     * @return Recipient
      */
     public function getRecipient(string $searchRecipient): Recipient
     {
@@ -287,15 +244,12 @@ class AssocDatas
 
     /**
      * Créer un nouveau bénéficiaire.
-     *
-     * @param string $strRecipient
-     *
-     * @return Recipient
      */
     public function createRecipient(string $strRecipient): Recipient
     {
         $recipient = new Recipient();
         $recipient->setName($strRecipient);
+
         $this->entityManager->persist($recipient);
 
         return $recipient;
@@ -304,14 +258,11 @@ class AssocDatas
     /**
      * Retourne la catégorie à chercher sinon la crée.
      *
-     * @param string $searchCategory
-     * @param float  $amount         pour déterminer si recettes ou dépenses
-     *
-     * @return Category
+     * @param float $amount pour déterminer si recettes ou dépenses
      */
     public function getCategory(string $searchCategory, float $amount): Category
     {
-        $searchCategory = sprintf('%s%s', (($amount > 0) ? '+' : '-'), $searchCategory);
+        $searchCategory = sprintf('%s%s', ($amount > 0) ? '+' : '-', $searchCategory);
         if ($this->catLevel2->offsetExists($searchCategory)) {
             return $this->catLevel2->offsetGet($searchCategory);
         }
@@ -327,8 +278,6 @@ class AssocDatas
      * Créer une nouvelle catégorie.
      *
      * @param string $strCategory (+Categorie1:Categorie2) ou (-Categorie1:Categorie2)
-     *
-     * @return Category
      */
     public function createCategory(string $strCategory): Category
     {
@@ -353,6 +302,7 @@ class AssocDatas
         $category->setName($strCat2);
         $category->setLevel(2);
         $category->setType($parent->getType());
+
         $this->entityManager->persist($category);
         $this->newCreated[] = $category;
 
@@ -361,10 +311,6 @@ class AssocDatas
 
     /**
      * Retourne le titre boursier à chercher sinon le crée.
-     *
-     * @param string $searchStock
-     *
-     * @return Stock
      */
     public function getStock(string $searchStock): Stock
     {
@@ -381,16 +327,13 @@ class AssocDatas
 
     /**
      * Créer un nouveau titre boursier.
-     *
-     * @param string $strStock
-     *
-     * @return Stock
      */
     public function createStock(string $strStock): Stock
     {
         $stock = new Stock();
         $stock->setName($strStock);
         $stock->setCodeISIN('FR'.$this->generateRandomString(10, '0123456789'));
+
         $this->entityManager->persist($stock);
         $this->newCreated[] = $stock;
 
@@ -399,10 +342,6 @@ class AssocDatas
 
     /**
      * Retourne le projet à chercher sinon le crée.
-     *
-     * @param string $searchProject
-     *
-     * @return Project
      */
     public function getProject(string $searchProject): Project
     {
@@ -419,15 +358,12 @@ class AssocDatas
 
     /**
      * Créer un nouveau projet.
-     *
-     * @param string $strProject
-     *
-     * @return Project
      */
     public function createProject(string $strProject): Project
     {
         $project = new Project();
         $project->setName($strProject);
+
         $this->entityManager->persist($project);
         $this->newCreated[] = $project;
 
@@ -436,10 +372,6 @@ class AssocDatas
 
     /**
      * Retourne le véhicule à chercher sinon le crée.
-     *
-     * @param string $searchVehicle
-     *
-     * @return Vehicle|null
      */
     public function getVehicle(string $searchVehicle): ?Vehicle
     {
@@ -485,7 +417,7 @@ class AssocDatas
      */
     private function splitString(string $string, string $needle): array
     {
-        if (false === strstr($string, $needle)) {
+        if (!str_contains($string, $needle)) {
             $string = sprintf('%sInconnu:%s', $string[0], substr($string, 1));
         }
         $first = (string) strstr($string, $needle, true);
@@ -496,11 +428,6 @@ class AssocDatas
 
     /**
      * Retourne une chaine au hasard.
-     *
-     * @param int    $length
-     * @param string $characters
-     *
-     * @return string
      */
     private function generateRandomString(int $length = 10, string $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'): string
     {

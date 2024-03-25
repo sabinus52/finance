@@ -12,110 +12,71 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\StockWalletRepository;
-use DateTime;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Entité de la classe StockWallet (Portefeuille boursier) = 1 ligne du portefeuille.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @ORM\Entity(repositoryClass=StockWalletRepository::class)
  */
+#[ORM\Entity(repositoryClass: StockWalletRepository::class)]
 class StockWallet
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Action boursière du portefeuille.
-     *
-     * @var Stock
-     *
-     * @ORM\ManyToOne(targetEntity=Stock::class, inversedBy="stockWallets")
-     * @ORM\JoinColumn(nullable=false)
      */
-    private $stock;
+    #[ORM\ManyToOne(targetEntity: Stock::class, inversedBy: 'stockWallets')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Stock $stock = null;
 
     /**
      * Compte titres ou PEA associé.
-     *
-     * @var Account
-     *
-     * @ORM\ManyToOne(targetEntity=Account::class)
-     * @ORM\JoinColumn(nullable=false)
      */
-    private $account;
+    #[ORM\ManyToOne(targetEntity: Account::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Account $account = null;
 
     /**
      * Nombre d'actions contenus dans le portefeuille.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float")
      */
-    private $volume;
+    #[ORM\Column(type: Types::FLOAT)]
+    private float $volume = 0.0;
 
     /**
      * Dernier cours en date de l'action.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float")
      */
-    private $price;
+    #[ORM\Column(type: Types::FLOAT)]
+    private float $price = 0.0;
 
     /**
      * Date du prix en cours.
-     *
-     * @var DateTime
-     *
-     * @ORM\Column(type="date", nullable=true)
      */
-    private $priceDate;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $priceDate = null;
 
     /**
      * Montant investi.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float")
      */
-    private $invest;
+    #[ORM\Column(type: Types::FLOAT)]
+    private float $invest = 0.0;
 
     /**
      * Somme des dividendes reçues.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float")
      */
-    private $dividend;
+    #[ORM\Column(type: Types::FLOAT)]
+    private float $dividend = 0.0;
 
     /**
      * Commissions.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float")
      */
-    private $fee;
-
-    /**
-     * Constructeur.
-     */
-    public function __construct()
-    {
-        $this->volume = 0.0;
-        $this->price = 0.0;
-        $this->invest = 0.0;
-        $this->dividend = 0.0;
-        $this->fee = 0.0;
-    }
+    #[ORM\Column(type: Types::FLOAT)]
+    private float $fee = 0.0;
 
     public function getId(): ?int
     {
@@ -184,15 +145,14 @@ class StockWallet
         return $this;
     }
 
-    public function getPriceDate(): ?DateTime
+    public function getPriceDate(): ?\DateTimeImmutable
     {
         return $this->priceDate;
     }
 
-    public function setPriceDate(DateTime $priceDate): self
+    public function setPriceDate(\DateTimeImmutable $priceDate): self
     {
-        $this->priceDate = clone $priceDate;
-        $this->priceDate->modify('last day of this month');
+        $this->priceDate = $priceDate->modify('last day of this month');
 
         return $this;
     }
@@ -235,8 +195,6 @@ class StockWallet
 
     /**
      * Retourne la valorisation en cours.
-     *
-     * @return float
      */
     public function getValuation(): float
     {
@@ -245,8 +203,6 @@ class StockWallet
 
     /**
      * Retourne le gain sur cours.
-     *
-     * @return float
      */
     public function getGainOnCost(): float
     {
@@ -255,8 +211,6 @@ class StockWallet
 
     /**
      * Retourne le gain total.
-     *
-     * @return float
      */
     public function getGainTotal(): float
     {
@@ -265,8 +219,6 @@ class StockWallet
 
     /**
      * Retourne le rendement total.
-     *
-     * @return float
      */
     public function getPerformance(): float
     {
@@ -275,12 +227,6 @@ class StockWallet
 
     /**
      * Traitement de l'achat d'un titre boursier.
-     *
-     * @param float $volume
-     * @param float $price
-     * @param float $fee
-     *
-     * @return self
      */
     public function doBuying(float $volume, float $price, float $fee): self
     {
@@ -293,12 +239,6 @@ class StockWallet
 
     /**
      * Traitement de la vente d'un titre boursier.
-     *
-     * @param float $volume
-     * @param float $price
-     * @param float $fee
-     *
-     * @return self
      */
     public function doSelling(float $volume, float $price, float $fee): self
     {
@@ -311,12 +251,6 @@ class StockWallet
 
     /**
      * Traitement d'une fusion d'un titre boursier (vente de l'ancien).
-     *
-     * @param float $volume
-     * @param float $price
-     * @param float $fee
-     *
-     * @return self
      */
     public function doFusionSelling(float $volume, float $price, float $fee): self
     {
@@ -330,12 +264,7 @@ class StockWallet
     /**
      * Traitement d'une fusion d'un titre boursier (achat du nouveau).
      *
-     * @param float       $volume
-     * @param float       $price
-     * @param float       $fee
      * @param StockWallet $stockWallet Aancien titre pour récuperer l'investissement
-     *
-     * @return self
      */
     public function doFusionBuying(float $volume, float $price, float $fee, self $stockWallet): self
     {
@@ -349,10 +278,6 @@ class StockWallet
 
     /**
      * Traitement d'une reception de dividendes.
-     *
-     * @param float $dividend
-     *
-     * @return self
      */
     public function doDividend(float $dividend): self
     {

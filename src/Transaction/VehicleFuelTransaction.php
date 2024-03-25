@@ -44,12 +44,12 @@ final class VehicleFuelTransaction extends TransactionModelAbstract implements T
         return 'une dépense de carburant';
     }
 
-    public function getTransactionType(): TransactionType
+    protected function getTransactionType(): TransactionType
     {
         return new TransactionType(TransactionType::VEHICLE);
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::EXPENSE, Category::CARBURANT);
     }

@@ -32,8 +32,6 @@ class RecipientRepository extends ServiceEntityRepository
 
     /**
      * Retourne le bénéficiare interne.
-     *
-     * @return Recipient
      */
     public function findInternal(): Recipient
     {

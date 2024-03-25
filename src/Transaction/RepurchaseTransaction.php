@@ -46,12 +46,12 @@ final class RepurchaseTransaction extends TransactionModelAbstract implements Tr
         return 'un virement de rachat';
     }
 
-    public function getTransactionType(): TransactionType
+    protected function getTransactionType(): TransactionType
     {
         return new TransactionType(TransactionType::TRANSFER);
     }
 
-    public function getCategory(): ?Category
+    protected function getCategory(): ?Category
     {
         return $this->getCategoryByCode(Category::EXPENSE, Category::REPURCHASE);
     }

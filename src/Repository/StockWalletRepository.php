@@ -33,8 +33,6 @@ class StockWalletRepository extends ServiceEntityRepository
 
     /**
      * Suppression de tout le portefeuille.
-     *
-     * @param Account $account
      */
     public function removeByAccount(Account $account): void
     {

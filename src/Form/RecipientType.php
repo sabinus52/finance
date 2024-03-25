@@ -42,14 +42,11 @@ class RecipientType extends AbstractType
                 'class' => Category::class,
                 'choice_label' => 'name',
                 'empty_data' => null,
-                'query_builder' => function (CategoryRepository $er) {
-                    return $er->createQueryBuilder('cat')
-                        ->innerJoin('cat.parent', 'cat1')
-                        ->orderBy('cat1.name')
-                        ->addOrderBy('cat.name')
-                    ;
-                },
-                'group_by' => fn (Category $category) => $category->getParent()->getName(),
+                'query_builder' => static fn (CategoryRepository $er) => $er->createQueryBuilder('cat')
+                    ->innerJoin('cat.parent', 'cat1')
+                    ->orderBy('cat1.name')
+                    ->addOrderBy('cat.name'),
+                'group_by' => static fn (Category $category): ?string => $category->getParent()->getName(),
             ])
         ;
     }

@@ -12,49 +12,37 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\TransactionVehicleRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Entity(repositoryClass=TransactionVehicleRepository::class)
- */
+#[ORM\Entity(repositoryClass: TransactionVehicleRepository::class)]
 class TransactionVehicle
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id; /** @phpstan-ignore-line */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
     /**
      * Véhicule associé.
-     *
-     * @var Vehicle
-     *
-     * @ORM\ManyToOne(targetEntity=Vehicle::class, inversedBy="transactionVehicles")
-     * @ORM\JoinColumn(nullable=false)
-     * @Assert\NotBlank
      */
-    private $vehicle;
+    #[ORM\ManyToOne(targetEntity: Vehicle::class, inversedBy: 'transactionVehicles')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
+    private ?Vehicle $vehicle = null;
 
     /**
      * Kilométrage.
-     *
-     * @var int
-     *
-     * @ORM\Column(type="integer", nullable=true)
      */
-    private $distance;
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $distance = null;
 
     /**
      * Volume d'essence.
-     *
-     * @var float
-     *
-     * @ORM\Column(type="float", nullable=true)
      */
-    private $volume;
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $volume = null;
 
     public function getId(): ?int
     {

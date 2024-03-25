@@ -116,6 +116,11 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'manage_model__index',
             'icon' => 'far fa-calendar-alt',
         ]));
+        $manage->addChild(new MenuItemModel('manage_config', [
+            'label' => 'Configuration',
+            'route' => 'manage_config__index',
+            'icon' => 'fas fa-cogs',
+        ]));
 
         $event
             ->addItem($report)

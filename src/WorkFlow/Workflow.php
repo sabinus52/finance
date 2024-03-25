@@ -24,41 +24,23 @@ use Symfony\Component\Form\FormInterface;
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-final class Workflow
+final readonly class Workflow
 {
     /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * Transaction en cours et valider par le formulaire.
-     *
-     * @var Transaction
-     */
-    private $transaction;
-
-    /**
      * Transaction avant la validation du formulaire.
-     *
-     * @var Transaction
      */
-    private $before;
+    private Transaction $before;
 
-    /**
-     * @var Balance
-     */
-    private $balance;
+    private Balance $balance;
 
     /**
      * Constructeur.
-     *
-     * @param EntityManagerInterface $manager
+     * Transaction en cours et valider par le formulaire.
      */
-    public function __construct(EntityManagerInterface $manager, Transaction $transaction)
-    {
-        $this->entityManager = $manager;
-        $this->transaction = $transaction;
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private Transaction $transaction
+    ) {
         $this->before = clone $this->transaction;
         $this->balance = new Balance($this->entityManager);
     }
@@ -68,7 +50,7 @@ final class Workflow
      *
      * @param FormInterface|null $form
      */
-    public function insert(?FormInterface $form = null): void
+    public function insert(FormInterface $form = null): void
     {
         if ($this->isTransfer()) {
             if ($form->has('purchase') && true === $form->get('purchase')->getData()) {
@@ -98,7 +80,7 @@ final class Workflow
      *
      * @param array<mixed>|null $datas
      */
-    public function insertModeImport(?array $datas = null): void
+    public function insertModeImport(array $datas = null): void
     {
         if ($this->isTransfer()) {
             $transfer = new Transfer($this->entityManager, $this->transaction);
@@ -115,7 +97,7 @@ final class Workflow
      *
      * @param FormInterface|null $form
      */
-    public function update(?FormInterface $form = null): void
+    public function update(FormInterface $form = null): void
     {
         if ($this->isTransfer()) {
             $transfer = new Transfer($this->entityManager, $this->transaction);
@@ -151,8 +133,6 @@ final class Workflow
 
     /**
      * Si c'est un virement.
-     *
-     * @return bool
      */
     public function isTransfer(): bool
     {
