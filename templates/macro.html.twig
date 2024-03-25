@@ -29,7 +29,6 @@
                 <th class="text-right">Performance</th>
                 <th class="text-right">Cumul</th>
                 <th class="text-right">Valorisation</th>
-                <th class="text-right"></th>
             </tr>
         </thead>
         <tbody>
@@ -42,7 +41,6 @@
                 <td class="text-right">{{ _self.pourcentage(item.performance, true) }}</td>
                 <td class="text-right">{{ _self.pourcentage(item.cumulPerf, false) }}</td>
                 <td class="text-right">{{ _self.money(item.valuation, account.currency, false) }}</td>
-                <td></td>
             </tr>
         {% else %}
             <tr>

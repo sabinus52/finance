@@ -23,6 +23,7 @@ use App\Helper\Report\ThriftCapacity;
 use App\Repository\AccountRepository;
 use App\Repository\TransactionRepository;
 use App\Values\AccountType;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -38,7 +39,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class ReportController extends AbstractController
 {
     #[Route(path: '/rapports/capitalisation', name: 'report_capital')]
-    public function indexCapital(AccountRepository $repository, TransactionRepository $repoTransac): Response
+    public function indexCapital(AccountRepository $repository, EntityManagerInterface $entityManager): Response
     {
         $total = new Account();
         /** @var PerfItem[] $totalPerfMonth */
@@ -54,7 +55,7 @@ class ReportController extends AbstractController
         foreach ($accounts as $account) {
             $total->setInvestment($total->getInvestment() + $account->getInvestment());
             $total->setBalance($total->getBalance() + $account->getBalance());
-            $perf = new Performance($repoTransac, $account);
+            $perf = new Performance($entityManager, $account);
 
             $byMonth = $perf->getByMonth();
             $this->createTotalPerfItems($byMonth, $totalPerfMonth);

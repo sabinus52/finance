@@ -13,9 +13,13 @@ namespace App\Helper;
 
 use App\Entity\Account;
 use App\Entity\Category;
+use App\Entity\Stock;
+use App\Entity\StockPrice;
 use App\Entity\Transaction;
+use App\Repository\StockPriceRepository;
 use App\Repository\TransactionRepository;
 use App\Values\TransactionType;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Classe pour le calcul de la performance des placements.
@@ -41,14 +45,16 @@ class Performance
      * Constructeur.
      */
     public function __construct(
-        private readonly TransactionRepository $repository,
+        private readonly EntityManagerInterface $entityManager,
         private readonly Account $account
     ) {
         $date = new \DateTimeImmutable();
         $date = $date->modify('first day of this month');
 
         // Récupération des transactions du placement
-        $this->transactions = $this->repository->findByAccount($this->account, [
+        /** @var TransactionRepository $repository */
+        $repository = $this->entityManager->getRepository(Transaction::class);
+        $this->transactions = $repository->findByAccount($this->account, [
             'range' => ['1970-01-01', $date->format('Y-m-d')],
         ]);
     }
@@ -68,10 +74,17 @@ class Performance
      *
      * @return PerfItem[]
      */
-    private function generate(int $typePeriod): array
+    private function generate(int $typePeriod, Stock $indice = null): array
     {
         // Initialise
         $results = $this->initializePerfItems($typePeriod);
+        $indiceValues = [];
+        $capital = 0;
+        /** @var StockPriceRepository $repository */
+        $repository = $this->entityManager->getRepository(StockPrice::class);
+        if ($indice instanceof Stock) {
+            $indiceValues = $repository->findGroupByDate($indice);
+        }
 
         foreach ($this->transactions as $transaction) {
             // Crée la performance si elle n'existe pas
@@ -80,16 +93,22 @@ class Performance
             // On a investi durant la période
             if ($transaction->getCategory() && Category::INVESTMENT === $transaction->getCategory()->getCode()) {
                 $results[$period]->addInvestment($transaction->getAmount());
+                $capital += $transaction->getAmount();
             }
 
             // On a fait un rachat durant la période
             if ($transaction->getCategory() && Category::REPURCHASE === $transaction->getCategory()->getCode()) {
                 $results[$period]->addRepurchase($transaction->getAmount());
+                $capital -= $transaction->getAmount();
             }
 
             // Si présence d'une valorisation du contrat
             if (TransactionType::REVALUATION === $transaction->getType()->getValue()) {
                 $results[$period]->setValuation($transaction->getBalance());
+                if (array_key_exists($transaction->getDate()->format('Y-m'), $indiceValues)) {
+                    $capital *= (1 + $indiceValues[$transaction->getDate()->format('Y-m')]->getPrice() / 100 / 12);
+                }
+                $results[$period]->setIndice($capital);
             }
         }
 
@@ -144,9 +163,9 @@ class Performance
      *
      * @return PerfItem[]
      */
-    public function getByMonth(): array
+    public function getByMonth(Stock $indice = null): array
     {
-        return $this->generate(self::MONTH);
+        return $this->generate(self::MONTH, $indice);
     }
 
     /**
@@ -154,9 +173,9 @@ class Performance
      *
      * @return PerfItem[]
      */
-    public function getByQuarter(): array
+    public function getByQuarter(Stock $indice = null): array
     {
-        return $this->generate(self::QUARTER);
+        return $this->generate(self::QUARTER, $indice);
     }
 
     /**
@@ -164,9 +183,9 @@ class Performance
      *
      * @return PerfItem[]
      */
-    public function getByYear(): array
+    public function getByYear(Stock $indice = null): array
     {
-        return $this->generate(self::YEAR);
+        return $this->generate(self::YEAR, $indice);
     }
 
     /**

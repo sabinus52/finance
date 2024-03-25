@@ -16,8 +16,8 @@ use App\Charts\PerformanceCapitalChart;
 use App\Charts\PerformanceMonthChart;
 use App\Charts\PerformanceSlipperyChart;
 use App\Entity\Account;
+use App\Entity\Stock;
 use App\Helper\Performance;
-use App\Repository\TransactionRepository;
 use App\WorkFlow\Wallet;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -45,12 +45,12 @@ class IndexController extends BaseController
     }
 
     #[Route(path: '/portefeuille-boursier/{id}', name: 'account_4_index')]
-    public function indexWallet(Request $request, Account $account, EntityManagerInterface $manager, TransactionRepository $repository): Response
+    public function indexWallet(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
-        $wallet = new Wallet($manager, $account);
+        $wallet = new Wallet($entityManager, $account);
         $result = $wallet->getTransactionHistories();
 
-        $performance = new Performance($repository, $account);
+        $performance = new Performance($entityManager, $account);
         $performance->setTransactions($result);
 
         $chart2 = new PerformanceMonthChart();
@@ -73,9 +73,12 @@ class IndexController extends BaseController
     }
 
     #[Route(path: '/contrat-de-capitalisation/{id}', name: 'account_5_index')]
-    public function indexCapital(Request $request, Account $account, TransactionRepository $repository): Response
+    public function indexCapital(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
-        $performance = new Performance($repository, $account);
+        $performance = new Performance($entityManager, $account);
+
+        // Taux d'intérêt
+        $indices = $entityManager->getRepository(Stock::class)->findOneBy(['type' => Stock::INTEREST_RATE]);
 
         $chart2 = new PerformanceMonthChart();
         $chart3 = new PerformanceSlipperyChart();
@@ -91,7 +94,7 @@ class IndexController extends BaseController
                 'slippery' => $chart3->getChart($performance->getBySlippery()),
                 'year' => $chart4->getChart($performance->getByYear()),
                 'month' => $chart2->getChart($performance->getByMonth()),
-                'capital' => $chart5->getChart($performance->getByMonth()),
+                'capital' => $chart5->getChart($performance->getByMonth($indices)),
             ],
         ]);
     }

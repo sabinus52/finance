@@ -53,6 +53,11 @@ class PerfItem
     private ?float $valuation = null;
 
     /**
+     * Valeur de la valorisation d'un indice pour comparaison.
+     */
+    private ?float $indice = null;
+
+    /**
      * Objet PerfItem d'avant pour le calcul.
      */
     private ?PerfItem $previous = null;
@@ -145,6 +150,23 @@ class PerfItem
         }
 
         return $this->valuation;
+    }
+
+    public function setIndice(float $indice): self
+    {
+        $this->indice = $indice;
+
+        return $this;
+    }
+
+    public function getIndice(): ?float
+    {
+        // Prend celui d'avant s'il est vide
+        if (null === $this->indice && $this->previous instanceof self) {
+            return $this->previous->getIndice();
+        }
+
+        return $this->indice;
     }
 
     public function setPrevious(?self $perfItem): self

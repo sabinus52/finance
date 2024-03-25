@@ -75,17 +75,17 @@
             <div class="card card-tabs">
                 <div class="card-header p-0 pt-0">
                     <ul class="nav nav-tabs nav-fill" id="charts-tabs" role="tablist">
-                        <li class="nav-item"><a class="nav-link active" id="charts-tabs-month-tab" data-toggle="pill" href="#charts-tabs-month" role="tab" aria-controls="charts-tabs-month" aria-selected="true">Performance globale</a></li>
-                        <li class="nav-item"><a class="nav-link" id="charts-tabs-capital-tab" data-toggle="pill" href="#charts-tabs-capital" role="tab" aria-controls="charts-tabs-capital" aria-selected="false">Evolution du capital</a></li>
+                        <li class="nav-item"><a class="nav-link active" id="charts-tabs-month-tab" data-toggle="pill" href="#charts-tabs-month" role="tab" aria-controls="charts-tabs-month" aria-selected="true">Evolution du capital</a></li>
+                        <li class="nav-item"><a class="nav-link" id="charts-tabs-capital-tab" data-toggle="pill" href="#charts-tabs-capital" role="tab" aria-controls="charts-tabs-capital" aria-selected="false">Performance globale</a></li>
                     </ul>
                 </div>
                 <div class="card-body">
                     <div class="tab-content">
                         <div class="tab-pane fade active show" id="charts-tabs-month" role="tabpanel" aria-labelledby="charts-tabs-month-tab">
-                            <div class="chart">{{ render_chart(charts.month, { style: 'height:350px;'}) }}</div>
+                            <div class="chart">{{ render_chart(charts.capital, { style: 'height:350px;'}) }}</div>
                         </div>
                         <div class="tab-pane fade" id="charts-tabs-capital" role="tabpanel" aria-labelledby="charts-tabs-capital-tab">
-                            <div class="chart" style="height:350px">{{ render_chart(charts.capital) }}</div>
+                            <div class="chart" style="height:350px">{{ render_chart(charts.month) }}</div>
                         </div>
                     </div>
                 </div>

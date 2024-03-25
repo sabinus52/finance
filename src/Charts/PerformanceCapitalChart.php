@@ -48,6 +48,7 @@ class PerformanceCapitalChart extends ChartModel
         $performanceValues = [];
         $performanceColors = [];
         $investmentValues = [];
+        $indiceValues = [];
 
         foreach ($datas as $month => $item) {
             if (null === $item->getValuation()) {
@@ -57,6 +58,7 @@ class PerformanceCapitalChart extends ChartModel
             $performanceValues[] = $item->getValuation();
             $performanceColors[] = $this->getBackgroundColor($item->getCumulPerf());
             $investmentValues[] = $item->getInvestmentCumul();
+            $indiceValues[] = $item->getIndice();
         }
 
         $this
@@ -72,6 +74,12 @@ class PerformanceCapitalChart extends ChartModel
                 'pointRadius' => false,
                 'borderWidth' => 2,
                 'data' => $investmentValues,
+            ])
+            ->addDataSet([
+                'borderColor' => 'red',
+                'pointRadius' => false,
+                'borderWidth' => 2,
+                'data' => $indiceValues,
             ])
         ;
     }
