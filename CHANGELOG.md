@@ -1,5 +1,10 @@
 # CHANGELOG
 
+### Version 2.0.0
+
+- Migration de PHP en version 8.2
+- Migration de Symfony en version 6.4
+
 ### Version 1.0.1
 
 - Mise à jour de Symfony 5.4
