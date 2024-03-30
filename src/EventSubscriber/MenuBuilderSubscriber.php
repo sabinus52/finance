@@ -71,6 +71,11 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'report_vehicle__index',
             'icon' => 'fas fa-car',
         ]));
+        $report->addChild(new MenuItemModel('report_project', [
+            'label' => 'Projets',
+            'route' => 'report_project__index',
+            'icon' => 'fas fa-project-diagram',
+        ]));
 
         $manage = new MenuItemModel('manage', [
             'label' => 'Gerer ses finances',
@@ -85,11 +90,6 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'label' => 'Comptes / Contrats',
             'route' => 'manage_account__index',
             'icon' => 'fas fa-piggy-bank',
-        ]));
-        $manage->addChild(new MenuItemModel('manage_project', [
-            'label' => 'Projets',
-            'route' => 'manage_project__index',
-            'icon' => 'fas fa-project-diagram',
         ]));
         $manage->addChild(new MenuItemModel('manage_recipient', [
             'label' => 'Bénéficiaires',

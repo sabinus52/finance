@@ -13,6 +13,7 @@ namespace App\Repository;
 
 use App\Entity\Account;
 use App\Entity\Category;
+use App\Entity\Project;
 use App\Entity\Transaction;
 use App\Entity\Vehicle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -217,6 +218,28 @@ class TransactionRepository extends ServiceEntityRepository
             ->setParameter('vehicle', $vehicle)
             ->orderBy('trt.date', 'ASC')
             ->addOrderBy('veh.distance', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * Retourne les transactions d'un projet.
+     *
+     * @return Transaction[]
+     */
+    public function findAllByProject(Project $project): array
+    {
+        return $this->createQueryBuilder('trt')
+            ->addSelect('rcp')
+            ->addSelect('cat')
+            ->addSelect('prt')
+            ->innerJoin('trt.recipient', 'rcp')
+            ->innerJoin('trt.category', 'cat')
+            ->innerJoin('cat.parent', 'prt')
+            ->andWhere('trt.project = :project')
+            ->setParameter('project', $project)
+            ->orderBy('trt.date', 'ASC')
             ->getQuery()
             ->getResult()
         ;

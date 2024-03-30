@@ -9,13 +9,11 @@ declare(strict_types=1);
  *  file that was distributed with this source code.
  */
 
-namespace App\Controller\Manage;
+namespace App\Controller\Report;
 
-use App\Charts\CategoryChart;
 use App\Entity\Project;
 use App\Entity\Transaction;
 use App\Form\ProjectFormType;
-use App\Repository\ProjectRepository;
 use App\Repository\TransactionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,65 +22,16 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * Controleur des projets.
+ * Controleur de la gestion des projets.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  */
-class ProjectController extends AbstractController
+class ProjectManagerController extends AbstractController
 {
-    #[Route(path: '/manage/project', name: 'manage_project__index')]
-    public function index(ProjectRepository $repository): Response
-    {
-        return $this->render('manage/project-index.html.twig', [
-            'projects' => $repository->findAllComplete(),
-        ]);
-    }
-
-    #[Route(path: '/manage/project/infos/{id}', name: 'manage_project__item')]
-    public function seeDatasItem(Project $project, TransactionRepository $repository): Response
-    {
-        $categories = [];
-        $chart = new CategoryChart();
-
-        // Calcul de la somme par regroupement des catégories
-        foreach ($project->getTransactions() as $transaction) {
-            $idCat = $transaction->getCategory()->getId();
-            if (!array_key_exists($idCat, $categories)) {
-                $categories[$idCat] = [
-                    'datas' => $transaction->getCategory(),
-                    'total' => 0.0,
-                ];
-            }
-            $categories[$idCat]['total'] += $transaction->getAmount();
-        }
-        usort($categories, static fn ($aaa, $bbb): bool => $aaa['total'] > $bbb['total']);  /** @phpstan-ignore-line */
-
-        // Liste des transactions non sélectionnées durant la période du projet
-        $transactions = $repository->createQueryBuilder('trt')
-            ->addSelect('rpt')
-            ->addSelect('cat')
-            ->innerJoin('trt.recipient', 'rpt')
-            ->innerJoin('trt.category', 'cat')
-            ->andWhere('trt.type = 0')
-            ->andWhere('trt.date BETWEEN :start AND :end')
-            ->andWhere('trt.id NOT IN (:ids)')
-            ->setParameter('start', $project->getStartedAt()->format('y-m-d'))
-            ->setParameter('end', $project->getFinishAt()->format('Y-m-d'))
-            ->setParameter('ids', $project->getTransactions())
-            ->orderBy('trt.date')
-            ->getQuery()
-            ->getResult()
-        ;
-
-        return $this->render('manage/project-item.html.twig', [
-            'project' => $project,
-            'categories' => $categories,
-            'chart' => $chart->getChart($categories),
-            'transactions' => $transactions,
-        ]);
-    }
-
-    #[Route(path: '/manage/project/create', name: 'manage_project__create', methods: ['GET', 'POST'])]
+    /**
+     * Création d'un nouveau projet.
+     */
+    #[Route(path: '/rapport/projet/creation', name: 'report_project__create', methods: ['GET', 'POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $project = new Project();
@@ -92,7 +41,7 @@ class ProjectController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($project);
             $entityManager->flush();
-            $this->addFlash('success', 'La création du projet <strong>'.$project.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf('La création du projet <strong>%s</strong> a bien été prise en compte', $project));
 
             return new Response('OK');
         }
@@ -105,7 +54,10 @@ class ProjectController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/manage/project/edit/{id}', name: 'manage_project__edit', methods: ['GET', 'POST'])]
+    /**
+     * Modification d'un projet.
+     */
+    #[Route(path: '/rapport/projet/modification/{id}', name: 'report_project__edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function update(Request $request, Project $project, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(ProjectFormType::class, $project);
@@ -113,7 +65,7 @@ class ProjectController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'La modification du projet <strong>'.$project.'</strong> a bien été prise en compte');
+            $this->addFlash('success', sprintf('La modification du projet <strong>%s</strong> a bien été prise en compte', $project));
 
             return new Response('OK');
         }
@@ -126,22 +78,29 @@ class ProjectController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/manage/project/transaction/{id}/add', name: 'manage_project__addtrt', methods: ['GET', 'POST'])]
+    /**
+     * Rajoute des nouvelles transaction à effecter au projet.
+     */
+    #[Route(path: '/rapport/projet/transaction/{id}/add', name: 'report_project__addtrt', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function addTransaction(Request $request, Project $project, TransactionRepository $repository, EntityManagerInterface $entityManager): Response
     {
+        // Liste des transaction selectionnées
         $transactions = $request->get('transaction');
-        $result = print_r($transactions, true);
 
         foreach ($transactions as $id) {
             $transaction = $repository->find($id);
             $transaction->setProject($project);
         }
         $entityManager->flush();
+        $this->addFlash('success', sprintf("L'ajout de <strong>%s</strong> transaction(s) au projet <strong>%s</strong> a bien été prise en compte", count($transactions), $project));
 
-        return new Response('rrrrez  rereerz'.$result);
+        return new Response('OK');
     }
 
-    #[Route(path: '/manage/project/transaction/{id}/remove/{transaction}', name: 'manage_project__deltrt', methods: ['GET', 'POST'])]
+    /**
+     * Supprime des transactions du projet en cours.
+     */
+    #[Route(path: '/rapport/projet/transaction/{id}/remove/{transaction}', name: 'report_project__deltrt', requirements: ['id' => '\d+', 'transaction' => '\d+'], methods: ['GET', 'POST'])]
     public function removeTransaction(Request $request, Project $project, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createFormBuilder()->getForm();

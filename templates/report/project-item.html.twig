@@ -18,7 +18,7 @@
                 <div class="card card-success card-outline">
                     <div class="card-header">
                         <h3 class="card-title">Infos du projet</h3>
-                        <div class="card-tools"><a href="{{ path('manage_project__edit', {'id': project.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i> <span class="d-none d-md-inline">Modifier</span></a></div>
+                        <div class="card-tools"><a href="{{ path('report_project__edit', {'id': project.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i> <span class="d-none d-md-inline">Modifier</span></a></div>
                     </div>
                     <div class="card-body">
                         <div class="row my-3">
@@ -47,7 +47,7 @@
                 <div class="card card-primary card-outline">
                     <div class="card-header">
                         <h3 class="card-title">Liste des opérations</h3>
-                        <div class="card-tools"><a href="{{ path('manage_project__create') }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalProject"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Affecter une opération</span></a></div>
+                        <div class="card-tools"><a href="{{ path('report_project__create') }}" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalProject"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Affecter une opération</span></a></div>
                     </div>
                     <div class="card-body table-responsive p-0">
                         <table class="table table-sm table-hover text-nowrap">
@@ -62,14 +62,14 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            {% for item in project.transactions %}
+                            {% for item in transactions %}
                                 <tr>
                                     <td class="text-center">{{ item.date|date('d/m/Y') }}</td>
                                     <td><img src="{{ asset(item.payment.pathImage) }}" width="24"></td>
                                     <td>{{ item.recipient.name }}</td>
                                     <td>{{ item.category.fullName }}</td>
                                     <td class="text-right {% if item.amount < 0 %}text-red{% else %}text-green{% endif %}">{{ mymacro.money(item.amount, 'EUR', false) }}</td>
-                                    <td class="text-right"><a href="{{ path('manage_project__deltrt', { id: project.id, transaction: item.id }) }}" class="btn btn-sm btn-warning" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-minus"></i></a></td>
+                                    <td class="text-right"><a href="{{ path('report_project__deltrt', { id: project.id, transaction: item.id }) }}" class="btn btn-sm btn-warning" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-minus"></i></a></td>
                                 </tr>
                             {% else %}
                                 <tr>
@@ -118,7 +118,7 @@
 
     <div class="modal fade" id="modalProject" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="modalProjectLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <form action="{{ path('manage_project__addtrt', { id: project.id }) }}" method="post">
+        <form action="{{ path('report_project__addtrt', { id: project.id }) }}" method="post">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalProjectLabel">Affecter une nouvelle opération</h5>
@@ -139,7 +139,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                        {% for item in transactions %}
+                        {% for item in transactionsToComplete %}
                             <tr>
                                 <td>
                                     <div class="icheck-orange">

@@ -18,7 +18,7 @@
                 <div class="card card-success card-outline">
                     <div class="card-header">
                         <h3 class="card-title">Liste des projets</h3>
-                        <div class="card-tools"><a href="{{ path('manage_project__create') }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un projet</span></a></div>
+                        <div class="card-tools"><a href="{{ path('report_project__create') }}" class="btn btn-sm btn-success" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un projet</span></a></div>
                     </div>
                     <div class="card-body table-responsive p-0">
                         <table class="table table-hover text-nowrap">
@@ -43,8 +43,8 @@
                                     <td class="text-center">{{ item.number }}</td>
                                     <td class="text-right">{{ mymacro.money(item.total|abs, 'EUR', false) }}</td>
                                     <td class="text-right">
-                                        <a href="{{ path('manage_project__item', {'id': item.0.id}) }}" class="btn btn-sm btn-primary"><b><i class="fas fa-eye"></i><span class="d-none d-md-inline">&nbsp;Visualiser<span></b></a>
-                                        <a href="{{ path('manage_project__edit', {'id': item.0.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
+                                        <a href="{{ path('report_project__item', {'id': item.0.id}) }}" class="btn btn-sm btn-primary"><b><i class="fas fa-eye"></i><span class="d-none d-md-inline">&nbsp;Visualiser<span></b></a>
+                                        <a href="{{ path('report_project__edit', {'id': item.0.id}) }}" class="btn btn-sm btn-info" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i><span class="d-none d-md-inline">&nbsp;Modifier<span></a>
                                     </td>
                                 </tr>
                             {% else %}
