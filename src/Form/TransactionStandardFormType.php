@@ -57,6 +57,7 @@ class TransactionStandardFormType extends AbstractType
                     ->addSelect('ist')
                     ->innerJoin('acc.institution', 'ist')
                     ->where($options['filter']['account'])
+                    ->andWhere(($options['isNew']) ? 'acc.closedAt IS NULL' : '0=0')
                     ->orderBy('ist.name')
                     ->addOrderBy('acc.name'),
                 'empty_data' => null,

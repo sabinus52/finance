@@ -97,6 +97,7 @@ class ModelRepository extends ServiceEntityRepository
             ->setParameter('state', true)
             ->setParameter('limit', $now->modify('+ 10 days')->format('Y-m-d'))
             ->addOrderBy('shd.doAt', 'ASC')
+            ->addOrderBy('cat.type', 'DESC')
             ->getQuery()
             ->getResult()
         ;
