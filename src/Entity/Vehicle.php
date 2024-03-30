@@ -79,7 +79,7 @@ class Vehicle implements \Stringable
      */
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     #[Assert\NotBlank]
-    private int $kilometer = 0;
+    private ?int $kilometer = 0;
 
     /**
      * Date d'achat.
@@ -198,7 +198,7 @@ class Vehicle implements \Stringable
         return $this->kilometer;
     }
 
-    public function setKilometer(int $kilometer): self
+    public function setKilometer(?int $kilometer): self
     {
         $this->kilometer = $kilometer;
 

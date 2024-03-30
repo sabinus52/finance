@@ -60,20 +60,20 @@ class VehicleReport
     public function fetchStatistic(): void
     {
         $result = $this->fetchFuelStatistic();
-        $this->cost['fuel'] = $result['totalCost'];
+        $this->cost['fuel'] = $result['totalCost'] ?: 0;
         $this->mileAge = (int) $result['mileage'];
-        $this->volume['number'] = $result['number'];
-        $this->volume['total'] = $result['totalVolume'];
-        $this->volume['average'] = $result['averageVolume'];
+        $this->volume['number'] = $result['number'] ?: 0;
+        $this->volume['total'] = $result['totalVolume'] ?: 0;
+        $this->volume['average'] = $result['averageVolume'] ?: 0;
 
         $result = $this->fetchRepairStatistic();
-        $this->cost['repair'] = $result['totalCost'];
+        $this->cost['repair'] = $result['totalCost'] ?: 0;
 
         $result = $this->fetchFundingStatistic();
-        $this->cost['funding'] = $result['totalCost'];
+        $this->cost['funding'] = $result['totalCost'] ?: 0;
 
         $result = $this->fetchOtherStatistic();
-        $this->cost['other'] = $result['totalCost'];
+        $this->cost['other'] = $result['totalCost'] ?: 0;
 
         $this->totalCost = array_sum($this->cost);
     }
@@ -92,7 +92,11 @@ class VehicleReport
     public function getNumberDays(): int
     {
         $today = ($this->vehicle->getSoldAt() instanceof \DateTimeImmutable) ? $this->vehicle->getSoldAt() : new \DateTimeImmutable();
-        $interval = $today->diff($this->vehicle->getBoughtAt());
+        $interval = $today->diff($this->getFirstCirculationAt());
+
+        if (0 === $interval->days) {
+            return 1;
+        }
 
         return (int) $interval->days;
     }
@@ -103,9 +107,14 @@ class VehicleReport
     public function getNumberMonths(): int
     {
         $today = ($this->vehicle->getSoldAt() instanceof \DateTimeImmutable) ? $this->vehicle->getSoldAt() : new \DateTimeImmutable();
-        $interval = $today->diff($this->vehicle->getBoughtAt());
+        $interval = $today->diff($this->getFirstCirculationAt());
+        $months = (int) $interval->y * 12 + $interval->m;
 
-        return (int) $interval->y * 12 + $interval->m;
+        if (0 === $months) {
+            return 1;
+        }
+
+        return $months;
     }
 
     /**
@@ -115,7 +124,19 @@ class VehicleReport
     {
         $today = ($this->vehicle->getSoldAt() instanceof \DateTimeImmutable) ? $this->vehicle->getSoldAt() : new \DateTimeImmutable();
 
-        return $today->diff($this->vehicle->getBoughtAt());
+        return $today->diff($this->getFirstCirculationAt());
+    }
+
+    /**
+     * Retoune la date de la ère curculation.
+     */
+    public function getFirstCirculationAt(): \DateTimeImmutable
+    {
+        if ($this->vehicle->getRegisteredAt() instanceof \DateTimeImmutable) {
+            return $this->vehicle->getRegisteredAt();
+        }
+
+        return $this->vehicle->getBoughtAt();
     }
 
     /**
@@ -134,6 +155,19 @@ class VehicleReport
     public function getMileAge(): int
     {
         return $this->mileAge;
+    }
+
+    /**
+     * Retourne la distance parcourue.
+     */
+    public function getDistance(): int
+    {
+        $distance = $this->getMileAge() - $this->vehicle->getKilometer();
+        if (0 === $distance) {
+            return 1;
+        }
+
+        return $distance;
     }
 
     /**
@@ -187,7 +221,7 @@ class VehicleReport
      */
     public function getTotalCostByKm(): float
     {
-        return $this->totalCost / ($this->mileAge - $this->vehicle->getKilometer());
+        return $this->totalCost / $this->getDistance();
     }
 
     /**
@@ -211,7 +245,7 @@ class VehicleReport
      */
     public function getConsumption(): float
     {
-        return $this->volume['total'] / ($this->mileAge - $this->vehicle->getKilometer()) * 100;
+        return $this->volume['total'] / $this->getDistance() * 100;
     }
 
     /**
@@ -219,7 +253,11 @@ class VehicleReport
      */
     public function getFuelAverageDistance(): float
     {
-        return ($this->mileAge - $this->vehicle->getKilometer()) / $this->volume['number'];
+        if (0 === (int) $this->volume['number']) {
+            return 0;
+        }
+
+        return $this->getDistance() / $this->volume['number'];
     }
 
     /**
@@ -235,6 +273,10 @@ class VehicleReport
      */
     public function getFuelAverageCost(): float
     {
+        if (0 === (int) $this->volume['number']) {
+            return 0;
+        }
+
         return abs($this->cost['fuel']) / $this->volume['number'];
     }
 
@@ -243,6 +285,10 @@ class VehicleReport
      */
     public function getFuelAveragePrice(): float
     {
+        if (0 === (int) $this->volume['total']) {
+            return 0;
+        }
+
         return abs($this->cost['fuel'] / $this->volume['total']);
     }
 
@@ -267,7 +313,7 @@ class VehicleReport
      */
     public function getFuelCostByKm(): float
     {
-        return abs($this->cost['fuel']) / ($this->mileAge - $this->vehicle->getKilometer());
+        return abs($this->cost['fuel']) / $this->getDistance();
     }
 
     /**

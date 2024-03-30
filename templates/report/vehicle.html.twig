@@ -18,7 +18,7 @@
                     <div class="small-box bg-green">
                         <div class="inner">
                             <h3>{{ item.vehicle.name }}</h3>
-                            <p><strong>{{ item.mileage|number_format(0, '.', ' ') }}</strong> km durant {{ item.period.y }} ans {{ item.period.m }} mois {{ item.period.d }} jours</p>
+                            <p><strong>{{ item.mileage|number_format(0, '.', ' ') }}</strong> km durant {{ item.period.y }} ans {{ item.period.m }} mois {{ item.period.d }} jours <em>({{ item.firstCirculationAt|date('d/m/Y') }})</em></p>
                         </div>
                         <div class="icon"><i class="{{ item.vehicle.type.icon }}"></i></div>
                         <a href="{{ path('report_vehicle__item', {'id': item.vehicle.id}) }}" class="small-box-footer">Voir le rapport <i class="fas fa-arrow-circle-right"></i></a>
@@ -30,6 +30,14 @@
                         <div class="info-box-content">
                             <span class="info-box-text">Coût total</span>
                             <span class="info-box-number">{{ mymacro.money(item.totalCost|abs, 'EUR', false) }}</span>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <a href="{{ path('report_vehicle__edit', {'id': item.vehicle.id}) }}" role="button" class="btn bg-gradient-secondary" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i>&nbsp;Modifier ce véhicule</a>
+                        <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-expanded="false"><span class="sr-only">Toggle Dropdown</span></button>
+                        <div class="dropdown-menu">
+                            <a href="{{ path('report_vehicle__buy', {'id': item.vehicle.id}) }}" class="dropdown-item text-danger" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-minus-square"></i>&nbsp;Financer ce véhicule</a>
+                            <a href="{{ path('report_vehicle__sale', {'id': item.vehicle.id}) }}" class="dropdown-item text-success" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus-square"></i>&nbsp;Vendre ce véhicule</a>
                         </div>
                     </div>
                 </div>
@@ -69,6 +77,7 @@
                 <div class="card card-red card-outline">
                     <div class="card-header">
                         <h3 class="card-title">Liste des anciens véhicules</h3>
+                        <div class="card-tools"><a href="{{ path('report_vehicle__create') }}" class="btn bg-gradient-success" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-plus"></i> <span class="d-none d-md-inline">Ajouter un nouveau véhicule</span></a></div>
                     </div>
                     <div class="card-body table-responsive p-0">
                         <table class="table table-hover text-nowrap">
@@ -77,6 +86,7 @@
                                     
                                     <th>Modèle du véhicule</th>
                                     <th class="text-right">Kilométrage</th>
+                                    <th class="text-right">Date circulation</th>
                                     <th class="text-right">Nombre de jours</th>
                                     <th class="text-right">Coût total</th>
                                     <th class="text-right">Coût au km</th>
@@ -90,13 +100,15 @@
                                 <tr>
                                     <td><i class="{{ item.vehicle.type.icon }} fa-lg"></i> &nbsp; <b>{{ item.vehicle.name }}</b></td>
                                     <td class="text-right">{{ item.mileage|number_format(0, '.', ' ') }} km</td>
+                                    <td class="text-right">{{ item.firstCirculationAt|date('d/m/Y') }}</td>
                                     <td class="text-right">{{ item.period.y }} ans {{ item.period.m }} mois {{ item.period.d }} jours</td>
                                     <td class="text-right text-red text-bold">{{ mymacro.money(item.totalCost|abs, 'EUR', false) }}</td>
                                     <td class="text-right">{{ mymacro.money(item.totalCostByKm|abs, 'EUR', false) }}</td>
                                     <td class="text-right">{{ mymacro.money(item.totalCostByDay|abs, 'EUR', false) }}</td>
                                     <td class="text-right"><strong>{{ item.consumption|number_format(1, ',') }} l</strong> / 100 km</td>
                                     <td class="text-right">
-                                        <a href="{{ path('report_vehicle__item', {'id': item.vehicle.id}) }}" class="btn btn-sm btn-primary"><b><i class="fas fa-eye"></i><span class="d-none d-md-inline">&nbsp;Voir le rapport<span></b></a>
+                                        <a href="{{ path('report_vehicle__item', {'id': item.vehicle.id}) }}" class="btn btn-sm bg-gradient-primary"><b><i class="fas fa-eye"></i><span class="d-none d-md-inline">&nbsp;Voir le rapport<span></b></a>
+                                        <a href="{{ path('report_vehicle__edit', { 'id': item.vehicle.id }) }}" class="btn btn-sm bg-gradient-secondary" data-toggle="olix-modal" data-target="#modalOlix"><i class="fas fa-edit"></i> Modfier</a>
                                     </td>
                                 </tr>
                             {% else %}
@@ -114,5 +126,6 @@
 
     </div>
 
+    {% include '@OlixBackOffice/Include/modal.html.twig' with { title: "Chargement du formulaire" } %}
 
 {% endblock %}

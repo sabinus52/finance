@@ -91,11 +91,6 @@ class MenuBuilderSubscriber extends MenuFactorySubscriber
             'route' => 'manage_project__index',
             'icon' => 'fas fa-project-diagram',
         ]));
-        $manage->addChild(new MenuItemModel('manage_vehicle', [
-            'label' => 'Véhicules',
-            'route' => 'manage_vehicle__index',
-            'icon' => 'fas fa-car',
-        ]));
         $manage->addChild(new MenuItemModel('manage_recipient', [
             'label' => 'Bénéficiaires',
             'route' => 'manage_recipient__index',

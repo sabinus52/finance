@@ -59,13 +59,16 @@ class VehicleController extends AbstractController
                 'old' => $this->getReportResults($oldQuery),
                 'current' => $this->getReportResults($currentQuery),
             ],
+            'modal' => [
+                'class' => 'modal-lg',
+            ],
         ]);
     }
 
     /**
      * Page de rapport pour un véhicule.
      */
-    #[Route(path: '/rapports/vehicules/{id}', name: 'report_vehicle__item')]
+    #[Route(path: '/rapports/vehicules/{id}', name: 'report_vehicle__item', requirements: ['id' => '\d+'])]
     public function reportByVehicle(Vehicle $vehicle, TransactionRepository $repository): Response
     {
         $transactions = $repository->findAllByVehicle($vehicle);
