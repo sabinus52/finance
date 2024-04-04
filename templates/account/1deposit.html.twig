@@ -22,3 +22,14 @@
         </div>
     </div>
 {% endblock %}
+
+{% block content_account %}
+    <div class="row p-2">
+        <div class="col-7">
+            <div class="chart" style="height:180px">{{ render_chart(balances) }}</div>
+        </div>
+        <div class="col-5">
+            <div class="chart" style="height:180px">{{ render_chart(categories) }}</div>
+        </div>
+    </div>
+{% endblock %}

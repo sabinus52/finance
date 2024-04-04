@@ -32,6 +32,38 @@ use Symfony\Component\Routing\Annotation\Route;
 class BaseController extends AbstractController
 {
     /**
+     * Compte en cours.
+     */
+    protected Account $account;
+
+    /**
+     * @param array<mixed> $parameters
+     */
+    protected function index(Request $request, Account $account, string $template, array $parameters = []): Response
+    {
+        $formFilter = $this->createFormFilter();
+
+        // Remplit le formulaire avec les données de la session
+        $session = $request->getSession();
+        $filter = $session->get('filter');
+        if (null !== $filter) {
+            foreach ($filter as $key => $value) {
+                if ($formFilter->has($key)) {
+                    $formFilter->get($key)->setData($value);
+                }
+            }
+        }
+
+        return $this->render($template, array_merge([
+            'forceMenuActiv' => sprintf('account%s', $account->getId()),
+            'account' => $account,
+            'form' => [
+                'filter' => $formFilter->createView(),
+            ],
+        ], $parameters));
+    }
+
+    /**
      * Retourne le formulaire du filtre.
      */
     protected function createFormFilter(): FormInterface

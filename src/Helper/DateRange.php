@@ -29,6 +29,7 @@ class DateRange
     final public const QUARTER_LAST = 'quarter:last';
     final public const YEAR_CURRENT = 'year:current';
     final public const YEAR_LAST = 'year:last';
+    final public const NEXT_60D = 'nextday:60';
 
     /**
      * @var array<mixed>
@@ -123,6 +124,23 @@ class DateRange
     }
 
     /**
+     * Retourne dans un tableau les jours dans un intervalle.
+     *
+     * @return array<mixed>
+     */
+    public function getDaysInRange(): array
+    {
+        $results = [];
+        $indice = $this->dateBegin;
+        while ($indice <= $this->dateEnd) {
+            $results[$indice->format('Y-m-d')] = $indice->format('Y-m-d');
+            $indice = $indice->modify('+ 1 day');
+        }
+
+        return $results;
+    }
+
+    /**
      * Calcule et détermine la date de début et de fin.
      */
     private function calculate(): void
@@ -131,6 +149,7 @@ class DateRange
 
         $result = match ($action) {
             'lastday' => $this->getLastDays($interval),
+            'nextday' => $this->getNextDays($interval),
             'lastmonth' => $this->getLastMonths($interval),
             'month' => ('last' === $interval) ? $this->getLastMonth() : $this->getCurrentMonth(),
             'quarter' => ('last' === $interval) ? $this->getLastQuarter() : $this->getCurrentQuarter(),
@@ -151,6 +170,19 @@ class DateRange
         return [
             $this->now->sub(new \DateInterval('P'.$interval.'D')),
             $this->now,
+        ];
+    }
+
+    /**
+     * Retourne les dates de début et fin des X prochains jours.
+     *
+     * @return \DateTimeImmutable[]
+     */
+    private function getNextDays(string $interval): array
+    {
+        return [
+            $this->now,
+            $this->now->add(new \DateInterval('P'.$interval.'D')),
         ];
     }
 

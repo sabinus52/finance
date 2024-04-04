@@ -87,6 +87,39 @@ class TransactionRepository extends ServiceEntityRepository
     }
 
     /**
+     * Toutes les dépenses pour un compte donné.
+     *
+     * @param array<mixed> $range
+     *
+     * @return Transaction[]
+     */
+    public function findExpenses(?Account $account, array $range = []): array
+    {
+        $query = $this->createQueryBuilder('trt')
+            ->addSelect('cat')
+            ->addSelect('prt')
+            ->innerJoin('trt.category', 'cat')
+            ->innerJoin('cat.parent', 'prt')
+
+            ->orderBy('trt.date', 'ASC')
+        ;
+        if ($account instanceof Account) {
+            $query
+                ->andWhere('trt.account = :account')
+                ->setParameter('account', $account)
+            ;
+        }
+        if ([] !== $range) {
+            $query->andWhere('trt.date BETWEEN :start AND :end')
+                ->setParameter('start', $range[0])
+                ->setParameter('end', $range[1])
+            ;
+        }
+
+        return $query->getQuery()->getResult();
+    }
+
+    /**
      * Toutes les transactions pour le rapprochement.
      *
      * @return Transaction[]

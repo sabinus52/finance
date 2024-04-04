@@ -26,12 +26,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class IndexController extends BaseController
 {
-    #[Route(path: '/compte-courant/{id}', name: 'account_1_index')]
-    public function indexDeposit(Request $request, Account $account): Response
-    {
-        return $this->index($request, $account, 'account/1deposit.html.twig');
-    }
-
     #[Route(path: '/compte-epargne/{id}', name: 'account_2_index')]
     public function indexThrift(Request $request, Account $account): Response
     {
@@ -97,32 +91,5 @@ class IndexController extends BaseController
                 'capital' => $chart5->getChart($performance->getByMonth($indices)),
             ],
         ]);
-    }
-
-    /**
-     * @param array<mixed> $parameters
-     */
-    private function index(Request $request, Account $account, string $template, array $parameters = []): Response
-    {
-        $formFilter = $this->createFormFilter();
-
-        // Remplit le formulaire avec les données de la session
-        $session = $request->getSession();
-        $filter = $session->get('filter');
-        if (null !== $filter) {
-            foreach ($filter as $key => $value) {
-                if ($formFilter->has($key)) {
-                    $formFilter->get($key)->setData($value);
-                }
-            }
-        }
-
-        return $this->render($template, array_merge([
-            'forceMenuActiv' => sprintf('account%s', $account->getId()),
-            'account' => $account,
-            'form' => [
-                'filter' => $formFilter->createView(),
-            ],
-        ], $parameters));
     }
 }
