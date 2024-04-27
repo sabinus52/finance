@@ -98,7 +98,7 @@ class Category implements \Stringable
     /**
      * Type (recettes=1 ou dépenses=0).
      */
-    #[ORM\Column(type: Types::SMALLINT)]
+    #[ORM\Column(type: Types::BOOLEAN)]
     private bool $type = self::DEPENSES;
 
     /**

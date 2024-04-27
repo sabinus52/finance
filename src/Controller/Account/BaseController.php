@@ -15,6 +15,7 @@ use App\Entity\Account;
 use App\Entity\Transaction;
 use App\Helper\DateRange;
 use App\Repository\TransactionRepository;
+use App\Transaction\TransactionModelInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormInterface;
@@ -39,7 +40,7 @@ class BaseController extends AbstractController
     /**
      * @param array<mixed> $parameters
      */
-    protected function index(Request $request, Account $account, string $template, array $parameters = []): Response
+    protected function indexAccount(Request $request, Account $account, string $template, array $parameters = []): Response
     {
         $formFilter = $this->createFormFilter();
 
@@ -61,6 +62,35 @@ class BaseController extends AbstractController
                 'filter' => $formFilter->createView(),
             ],
         ], $parameters));
+    }
+
+    /**
+     * Création d'une transaction.
+     */
+    protected function createTransaction(Request $request, Account $account, TransactionModelInterface $modelTransaction): Response
+    {
+        $modelTransaction->setAccount($account);
+        $transaction = $modelTransaction->getTransaction();
+
+        $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions() + ['isNew' => true]);
+        if ($modelTransaction->isTransfer()) {
+            $form->get('source')->setData($transaction->getAccount());
+        }
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid() && $modelTransaction->checkForm($form)) {
+            $modelTransaction->insert($form);
+            $this->addFlash('success', sprintf('La création %s a bien été prise en compte', $modelTransaction->getMessage()));
+
+            return new Response('OK');
+        }
+
+        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
+            'form' => $form,
+            'modal' => [
+                'title' => sprintf('Créer %s', $modelTransaction->getFormTitle()),
+            ],
+        ]);
     }
 
     /**

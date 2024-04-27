@@ -34,7 +34,7 @@ class ReconciliationController extends BaseController
      * Validation du formulaire de saisie du solde à rapprocher.
      */
     #[Route(path: '/account/{id}/reconciliation/create', name: 'reconciliation_create')]
-    public function create(Request $request, Account $account, EntityManagerInterface $entityManager): Response
+    public function createReconciliaton(Request $request, Account $account, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createFormReconBalance($account);
 
@@ -59,7 +59,7 @@ class ReconciliationController extends BaseController
      * Page principale de rapprochement.
      */
     #[Route(path: '/account/{id}/reconciliation', name: 'reconciliation_index')]
-    public function index(Account $account, TransactionRepository $repository): Response
+    public function indexReconciliation(Account $account, TransactionRepository $repository): Response
     {
         $formDelete = $this->createFormBuilder()->getForm();
         $formReconValid = $this->createFormBuilder()->getForm();
@@ -83,7 +83,7 @@ class ReconciliationController extends BaseController
      * Valide le rapprochement.
      */
     #[Route(path: '/account/{id}/reconciliation/valid', name: 'reconciliation_valid')]
-    public function valid(Request $request, Account $account, TransactionRepository $repository, EntityManagerInterface $entityManager): Response
+    public function validReconciliation(Request $request, Account $account, TransactionRepository $repository, EntityManagerInterface $entityManager): Response
     {
         $formReconValid = $this->createFormBuilder()->getForm();
 
@@ -122,7 +122,7 @@ class ReconciliationController extends BaseController
      * Rapproche temporairement une transaction.
      */
     #[Route(path: '/account/reconciliation/{id}', name: 'reconciliation_check')]
-    public function reconcilie(Transaction $transaction, EntityManagerInterface $entityManager): Response
+    public function reconcilieReconciliation(Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         if (Transaction::STATE_RECONTEMP === $transaction->getState()) {
             $transaction->setState(Transaction::STATE_NONE);

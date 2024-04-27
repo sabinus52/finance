@@ -78,13 +78,21 @@
 
                 <div class="row">
                     <div class="col-md-7">
-                        <div class="card card-outline">
-                            <div class="card-header">
-                                <h3 class="card-title">Performance globale</h3>
+                        <div class="card card-tabs">
+                            <div class="card-header p-0 pt-0">
+                                <ul class="nav nav-tabs nav-fill" id="charts-tabs" role="tablist">
+                                    <li class="nav-item"><a class="nav-link active" id="charts-tabs-month-tab" data-toggle="pill" href="#charts-tabs-month" role="tab" aria-controls="charts-tabs-month" aria-selected="true">Evolution du capital</a></li>
+                                    <li class="nav-item"><a class="nav-link" id="charts-tabs-capital-tab" data-toggle="pill" href="#charts-tabs-capital" role="tab" aria-controls="charts-tabs-capital" aria-selected="false">Performance globale</a></li>
+                                </ul>
                             </div>
                             <div class="card-body">
-                                <div class="chart">
-                                    {{ render_chart(charts.month, { style: 'height:350px;'}) }}
+                                <div class="tab-content">
+                                    <div class="tab-pane fade active show" id="charts-tabs-month" role="tabpanel" aria-labelledby="charts-tabs-month-tab">
+                                        <div class="chart">{{ render_chart(charts.capital, { style: 'height:420px;'}) }}</div>
+                                    </div>
+                                    <div class="tab-pane fade" id="charts-tabs-capital" role="tabpanel" aria-labelledby="charts-tabs-capital-tab">
+                                        <div class="chart" style="height:350px">{{ render_chart(charts.month) }}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -155,7 +163,8 @@
                                 <tr>
                                     <td>Performance</td>
                                     {% for item in accounts %}
-                                        <td class="text-center"><strong>{{ mymacro.pourcentage(item.investPerformance, true) }}</strong></td>
+                                        {% set rate = item.investPerformance - total.perf.investPerformance %}
+                                        <td class="text-center"><strong class="text-{% if rate > 0 %}green{% else %}red{% endif %}">{{ mymacro.pourcentage(item.investPerformance, false) }}</strong></td>
                                     {% endfor %}
                                 </tr>
                                 <tr>
@@ -187,7 +196,8 @@
                                 <tr>
                                     <td>{% if i < 12 %}{{ i }} mois{% elseif i == 12 %}1 an{% else %}{{ i / 12 }} ans{% endif %}</td>
                                     {% for item in accounts %}
-                                        <td class="text-center">{% if perfoacc[item.id].slippery[i].previous %}{{ mymacro.pourcentage(perfoacc[item.id].slippery[i].performance, true) }}{% endif %}</th>
+                                        {% set rate = perfoacc[item.id].slippery[i].performance - total.slippery[i].performance %}
+                                        <td class="text-center text-{% if rate > 0 %}green{% else %}red{% endif %}">{% if perfoacc[item.id].slippery[i].previous %}{{ mymacro.pourcentage(perfoacc[item.id].slippery[i].performance, false) }}{% endif %}</th>
                                     {% endfor %}
                                 </tr>
                             {% endfor %}
@@ -214,7 +224,15 @@
                                 <tr>
                                     <td>{{ year }}</td>
                                     {% for item in accounts %}
-                                        <td class="text-center">{% if perfoacc[item.id].year[year] is defined %}{{ mymacro.pourcentage(perfoacc[item.id].year[year].performance, true) }}{% endif %}
+                                        {% set rate = 0 %}
+                                        {% if perfoacc[item.id].year[year] is defined %}{% set rate = perfoacc[item.id].year[year].performance - perf.performance %}{% endif %}
+                                        <td class="text-center">
+                                            {% if perfoacc[item.id].year[year] is defined %}
+                                                <div>{{ mymacro.money(perfoacc[item.id].year[year].valuation, 'EUR', false) }}</div>
+                                                <div class="text-{% if rate > 0 %}green{% else %}red{% endif %}">{{ mymacro.pourcentage(perfoacc[item.id].year[year].performance, false) }}</div>
+                                                <div style="font-size:0.7em">{% if perfoacc[item.id].year[year].versement > 0 %}
+                                                {{ mymacro.money(perfoacc[item.id].year[year].versement, 'EUR', false) }}{% endif %}</div>
+                                            {% endif %}
                                         </td>
                                     {% endfor %}
                                 </tr>
@@ -227,85 +245,42 @@
 
 
 
-            <div class="tab-pane fade show active" id="pills-evolution" role="tabpanel" aria-labelledby="pills-evolution-tab">
+            <div class="tab-pane fade show" id="pills-evolution" role="tabpanel" aria-labelledby="pills-evolution-tab">
+
+                <div class="row">
+                    <div class="col-12">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Date</th>
+                                    <th class="text-center">Total</th>
+                                    {% for item in accounts %}
+                                        <th class="text-center">{{ item.name }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for month, perf in total.month %}
+                                <tr>
+                                    <td>{{ month }}</td>
+                                    <td>{{ mymacro.pourcentage(perf.performance, true) }}</td>
+                                    {% for item in accounts %}
+                                        <th class="text-center">{% if perfoacc[item.id].month[month] is defined %}{{ mymacro.pourcentage(perfoacc[item.id].month[month].performance, true) }}{% endif %}</th>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
             
 
         </div>
 
-
-        <div class="row">
-            <div class="col-12">
-                <table class="table table-hover text-nowrap">
-                    <thead>
-                        <tr>
-                            <th class="text-center">Date</th>
-                            <th class="text-center">Total</th>
-                            {% for item in accounts %}
-                                <th class="text-center">{{ item.name }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for i in [ 1, 3, 6, 12, 36, 60, 120 ] %}
-                        <tr>
-                            <td>{% if i < 12 %}{{ i }} mois{% elseif i == 12 %}1 an{% else %}{{ i / 12 }} ans{% endif %}</td>
-                            <td>{{ mymacro.pourcentage(total.slippery[i].performance, true) }}</td>
-                            {% for item in accounts %}
-                                <td class="text-center">{% if perfoacc[item.id].slippery[i].previous %}{{ mymacro.pourcentage(perfoacc[item.id].slippery[i].performance, true) }}{% endif %}</th>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                    {% for year, perf in total.year %}
-                        <tr>
-                            <td>{{ year }}</td>
-                            <td>
-                                <div>{{ mymacro.money(perf.valuation, 'EUR', false) }}</div>
-                                <div>{{ mymacro.pourcentage(perf.performance, true) }}</div>
-                                <div style="font-size:0.7em">{{ mymacro.money(perf.versement, 'EUR', false) }}</div>
-                            </td>
-                            {% for item in accounts %}
-                                <td class="text-center">
-                                    {% if perfoacc[item.id].year[year] is defined %}
-                                        <div>{{ mymacro.money(perfoacc[item.id].year[year].valuation, 'EUR', false) }}</div>
-                                        <div>{{ mymacro.pourcentage(perfoacc[item.id].year[year].performance, true) }}</div>
-                                        <div style="font-size:0.7em">{{ mymacro.money(perfoacc[item.id].year[year].versement, 'EUR', false) }}</div>
-                                    {% endif %}
-                                </td>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-
-                    {% for month, perf in total.month %}
-                        <tr>
-                            <td>{{ month }}</td>
-                            <td>{{ mymacro.pourcentage(perf.performance, true) }}</td>
-                            {% for item in accounts %}
-                                <th class="text-center">{% if perfoacc[item.id].month[month] is defined %}{{ mymacro.pourcentage(perfoacc[item.id].month[month].performance, true) }}{% endif %}</th>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                        
-                    {#% for item in items %}
-                        <tr>
-                            <td class="text-center">{{ item.period|format_datetime(pattern=format, locale='fr') }}</td>
-                            {% if isVariation %}<td class="text-right">{{ mymacro.money(item.variation, account.currency) }}</td>{% endif %}
-                            <td class="text-right">{{ mymacro.money(item.versement, account.currency, false) }}</td>
-                            {% if isCumulInvesti %}<td class="text-right">{{ mymacro.money(item.investCumul, account.currency, false) }}</td>{% endif %}
-                            <td class="text-right">{{ mymacro.pourcentage(item.performance, true) }}</td>
-                            <td class="text-right">{{ mymacro.pourcentage(item.cumulPerf, false) }}</td>
-                            <td class="text-right">{{ mymacro.money(item.valuation, account.currency, false) }}</td>
-                            <td></td>
-                        </tr>
-                    {% endfor %#}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     </div>
-
 
 {% endblock %}
 

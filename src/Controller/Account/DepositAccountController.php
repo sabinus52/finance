@@ -19,32 +19,45 @@ use App\Helper\DateRange;
 use App\Helper\Report\CategoryReport;
 use App\Repository\ModelRepository;
 use App\Repository\TransactionRepository;
+use App\Transaction\TransactionModelRouter;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\UX\Chartjs\Model\Chart;
 
 /**
- * Controleur de compte de dépôt.
+ * Controleur des comptes de dépôt.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-final class DepositController extends BaseController
+final class DepositAccountController extends BaseController
 {
     /**
      * Page d'un compte de dépôt.
      */
-    #[Route(path: '/compte-courant/{id}', name: 'account_1_index')]
+    #[Route(path: '/compte-courant/{id}', name: 'account_1_index', requirements: ['id' => '\d+'])]
     public function indexDeposit(Request $request, Account $account, TransactionRepository $transactionRepository, ModelRepository $modelRepository): Response
     {
         $this->account = $account;
 
-        return $this->index($request, $account, 'account/1deposit.html.twig', [
+        return $this->indexAccount($request, $account, 'account/1deposit.html.twig', [
             'categories' => $this->getCategoriesChart($transactionRepository),
             'balances' => $this->getPredictBalanceChart($transactionRepository, $modelRepository),
         ]);
+    }
+
+    /**
+     * Création d'une transaction de frais de véhicule.
+     */
+    #[Route(path: '/account/{id}/create/transaction/vehicle/{type}', name: 'transaction_create_vehicle', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function createTransactionVehicle(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
+    {
+        $router = new TransactionModelRouter($entityManager);
+
+        return $this->createTransaction($request, $account, $router->createVehicle($type));
     }
 
     /**

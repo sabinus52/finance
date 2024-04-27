@@ -137,8 +137,9 @@ rector: ## Analyse de la qualité du code en suivant les recommandations
 rector-fix: # Corrige de la qualité du code en suivant les recommandations
 	@rector process
 
-
-include finance.mk
+ifneq (,$(wildcard ./finance.mk))
+    include finance.mk
+endif
 
 ##
 ##

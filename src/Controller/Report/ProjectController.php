@@ -14,6 +14,7 @@ namespace App\Controller\Report;
 use App\Charts\CategoryChart;
 use App\Entity\Project;
 use App\Entity\Transaction;
+use App\Helper\Report\CategoryReport;
 use App\Repository\ProjectRepository;
 use App\Repository\TransactionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -46,9 +47,10 @@ class ProjectController extends AbstractController
     {
         $chart = new CategoryChart();
         $transactions = $repository->findAllByProject($project);
-        $categories = $this->reGroupTotalAmountByCategory($transactions);
 
-        // Liste des transactions non sélectionnées durant la période du projet
+        // Calcul de la somme total par regroupement des catégories.
+        $reportCategory = new CategoryReport();
+        $categories = $reportCategory->reGroupTotalAmountByCategory($transactions);
 
         return $this->render('report/project-item.html.twig', [
             'project' => $project,
@@ -57,32 +59,6 @@ class ProjectController extends AbstractController
             'chart' => $chart->getChart($categories),
             'transactionsToComplete' => $this->getTransactionsToComplete($project, $repository),
         ]);
-    }
-
-    /**
-     * Calcul de la somme total par regroupement des catégories.
-     *
-     * @param Transaction[] $transactions
-     *
-     * @return array<mixed>
-     */
-    private function reGroupTotalAmountByCategory(array $transactions): array
-    {
-        $categories = [];
-
-        foreach ($transactions as $transaction) {
-            $idCat = $transaction->getCategory()->getId();
-            if (!array_key_exists($idCat, $categories)) {
-                $categories[$idCat] = [
-                    'datas' => $transaction->getCategory(),
-                    'total' => 0.0,
-                ];
-            }
-            $categories[$idCat]['total'] += $transaction->getAmount();
-        }
-        usort($categories, static fn ($aaa, $bbb): bool => $aaa['total'] > $bbb['total']);  /** @phpstan-ignore-line */
-
-        return $categories;
     }
 
     /**

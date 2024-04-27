@@ -12,14 +12,10 @@ declare(strict_types=1);
 namespace App\Controller\Account;
 
 use App\Entity\Account;
-use App\Entity\Stock;
 use App\Entity\Transaction;
 use App\Entity\TransactionStock;
 use App\Entity\TransactionVehicle;
-use App\Repository\TransactionRepository;
-use App\Transaction\TransactionModelInterface;
 use App\Transaction\TransactionModelRouter;
-use App\Values\StockPosition;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,131 +25,46 @@ use Symfony\Component\Routing\Annotation\Route;
  * Controller des transactions.
  *
  * @author Sabinus52 <sabinus52@gmail.com>
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class TransactionController extends BaseController
 {
     /**
      * Création d'une transaction standard par type (recette ou dépense).
      */
-    #[Route(path: '/account/{id}/create/transaction/bytype/{type}', name: 'transaction_create_bytype', methods: ['GET', 'POST'])]
+    #[Route(path: '/account/{id}/create/transaction/bytype/{type}', name: 'transaction_create_bytype', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function createTransactionByType(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
 
-        return $this->create($request, $account, $router->createStandardByType((bool) $type));
+        return $this->createTransaction($request, $account, $router->createStandardByType((bool) $type));
     }
 
     /**
      * Création d'une transaction standard par catégorie (interet, etc).
      */
-    #[Route(path: '/account/{id}/create/transaction/bycat/{codecat}', name: 'transaction_create_bycat', methods: ['GET', 'POST'])]
+    #[Route(path: '/account/{id}/create/transaction/bycat/{codecat}', name: 'transaction_create_bycat', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function createTransactionByCategory(Request $request, Account $account, string $codecat, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
 
-        return $this->create($request, $account, $router->createStandardByCategory($codecat));
+        return $this->createTransaction($request, $account, $router->createStandardByCategory($codecat));
     }
 
     /**
      * Création d'un virement.
      */
-    #[Route(path: '/account/{id}/create/transfer/{type}', name: 'transfer_create', methods: ['GET', 'POST'])]
+    #[Route(path: '/account/{id}/create/transfer/{type}', name: 'transfer_create', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function createTransfer(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
 
-        return $this->create($request, $account, $router->createTransferByCategory($type));
-    }
-
-    /**
-     * Création d'une valorisation sur un placement.
-     */
-    #[Route(path: '/account/{id}/create/capital', name: 'capital_create', methods: ['GET', 'POST'])]
-    public function createValorisation(Request $request, Account $account, EntityManagerInterface $entityManager, TransactionRepository $repository): Response
-    {
-        // Recherche la dernière transaction de valorisation
-        $last = $repository->findOneLastValorisation($account);
-        $date = new \DateTimeImmutable();
-        if ($last instanceof Transaction) {
-            $date = clone $last->getDate()->modify('+ 15 days');
-        }
-
-        $router = new TransactionModelRouter($entityManager);
-
-        return $this->create($request, $account, $router->createRevaluation($date));
-    }
-
-    /**
-     * Création d'une transaction de frais de véhicule.
-     */
-    #[Route(path: '/account/{id}/create/transaction/vehicle/{type}', name: 'transaction_create_vehicle', methods: ['GET', 'POST'])]
-    public function createTransactionVehicle(Request $request, Account $account, string $type, EntityManagerInterface $entityManager): Response
-    {
-        $router = new TransactionModelRouter($entityManager);
-
-        return $this->create($request, $account, $router->createVehicle($type));
-    }
-
-    /**
-     * Création d'une transaction d'une opération boursière.
-     */
-    #[Route(path: '/account/{id}/create/transaction/stock/{type}', name: 'transaction_create_wallet', methods: ['GET', 'POST'])]
-    public function createTransactionStock(Request $request, Account $account, int $type, EntityManagerInterface $entityManager): Response
-    {
-        $router = new TransactionModelRouter($entityManager);
-
-        return $this->create($request, $account, $router->createStock(new StockPosition($type)));
-    }
-
-    /**
-     * Création d'une transaction d'une opération boursière.
-     */
-    #[Route(path: '/account/{id}/create/transaction/stock/{type}/{stock}', name: 'transaction_create_wallet_stock', methods: ['GET', 'POST'])]
-    public function createTransactionStockWithStock(Request $request, Account $account, int $type, Stock $stock, EntityManagerInterface $entityManager): Response
-    {
-        $router = new TransactionModelRouter($entityManager);
-
-        $model = $router->createStock(new StockPosition($type));
-        $model->setDatas(['transactionStock' => ['stock' => $stock]]);
-
-        return $this->create($request, $account, $model);
-    }
-
-    /**
-     * Création d'une transaction.
-     */
-    private function create(Request $request, Account $account, TransactionModelInterface $modelTransaction): Response
-    {
-        $modelTransaction->setAccount($account);
-        $transaction = $modelTransaction->getTransaction();
-
-        $form = $this->createForm($modelTransaction->getFormClass(), $transaction, $modelTransaction->getFormOptions() + ['isNew' => true]);
-        if ($modelTransaction->isTransfer()) {
-            $form->get('source')->setData($transaction->getAccount());
-        }
-
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid() && $modelTransaction->checkForm($form)) {
-            $modelTransaction->insert($form);
-            $this->addFlash('success', sprintf('La création %s a bien été prise en compte', $modelTransaction->getMessage()));
-
-            return new Response('OK');
-        }
-
-        return $this->render('@OlixBackOffice/Include/modal-form-horizontal.html.twig', [
-            'form' => $form,
-            'modal' => [
-                'title' => sprintf('Créer %s', $modelTransaction->getFormTitle()),
-            ],
-        ]);
+        return $this->createTransaction($request, $account, $router->createTransferByCategory($type));
     }
 
     /**
      * Mets à jour une transaction.
      */
-    #[Route(path: '/account/transactions/edit/{id}', name: 'transaction__edit', methods: ['GET', 'POST'])]
+    #[Route(path: '/account/transactions/edit/{id}', name: 'transaction__edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function update(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         if ($this->checkUpdate($transaction) instanceof Response) {
@@ -193,7 +104,7 @@ class TransactionController extends BaseController
     /**
      * Clone une transaction.
      */
-    #[Route(path: '/account/transactions/clone/{id}', name: 'transaction__clone', methods: ['GET', 'POST'])]
+    #[Route(path: '/account/transactions/clone/{id}', name: 'transaction__clone', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function clone(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         $router = new TransactionModelRouter($entityManager);
@@ -241,7 +152,7 @@ class TransactionController extends BaseController
     /**
      * Supprime une transaction.
      */
-    #[Route(path: '/account/transactions/remove/{id}', name: 'transaction__remove')]
+    #[Route(path: '/account/transactions/remove/{id}', name: 'transaction__remove', requirements: ['id' => '\d+'])]
     public function remove(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
         if ($this->checkUpdate($transaction) instanceof Response) {

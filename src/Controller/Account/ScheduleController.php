@@ -31,7 +31,7 @@ class ScheduleController extends AbstractController
     /**
      * Valide une planification en créant la transaction associée.
      */
-    #[Route(path: '/schedule/valid/{id}', name: 'schedule_valid')]
+    #[Route(path: '/schedule/valid/{id}', name: 'schedule_valid', requirements: ['id' => '\d+'])]
     public function valid(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
@@ -57,7 +57,7 @@ class ScheduleController extends AbstractController
     /**
      * Valide une planification en créant la transaction associée via le formulaire.
      */
-    #[Route(path: '/schedule/checkvalid/{id}', name: 'schedule_checkvalid')]
+    #[Route(path: '/schedule/checkvalid/{id}', name: 'schedule_checkvalid', requirements: ['id' => '\d+'])]
     public function checkAndValid(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
@@ -94,7 +94,7 @@ class ScheduleController extends AbstractController
     /**
      * Ignore cette planification.
      */
-    #[Route(path: '/schedule/skip/{id}', name: 'schedule_skip')]
+    #[Route(path: '/schedule/skip/{id}', name: 'schedule_skip', requirements: ['id' => '\d+'])]
     public function skip(Request $request, Model $model, EntityManagerInterface $entityManager): Response
     {
         $schedule = $model->getSchedule();
