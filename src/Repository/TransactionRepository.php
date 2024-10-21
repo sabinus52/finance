@@ -161,7 +161,7 @@ class TransactionRepository extends ServiceEntityRepository
             ->setParameter('account', $account)
             ->setParameter('date', $date->format('Y-m-d'))
             ->addOrderBy('trt.date', 'DESC')
-            ->addOrderBy('cat.type', 'DESC')
+            ->addOrderBy('cat.type', 'ASC')
             ->addOrderBy('trt.id', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
